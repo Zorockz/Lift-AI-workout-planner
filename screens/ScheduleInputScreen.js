@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
-import { COLORS, FONTS, SPACING } from '../utils/constants';
+import { View, Text, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import OnboardingHeader from '../components/OnboardingHeader';
+import OnboardingButtonRow from '../components/OnboardingButtonRow';
 import CustomSlider from '../components/Slider';
-import Button from '../components/Button';
 
 const ScheduleInputScreen = ({ navigation }) => {
   const [daysPerWeek, setDaysPerWeek] = useState(3);
@@ -30,42 +30,28 @@ const ScheduleInputScreen = ({ navigation }) => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <Text style={styles.title}>How many days per week can you work out?</Text>
-        </View>
-
-        <View style={styles.sliderContainer}>
-          <CustomSlider
-            value={daysPerWeek}
-            onValueChange={handleValueChange}
-            minimumValue={1}
-            maximumValue={7}
-            step={1}
-          />
-        </View>
-
-        <View style={styles.footer}>
-          <View style={styles.buttonRow}>
-            <TouchableOpacity 
-              style={styles.backButton}
-              onPress={handleBack}
-            >
-              <Text style={styles.backButtonText}>Back</Text>
-            </TouchableOpacity>
-
-            <Button
-              title="Next"
-              onPress={handleNext}
-              style={[
-                styles.nextButton,
-                !hasInteracted && styles.nextButtonDisabled,
-              ]}
-              textStyle={!hasInteracted && styles.nextButtonTextDisabled}
-            />
-          </View>
-        </View>
+      <View style={styles.spacer} />
+      <OnboardingHeader
+        title="Workout Frequency"
+        onBack={handleBack}
+        onSkip={null}
+        showSkip={false}
+      />
+      <Text style={styles.title}>How many days per week can you work out?</Text>
+      <View style={styles.sliderContainer}>
+        <CustomSlider
+          value={daysPerWeek}
+          onValueChange={handleValueChange}
+          minimumValue={1}
+          maximumValue={7}
+          step={1}
+        />
       </View>
+      <OnboardingButtonRow
+        onBack={handleBack}
+        onNext={handleNext}
+        nextEnabled={hasInteracted}
+      />
     </KeyboardAvoidingView>
   );
 };
@@ -73,53 +59,24 @@ const ScheduleInputScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: '#FFFFFF',
   },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: SPACING.lg,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: SPACING.xl,
+  spacer: {
+    height: '15%',
+    width: '100%',
   },
   title: {
     fontSize: 28,
-    ...FONTS.bold,
-    color: COLORS.text,
+    fontWeight: 'bold',
+    color: '#1B365D',
     textAlign: 'center',
+    marginTop: 24,
+    marginBottom: 24,
+    paddingHorizontal: 24,
   },
   sliderContainer: {
-    marginVertical: SPACING.xl,
-  },
-  footer: {
-    marginTop: 'auto',
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    marginVertical: 24,
     alignItems: 'center',
-    gap: SPACING.md,
-  },
-  backButton: {
-    padding: SPACING.md,
-    minWidth: 80,
-    alignItems: 'center',
-  },
-  backButtonText: {
-    fontSize: 16,
-    ...FONTS.medium,
-    color: COLORS.primary,
-  },
-  nextButton: {
-    flex: 1,
-  },
-  nextButtonDisabled: {
-    backgroundColor: '#E5E5E5',
-  },
-  nextButtonTextDisabled: {
-    color: '#999999',
   },
 });
 

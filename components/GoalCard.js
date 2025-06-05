@@ -1,20 +1,20 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
-import { COLORS, FONTS, SPACING } from '../utils/constants';
 
 const GoalCard = ({ title, description, isSelected, onPress }) => {
   return (
     <TouchableOpacity
       style={[styles.container, isSelected && styles.selectedContainer]}
       onPress={onPress}
+      activeOpacity={0.85}
     >
       <View style={styles.content}>
-        <Text style={[styles.title, isSelected && styles.selectedText]}>
+        <Text style={[styles.title, isSelected ? styles.selectedText : styles.unselectedText]}>
           {title}
         </Text>
-        <Text style={[styles.description, isSelected && styles.selectedText]}>
-          {description}
-        </Text>
+        {description ? (
+          <Text style={styles.description}>{description}</Text>
+        ) : null}
       </View>
     </TouchableOpacity>
   );
@@ -22,39 +22,40 @@ const GoalCard = ({ title, description, isSelected, onPress }) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: COLORS.background,
-    borderRadius: 12,
-    padding: SPACING.md,
-    marginVertical: SPACING.sm,
+    backgroundColor: '#1E1E1E',
+    borderRadius: 10,
     borderWidth: 2,
-    borderColor: COLORS.primary,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderColor: '#FF3366',
+    height: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    flex: 1,
+    marginHorizontal: 8,
+    minWidth: 0,
   },
   selectedContainer: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: '#FF3366',
   },
   content: {
-    gap: SPACING.xs,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
-    fontSize: 18,
-    ...FONTS.bold,
-    color: COLORS.text,
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  selectedText: {
+    color: '#FFFFFF',
+  },
+  unselectedText: {
+    color: '#E0E0E0',
   },
   description: {
     fontSize: 14,
-    ...FONTS.regular,
-    color: COLORS.textLight,
-  },
-  selectedText: {
-    color: COLORS.background,
+    color: '#E0E0E0',
+    textAlign: 'center',
   },
 });
 

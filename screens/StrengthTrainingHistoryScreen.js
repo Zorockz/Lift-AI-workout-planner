@@ -4,27 +4,24 @@ import OnboardingHeader from '../components/OnboardingHeader';
 import OnboardingCard from '../components/OnboardingCard';
 import OnboardingButtonRow from '../components/OnboardingButtonRow';
 
-// Dummy data for fitness goals
-const FITNESS_GOALS = [
-  { id: '1', label: 'Lose Weight', description: 'Burn fat and achieve a healthier body composition' },
-  { id: '2', label: 'Build Muscle', description: 'Increase muscle mass and strength' },
-  { id: '3', label: 'Improve Endurance', description: 'Enhance overall fitness and endurance' },
-  { id: '4', label: 'Maintain Health', description: 'Stay active and maintain current fitness level' },
+const EXPERIENCE_OPTIONS = [
+  { id: '4plus', label: '4+ Years', description: 'Extensive strength training experience' },
+  { id: '2to4', label: '2–4 Years', description: 'Consistent training for a few years' },
+  { id: '1to2', label: '1–2 Years', description: 'Some experience, still learning' },
+  { id: '6to12', label: '6–12 Months', description: 'Recently started strength training' },
+  { id: 'none', label: 'None (Just Starting)', description: 'No prior strength training experience' },
 ];
 
-const GoalSelectionScreen = ({ navigation }) => {
-  const [selectedGoal, setSelectedGoal] = useState(null);
+const StrengthTrainingHistoryScreen = ({ navigation }) => {
+  const [selected, setSelected] = useState(null);
 
-  const handleGoalSelect = (goalId) => {
-    setSelectedGoal(goalId);
+  const handleSelect = (id) => {
+    setSelected(id);
   };
 
   const handleNext = () => {
-    if (selectedGoal) {
-      const selectedGoalData = FITNESS_GOALS.find(goal => goal.id === selectedGoal);
-      navigation.navigate('StrengthTrainingHistory', {
-        goal: selectedGoalData.label
-      });
+    if (selected) {
+      navigation.navigate('ExperienceLevel', { experience: selected });
     }
   };
 
@@ -33,34 +30,34 @@ const GoalSelectionScreen = ({ navigation }) => {
   };
 
   const handleSkip = () => {
-    navigation.navigate('StrengthTrainingHistory');
+    navigation.navigate('ExperienceLevel');
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.spacer} />
       <OnboardingHeader
-        title="Fitness Goal"
+        title="Strength Training"
         onBack={handleBack}
         onSkip={handleSkip}
         showSkip={true}
       />
-      <Text style={styles.title}>What's your main fitness goal?</Text>
+      <Text style={styles.title}>How long have you been doing strength training?</Text>
       <ScrollView contentContainerStyle={styles.cardList} showsVerticalScrollIndicator={false}>
-        {FITNESS_GOALS.map(goal => (
+        {EXPERIENCE_OPTIONS.map(option => (
           <OnboardingCard
-            key={goal.id}
-            label={goal.label}
-            description={goal.description}
-            isSelected={selectedGoal === goal.id}
-            onPress={() => handleGoalSelect(goal.id)}
+            key={option.id}
+            label={option.label}
+            description={option.description}
+            isSelected={selected === option.id}
+            onPress={() => handleSelect(option.id)}
           />
         ))}
       </ScrollView>
       <OnboardingButtonRow
         onBack={handleBack}
         onNext={handleNext}
-        nextEnabled={!!selectedGoal}
+        nextEnabled={!!selected}
       />
     </View>
   );
@@ -90,4 +87,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default GoalSelectionScreen; 
+export default StrengthTrainingHistoryScreen; 

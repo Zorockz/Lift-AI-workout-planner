@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Text } from 'react-native';
-import OnboardingHeader from '../components/OnboardingHeader';
-import OnboardingCard from '../components/OnboardingCard';
-import OnboardingButtonRow from '../components/OnboardingButtonRow';
+import OnboardingHeader from '../../components/OnboardingHeader';
+import OnboardingCard from '../../components/OnboardingCard';
+import OnboardingButtonRow from '../../components/OnboardingButtonRow';
+import ProgressBar from '../../components/ProgressBar';
+import { useOnboarding } from '../../OnboardingContext';
+import { commonStyles, colors, dimensions } from '../../utils/styles';
 
 const EXPERIENCE_OPTIONS = [
   { id: '4plus', label: '4+ Years', description: 'Extensive strength training experience' },
@@ -14,34 +17,34 @@ const EXPERIENCE_OPTIONS = [
 
 const StrengthTrainingHistoryScreen = ({ navigation }) => {
   const [selected, setSelected] = useState(null);
+  const { updateOnboarding, onboarding, incrementStep, decrementStep } = useOnboarding();
 
-  const handleSelect = (id) => {
-    setSelected(id);
+  const handleSelect = (history) => {
+    setSelected(history);
   };
 
   const handleNext = () => {
     if (selected) {
-      navigation.navigate('ExperienceLevel', { experience: selected });
+      updateOnboarding({ strengthHistory: selected });
+      navigation.navigate('EquipmentInput');
     }
   };
 
   const handleBack = () => {
+    decrementStep();
     navigation.goBack();
-  };
-
-  const handleSkip = () => {
-    navigation.navigate('ExperienceLevel');
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.spacer} />
       <OnboardingHeader
-        title="Strength Training"
+        title="Training History"
         onBack={handleBack}
-        onSkip={handleSkip}
-        showSkip={true}
+        onSkip={null}
+        showSkip={false}
       />
+      <ProgressBar currentStep={5} totalSteps={15} />
       <Text style={styles.title}>How long have you been doing strength training?</Text>
       <ScrollView contentContainerStyle={styles.cardList} showsVerticalScrollIndicator={false}>
         {EXPERIENCE_OPTIONS.map(option => (

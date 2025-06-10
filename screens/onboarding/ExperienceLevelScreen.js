@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Text } from 'react-native';
-import OnboardingHeader from '../components/OnboardingHeader';
-import OnboardingCard from '../components/OnboardingCard';
-import OnboardingButtonRow from '../components/OnboardingButtonRow';
+import OnboardingHeader from '../../components/OnboardingHeader';
+import OnboardingCard from '../../components/OnboardingCard';
+import OnboardingButtonRow from '../../components/OnboardingButtonRow';
+import ProgressBar from '../../components/ProgressBar';
+import { useOnboarding } from '../../OnboardingContext';
+import { commonStyles, colors, dimensions } from '../../utils/styles';
 
 const EXPERIENCE_LEVELS = [
   {
-    id: 'beginner',
-    label: 'Beginner',
-    description: 'Little to no gym experience',
+    id: 'advanced',
+    label: 'Advanced',
+    description: 'Competitive or coach level',
   },
   {
     id: 'intermediate',
@@ -16,42 +19,42 @@ const EXPERIENCE_LEVELS = [
     description: 'Regular gym-goer, some experience',
   },
   {
-    id: 'advanced',
-    label: 'Advanced',
-    description: 'Competitive or coach level',
+    id: 'beginner',
+    label: 'Beginner',
+    description: 'Little to no gym experience',
   },
 ];
 
 const ExperienceLevelScreen = ({ navigation }) => {
   const [selected, setSelected] = useState(null);
+  const { updateOnboarding, onboarding, incrementStep, decrementStep } = useOnboarding();
 
-  const handleSelect = (id) => {
-    setSelected(id);
+  const handleSelect = (level) => {
+    setSelected(level);
   };
 
   const handleNext = () => {
     if (selected) {
-      navigation.navigate('ScheduleInput', { experienceLevel: selected });
+      updateOnboarding({ experienceLevel: selected });
+      navigation.navigate('StrengthTrainingHistory');
     }
   };
 
   const handleBack = () => {
+    decrementStep();
     navigation.goBack();
-  };
-
-  const handleSkip = () => {
-    navigation.navigate('ScheduleInput');
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.spacer} />
       <OnboardingHeader
-        title="Fitness Experience"
+        title="Experience Level"
         onBack={handleBack}
-        onSkip={handleSkip}
-        showSkip={true}
+        onSkip={null}
+        showSkip={false}
       />
+      <ProgressBar currentStep={4} totalSteps={15} />
       <Text style={styles.title}>How would you describe your training experience?</Text>
       <ScrollView contentContainerStyle={styles.cardList} showsVerticalScrollIndicator={false}>
         {EXPERIENCE_LEVELS.map(level => (

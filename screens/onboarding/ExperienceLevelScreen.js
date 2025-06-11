@@ -1,41 +1,19 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Text } from 'react-native';
+import OnboardingOptionCard from '../../components/OnboardingOptionCard';
 import OnboardingHeader from '../../components/OnboardingHeader';
-import OnboardingCard from '../../components/OnboardingCard';
 import OnboardingButtonRow from '../../components/OnboardingButtonRow';
 import ProgressBar from '../../components/ProgressBar';
 import { useOnboarding } from '../../OnboardingContext';
-import { commonStyles, colors, dimensions } from '../../utils/styles';
-
-const EXPERIENCE_LEVELS = [
-  {
-    id: 'advanced',
-    label: 'Advanced',
-    description: 'Competitive or coach level',
-  },
-  {
-    id: 'intermediate',
-    label: 'Intermediate',
-    description: 'Regular gym-goer, some experience',
-  },
-  {
-    id: 'beginner',
-    label: 'Beginner',
-    description: 'Little to no gym experience',
-  },
-];
 
 const ExperienceLevelScreen = ({ navigation }) => {
-  const [selected, setSelected] = useState(null);
-  const { updateOnboarding, onboarding, incrementStep, decrementStep } = useOnboarding();
-
-  const handleSelect = (level) => {
-    setSelected(level);
-  };
+  const { updateOnboarding, incrementStep, decrementStep } = useOnboarding();
+  const [selectedLevel, setSelectedLevel] = useState(null);
 
   const handleNext = () => {
-    if (selected) {
-      updateOnboarding({ experienceLevel: selected });
+    if (selectedLevel) {
+      updateOnboarding({ experienceLevel: selectedLevel });
+      incrementStep();
       navigation.navigate('StrengthTrainingHistory');
     }
   };
@@ -44,6 +22,33 @@ const ExperienceLevelScreen = ({ navigation }) => {
     decrementStep();
     navigation.goBack();
   };
+
+  const experienceOptions = [
+    {
+      title: 'Beginner',
+      description: 'New to strength training',
+      icon: 'weight-lifter',
+      value: 'beginner',
+      iconColor: '#4CAF50',
+      iconBackground: '#E8F5E9'
+    },
+    {
+      title: 'Intermediate',
+      description: '1-2 years of experience',
+      icon: 'dumbbell',
+      value: 'intermediate',
+      iconColor: '#FF9800',
+      iconBackground: '#FFF3E0'
+    },
+    {
+      title: 'Advanced',
+      description: '3+ years of experience',
+      icon: 'weight',
+      value: 'advanced',
+      iconColor: '#F44336',
+      iconBackground: '#FFEBEE'
+    }
+  ];
 
   return (
     <View style={styles.container}>
@@ -54,23 +59,32 @@ const ExperienceLevelScreen = ({ navigation }) => {
         onSkip={null}
         showSkip={false}
       />
-      <ProgressBar currentStep={4} totalSteps={15} />
-      <Text style={styles.title}>How would you describe your training experience?</Text>
-      <ScrollView contentContainerStyle={styles.cardList} showsVerticalScrollIndicator={false}>
-        {EXPERIENCE_LEVELS.map(level => (
-          <OnboardingCard
-            key={level.id}
-            label={level.label}
-            description={level.description}
-            isSelected={selected === level.id}
-            onPress={() => handleSelect(level.id)}
+      <ProgressBar currentStep={4} totalSteps={12} />
+      <Text style={styles.title}>What's your experience level?</Text>
+      
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {experienceOptions.map((option) => (
+          <OnboardingOptionCard
+            key={option.value}
+            title={option.title}
+            description={option.description}
+            icon={option.icon}
+            isSelected={selectedLevel === option.value}
+            onSelect={() => setSelectedLevel(option.value)}
+            iconColor={option.iconColor}
+            iconBackground={option.iconBackground}
           />
         ))}
       </ScrollView>
+
       <OnboardingButtonRow
-        onBack={handleBack}
         onNext={handleNext}
-        nextEnabled={!!selected}
+        onBack={handleBack}
+        nextEnabled={!!selectedLevel}
       />
     </View>
   );
@@ -86,17 +100,17 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#1B365D',
-    textAlign: 'center',
-    marginTop: 24,
+    marginHorizontal: 24,
     marginBottom: 24,
-    paddingHorizontal: 24,
   },
-  cardList: {
-    paddingHorizontal: 16,
-    paddingBottom: 32,
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 24,
   },
 });
 

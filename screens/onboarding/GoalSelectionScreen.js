@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import OnboardingHeader from '../../components/OnboardingHeader';
 import OnboardingButtonRow from '../../components/OnboardingButtonRow';
 import ProgressBar from '../../components/ProgressBar';
@@ -10,21 +11,33 @@ const FITNESS_GOALS = [
     id: 'lose_weight',
     label: 'Lose Weight',
     description: 'Burn fat and get leaner',
+    icon: 'weight-lifter',
+    iconColor: '#4CAF50',
+    iconBackground: '#E8F5E9'
   },
   {
     id: 'build_muscle',
     label: 'Build Muscle',
     description: 'Gain strength and muscle mass',
+    icon: 'dumbbell',
+    iconColor: '#2196F3',
+    iconBackground: '#E3F2FD'
   },
   {
     id: 'improve_fitness',
     label: 'Improve Fitness',
     description: 'Enhance overall fitness and endurance',
+    icon: 'run',
+    iconColor: '#FF9800',
+    iconBackground: '#FFF3E0'
   },
   {
     id: 'maintain',
     label: 'Maintain',
     description: 'Stay in shape and maintain current fitness',
+    icon: 'heart-pulse',
+    iconColor: '#9C27B0',
+    iconBackground: '#F3E5F5'
   },
 ];
 
@@ -39,6 +52,7 @@ const GoalSelectionScreen = ({ navigation }) => {
   const handleNext = () => {
     if (selected) {
       updateOnboarding({ goal: selected });
+      incrementStep();
       navigation.navigate('ExperienceLevel');
     }
   };
@@ -69,30 +83,40 @@ const GoalSelectionScreen = ({ navigation }) => {
             ]}
             onPress={() => handleSelect(goal.id)}
           >
-            <View>
-              <Text
-                style={[
-                  styles.label,
-                  selected === goal.id ? styles.labelSelected : styles.labelUnselected,
-                ]}
-              >
-                {goal.label}
-              </Text>
-              <Text
-                style={[
-                  styles.description,
-                  selected === goal.id ? styles.descriptionSelected : styles.descriptionUnselected,
-                ]}
-              >
-                {goal.description}
-              </Text>
+            <View style={styles.cardContent}>
+              <View style={[styles.iconContainer, { backgroundColor: goal.iconBackground }]}>
+                <MaterialCommunityIcons 
+                  name={goal.icon} 
+                  size={24} 
+                  color={goal.iconColor} 
+                />
+              </View>
+              <View style={styles.textContainer}>
+                <Text
+                  style={[
+                    styles.label,
+                    selected === goal.id ? styles.labelSelected : styles.labelUnselected,
+                  ]}
+                >
+                  {goal.label}
+                </Text>
+                <Text
+                  style={[
+                    styles.description,
+                    selected === goal.id ? styles.descriptionSelected : styles.descriptionUnselected,
+                  ]}
+                >
+                  {goal.description}
+                </Text>
+              </View>
             </View>
           </TouchableOpacity>
         ))}
       </ScrollView>
+
       <OnboardingButtonRow
-        onBack={handleBack}
         onNext={handleNext}
+        onBack={handleBack}
         nextEnabled={!!selected}
       />
     </View>
@@ -119,38 +143,53 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   card: {
-    padding: 20,
     borderRadius: 12,
+    padding: 16,
     marginBottom: 16,
     borderWidth: 2,
   },
-  cardUnselected: {
-    backgroundColor: '#F7F8FA',
-    borderColor: '#E2E5EA',
-  },
   cardSelected: {
-    backgroundColor: '#2075FF',
-    borderColor: '#2075FF',
+    borderColor: '#1B365D',
+    backgroundColor: '#F5F7FA',
+  },
+  cardUnselected: {
+    borderColor: '#E0E0E0',
+    backgroundColor: '#FFFFFF',
+  },
+  cardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  textContainer: {
+    flex: 1,
   },
   label: {
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 4,
   },
-  labelUnselected: {
+  labelSelected: {
     color: '#1B365D',
   },
-  labelSelected: {
-    color: '#FFFFFF',
+  labelUnselected: {
+    color: '#333333',
   },
   description: {
     fontSize: 14,
   },
-  descriptionUnselected: {
-    color: '#6C7580',
-  },
   descriptionSelected: {
-    color: '#FFFFFF',
+    color: '#666666',
+  },
+  descriptionUnselected: {
+    color: '#999999',
   },
 });
 

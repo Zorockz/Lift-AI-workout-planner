@@ -1,31 +1,19 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Text } from 'react-native';
+import OnboardingOptionCard from '../../components/OnboardingOptionCard';
 import OnboardingHeader from '../../components/OnboardingHeader';
-import OnboardingCard from '../../components/OnboardingCard';
 import OnboardingButtonRow from '../../components/OnboardingButtonRow';
 import ProgressBar from '../../components/ProgressBar';
 import { useOnboarding } from '../../OnboardingContext';
-import { commonStyles, colors, dimensions } from '../../utils/styles';
-
-const EXPERIENCE_OPTIONS = [
-  { id: '4plus', label: '4+ Years', description: 'Extensive strength training experience' },
-  { id: '2to4', label: '2–4 Years', description: 'Consistent training for a few years' },
-  { id: '1to2', label: '1–2 Years', description: 'Some experience, still learning' },
-  { id: '6to12', label: '6–12 Months', description: 'Recently started strength training' },
-  { id: 'none', label: 'None (Just Starting)', description: 'No prior strength training experience' },
-];
 
 const StrengthTrainingHistoryScreen = ({ navigation }) => {
-  const [selected, setSelected] = useState(null);
-  const { updateOnboarding, onboarding, incrementStep, decrementStep } = useOnboarding();
-
-  const handleSelect = (history) => {
-    setSelected(history);
-  };
+  const { updateOnboarding, incrementStep, decrementStep } = useOnboarding();
+  const [selectedHistory, setSelectedHistory] = useState(null);
 
   const handleNext = () => {
-    if (selected) {
-      updateOnboarding({ strengthHistory: selected });
+    if (selectedHistory) {
+      updateOnboarding({ strengthTrainingHistory: selectedHistory });
+      incrementStep();
       navigation.navigate('EquipmentInput');
     }
   };
@@ -34,6 +22,41 @@ const StrengthTrainingHistoryScreen = ({ navigation }) => {
     decrementStep();
     navigation.goBack();
   };
+
+  const historyOptions = [
+    {
+      title: 'Never',
+      description: 'No previous strength training experience',
+      icon: 'clock-outline',
+      value: 'never',
+      iconColor: '#9E9E9E',
+      iconBackground: '#F5F5F5'
+    },
+    {
+      title: 'Less than 6 months',
+      description: 'Some experience but less than 6 months',
+      icon: 'clock-time-four-outline',
+      value: 'less_than_6_months',
+      iconColor: '#4CAF50',
+      iconBackground: '#E8F5E9'
+    },
+    {
+      title: '6-12 months',
+      description: 'Consistent training for 6-12 months',
+      icon: 'clock-time-five-outline',
+      value: '6_to_12_months',
+      iconColor: '#2196F3',
+      iconBackground: '#E3F2FD'
+    },
+    {
+      title: 'More than 1 year',
+      description: 'Over a year of consistent training',
+      icon: 'clock-time-eight-outline',
+      value: 'more_than_1_year',
+      iconColor: '#9C27B0',
+      iconBackground: '#F3E5F5'
+    }
+  ];
 
   return (
     <View style={styles.container}>
@@ -44,23 +67,32 @@ const StrengthTrainingHistoryScreen = ({ navigation }) => {
         onSkip={null}
         showSkip={false}
       />
-      <ProgressBar currentStep={5} totalSteps={15} />
-      <Text style={styles.title}>How long have you been doing strength training?</Text>
-      <ScrollView contentContainerStyle={styles.cardList} showsVerticalScrollIndicator={false}>
-        {EXPERIENCE_OPTIONS.map(option => (
-          <OnboardingCard
-            key={option.id}
-            label={option.label}
+      <ProgressBar currentStep={5} totalSteps={12} />
+      <Text style={styles.title}>How long have you been strength training?</Text>
+      
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {historyOptions.map((option) => (
+          <OnboardingOptionCard
+            key={option.value}
+            title={option.title}
             description={option.description}
-            isSelected={selected === option.id}
-            onPress={() => handleSelect(option.id)}
+            icon={option.icon}
+            isSelected={selectedHistory === option.value}
+            onSelect={() => setSelectedHistory(option.value)}
+            iconColor={option.iconColor}
+            iconBackground={option.iconBackground}
           />
         ))}
       </ScrollView>
+
       <OnboardingButtonRow
-        onBack={handleBack}
         onNext={handleNext}
-        nextEnabled={!!selected}
+        onBack={handleBack}
+        nextEnabled={!!selectedHistory}
       />
     </View>
   );
@@ -76,17 +108,17 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#1B365D',
-    textAlign: 'center',
-    marginTop: 24,
+    marginHorizontal: 24,
     marginBottom: 24,
-    paddingHorizontal: 24,
   },
-  cardList: {
-    paddingHorizontal: 16,
-    paddingBottom: 32,
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 24,
   },
 });
 

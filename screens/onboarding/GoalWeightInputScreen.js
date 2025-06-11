@@ -12,6 +12,7 @@ const GoalWeightInputScreen = ({ navigation }) => {
 
   const handleNext = () => {
     updateOnboarding({ goalWeight });
+    incrementStep();
     navigation.navigate('OnboardingSummary');
   };
 
@@ -40,9 +41,10 @@ const GoalWeightInputScreen = ({ navigation }) => {
           />
         </View>
       </ScrollView>
+
       <OnboardingButtonRow
-        onBack={handleBack}
         onNext={handleNext}
+        onBack={handleBack}
         nextEnabled={true}
       />
     </View>

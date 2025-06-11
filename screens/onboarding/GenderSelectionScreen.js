@@ -1,40 +1,20 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import OnboardingOptionCard from '../../components/OnboardingOptionCard';
 import OnboardingHeader from '../../components/OnboardingHeader';
 import OnboardingButtonRow from '../../components/OnboardingButtonRow';
 import ProgressBar from '../../components/ProgressBar';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useOnboarding } from '../../OnboardingContext';
 
-const GENDERS = [
-  {
-    id: 'male',
-    label: 'Male',
-    icon: 'gender-male',
-  },
-  {
-    id: 'female',
-    label: 'Female',
-    icon: 'gender-female',
-  },
-  {
-    id: 'other',
-    label: 'Other',
-    icon: 'gender-non-binary',
-  },
-];
-
 const GenderSelectionScreen = ({ navigation }) => {
-  const [selected, setSelected] = useState(null);
-  const { updateOnboarding, onboarding, incrementStep, decrementStep } = useOnboarding();
-
-  const handleSelect = (id) => {
-    setSelected(id);
-  };
+  const { updateOnboarding, incrementStep, decrementStep } = useOnboarding();
+  const [selectedGender, setSelectedGender] = useState(null);
 
   const handleNext = () => {
-    if (selected) {
-      updateOnboarding({ gender: selected });
+    if (selectedGender) {
+      updateOnboarding({ gender: selectedGender });
+      incrementStep();
       navigation.navigate('GoalSelection');
     }
   };
@@ -44,45 +24,76 @@ const GenderSelectionScreen = ({ navigation }) => {
     navigation.goBack();
   };
 
+  const genderOptions = [
+    {
+      title: 'Male',
+      description: 'I identify as male',
+      icon: 'gender-male',
+      value: 'male',
+      iconColor: '#1976D2',
+      iconBackground: '#E3F2FD'
+    },
+    {
+      title: 'Female',
+      description: 'I identify as female',
+      icon: 'gender-female',
+      value: 'female',
+      iconColor: '#C2185B',
+      iconBackground: '#FCE4EC'
+    },
+    {
+      title: 'Other',
+      description: 'I identify as other',
+      icon: 'account',
+      value: 'other',
+      iconColor: '#7B1FA2',
+      iconBackground: '#F3E5F5'
+    },
+    {
+      title: 'Prefer not to say',
+      description: 'I prefer not to specify my gender',
+      icon: 'account-question',
+      value: 'prefer-not-to-say',
+      iconColor: '#757575',
+      iconBackground: '#F5F5F5'
+    }
+  ];
+
   return (
     <View style={styles.container}>
       <View style={styles.spacer} />
       <OnboardingHeader
-        title="Select Your Gender"
+        title="What's your gender?"
         onBack={handleBack}
         onSkip={null}
         showSkip={false}
       />
-      <ProgressBar currentStep={2} totalSteps={15} />
-      <ScrollView contentContainerStyle={styles.cardList} showsVerticalScrollIndicator={false}>
-        {GENDERS.map(gender => {
-          const isSelected = selected === gender.id;
-          return (
-            <View
-              key={gender.id}
-              style={[styles.card, isSelected ? styles.cardSelected : styles.cardUnselected]}
-            >
-              <Text style={[styles.label, isSelected ? styles.labelSelected : styles.labelUnselected]}>{gender.label}</Text>
-              <MaterialCommunityIcons
-                name={gender.icon}
-                size={24}
-                color={isSelected ? '#FFFFFF' : '#1B365D'}
-                style={styles.icon}
-              />
-              <View style={StyleSheet.absoluteFillObject}>
-                <Text
-                  style={{ width: '100%', height: '100%' }}
-                  onPress={() => handleSelect(gender.id)}
-                />
-              </View>
-            </View>
-          );
-        })}
+      <ProgressBar currentStep={2} totalSteps={12} />
+      <Text style={styles.title}>Select your gender</Text>
+      
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {genderOptions.map((option) => (
+          <OnboardingOptionCard
+            key={option.value}
+            title={option.title}
+            description={option.description}
+            icon={option.icon}
+            isSelected={selectedGender === option.value}
+            onSelect={() => setSelectedGender(option.value)}
+            iconColor={option.iconColor}
+            iconBackground={option.iconBackground}
+          />
+        ))}
       </ScrollView>
+
       <OnboardingButtonRow
-        onBack={handleBack}
         onNext={handleNext}
-        nextEnabled={!!selected}
+        onBack={handleBack}
+        nextEnabled={!!selectedGender}
       />
     </View>
   );
@@ -97,43 +108,18 @@ const styles = StyleSheet.create({
     height: '15%',
     width: '100%',
   },
-  cardList: {
-    paddingHorizontal: 16,
-    paddingBottom: 32,
-  },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 56,
-    borderRadius: 8,
-    borderWidth: 2,
-    marginBottom: 16,
-    paddingLeft: 16,
-    paddingRight: 16,
-    justifyContent: 'space-between',
-    position: 'relative',
-  },
-  cardUnselected: {
-    backgroundColor: '#F7F8FA',
-    borderColor: '#2075FF',
-  },
-  cardSelected: {
-    backgroundColor: '#2075FF',
-    borderColor: '#2075FF',
-  },
-  label: {
-    fontSize: 18,
-    fontWeight: '500',
-  },
-  labelUnselected: {
-    color: '#1B365D',
-  },
-  labelSelected: {
-    color: '#FFFFFF',
+  title: {
+    fontSize: 24,
     fontWeight: 'bold',
+    color: '#1B365D',
+    marginHorizontal: 24,
+    marginBottom: 24,
   },
-  icon: {
-    marginLeft: 8,
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 24,
   },
 });
 

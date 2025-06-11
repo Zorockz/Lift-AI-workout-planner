@@ -1,111 +1,126 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useOnboarding } from '../../OnboardingContext';
+import { View, StyleSheet, ScrollView, Text } from 'react-native';
+import OnboardingOptionCard from '../../components/OnboardingOptionCard';
+import OnboardingHeader from '../../components/OnboardingHeader';
+import OnboardingButtonRow from '../../components/OnboardingButtonRow';
 import ProgressBar from '../../components/ProgressBar';
-import { commonStyles, colors, dimensions } from '../../utils/styles';
-
-const MUSCLES = [
-  { id: 'chest', label: 'Chest', icon: require('../../assets/TargetMuscles/chest.png') },
-  { id: 'back', label: 'Back', icon: require('../../assets/TargetMuscles/back.png') },
-  { id: 'arms', label: 'Arms', icon: require('../../assets/TargetMuscles/barbell.png') },
-  { id: 'legs', label: 'Legs', icon: require('../../assets/TargetMuscles/legs.png') },
-  { id: 'abs', label: 'Abs', icon: require('../../assets/TargetMuscles/abs.png') },
-];
+import { useOnboarding } from '../../OnboardingContext';
 
 const TargetMusclesScreen = ({ navigation }) => {
-  const [selected, setSelected] = useState([]);
-  const { updateOnboarding } = useOnboarding();
-
-  const toggleMuscle = (id) => {
-    setSelected((prev) =>
-      prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]
-    );
-  };
+  const { updateOnboarding, incrementStep, decrementStep } = useOnboarding();
+  const [selectedMuscles, setSelectedMuscles] = useState([]);
 
   const handleNext = () => {
-    if (selected.length > 0) {
-      updateOnboarding({ targetMuscles: selected });
+    if (selectedMuscles.length > 0) {
+      updateOnboarding({ targetMuscles: selectedMuscles });
+      incrementStep();
       navigation.navigate('HeightInput');
     }
   };
 
   const handleBack = () => {
+    decrementStep();
     navigation.goBack();
   };
 
+  const toggleMuscle = (muscle) => {
+    setSelectedMuscles(prev => {
+      if (prev.includes(muscle)) {
+        return prev.filter(item => item !== muscle);
+      } else {
+        return [...prev, muscle];
+      }
+    });
+  };
+
+  const muscleOptions = [
+    {
+      title: 'Chest',
+      description: 'Focus on chest development',
+      icon: 'weight-lifter',
+      value: 'chest',
+      iconColor: '#1976D2',
+      iconBackground: '#E3F2FD'
+    },
+    {
+      title: 'Back',
+      description: 'Strengthen your back muscles',
+      icon: 'human-handsup',
+      value: 'back',
+      iconColor: '#4CAF50',
+      iconBackground: '#E8F5E9'
+    },
+    {
+      title: 'Legs',
+      description: 'Build lower body strength',
+      icon: 'run',
+      value: 'legs',
+      iconColor: '#FF9800',
+      iconBackground: '#FFF3E0'
+    },
+    {
+      title: 'Shoulders',
+      description: 'Develop shoulder strength',
+      icon: 'weight',
+      value: 'shoulders',
+      iconColor: '#9C27B0',
+      iconBackground: '#F3E5F5'
+    },
+    {
+      title: 'Arms',
+      description: 'Focus on biceps and triceps',
+      icon: 'arm-flex',
+      value: 'arms',
+      iconColor: '#F44336',
+      iconBackground: '#FFEBEE'
+    },
+    {
+      title: 'Core',
+      description: 'Strengthen your abs and core',
+      icon: 'human-handsup',
+      value: 'core',
+      iconColor: '#009688',
+      iconBackground: '#E0F2F1'
+    }
+  ];
+
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={handleBack}
-        >
-          <MaterialCommunityIcons name="arrow-left" size={24} color="#1B365D" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Target Muscles</Text>
-        <View style={styles.placeholder} />
-      </View>
-
-      <ProgressBar currentStep={9} totalSteps={15} />
-
+    <View style={styles.container}>
+      <View style={styles.spacer} />
+      <OnboardingHeader
+        title="Target Muscles"
+        onBack={handleBack}
+        onSkip={null}
+        showSkip={false}
+      />
+      <ProgressBar currentStep={9} totalSteps={12} />
+      <Text style={styles.title}>Which muscles do you want to focus on?</Text>
+      
       <ScrollView 
         style={styles.scrollView}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Which muscles do you want to focus on?</Text>
-        <Text style={styles.subtitle}>Select all that apply</Text>
-
-        <View style={styles.muscleGrid}>
-          {MUSCLES.map((muscle) => {
-            const isSelected = selected.includes(muscle.id);
-            return (
-              <TouchableOpacity
-                key={muscle.id}
-                style={[
-                  styles.muscleCard,
-                  isSelected ? styles.muscleCardSelected : styles.muscleCardUnselected
-                ]}
-                onPress={() => toggleMuscle(muscle.id)}
-              >
-                <Image
-                  source={muscle.icon}
-                  style={[
-                    styles.muscleIcon,
-                    { tintColor: isSelected ? '#FFFFFF' : '#1B365D' }
-                  ]}
-                  resizeMode="contain"
-                />
-                <Text style={[
-                  styles.muscleLabel,
-                  isSelected ? styles.muscleLabelSelected : styles.muscleLabelUnselected
-                ]}>
-                  {muscle.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+        {muscleOptions.map((option) => (
+          <OnboardingOptionCard
+            key={option.value}
+            title={option.title}
+            description={option.description}
+            icon={option.icon}
+            isSelected={selectedMuscles.includes(option.value)}
+            onSelect={() => toggleMuscle(option.value)}
+            iconColor={option.iconColor}
+            iconBackground={option.iconBackground}
+          />
+        ))}
       </ScrollView>
 
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={[styles.nextButton, selected.length === 0 && styles.nextButtonDisabled]}
-          onPress={handleNext}
-          disabled={selected.length === 0}
-        >
-          <Text style={[
-            styles.nextButtonText,
-            selected.length === 0 && styles.nextButtonTextDisabled
-          ]}>
-            Next
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+      <OnboardingButtonRow
+        onNext={handleNext}
+        onBack={handleBack}
+        nextEnabled={selectedMuscles.length > 0}
+      />
+    </View>
   );
 };
 
@@ -114,108 +129,22 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
-  header: {
-    height: 64,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E5EA',
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1B365D',
-  },
-  placeholder: {
-    width: 40,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  content: {
-    padding: 24,
+  spacer: {
+    height: '15%',
+    width: '100%',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#1B365D',
-    marginBottom: 8,
-    textAlign: 'center',
+    marginHorizontal: 24,
+    marginBottom: 24,
   },
-  subtitle: {
-    fontSize: 16,
-    color: '#666666',
-    marginBottom: 32,
-    textAlign: 'center',
+  scrollView: {
+    flex: 1,
   },
-  muscleGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 16,
-  },
-  muscleCard: {
-    width: '47%',
-    aspectRatio: 1,
-    borderRadius: 12,
-    padding: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E2E5EA',
-  },
-  muscleCardSelected: {
-    backgroundColor: '#2075FF',
-    borderColor: '#2075FF',
-  },
-  muscleCardUnselected: {
-    backgroundColor: '#FFFFFF',
-  },
-  muscleIcon: {
-    width: 48,
-    height: 48,
-    marginBottom: 12,
-  },
-  muscleLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  muscleLabelSelected: {
-    color: '#FFFFFF',
-  },
-  muscleLabelUnselected: {
-    color: '#1B365D',
-  },
-  buttonContainer: {
+  scrollContent: {
     padding: 24,
-    borderTopWidth: 1,
-    borderTopColor: '#E2E5EA',
-  },
-  nextButton: {
-    backgroundColor: '#2075FF',
-    borderRadius: 12,
-    height: 56,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  nextButtonDisabled: {
-    backgroundColor: '#E2E5EA',
-  },
-  nextButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  nextButtonTextDisabled: {
-    color: '#A3A8AF',
   },
 });
 

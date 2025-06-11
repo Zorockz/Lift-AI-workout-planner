@@ -1,24 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import OnboardingHeader from '../../components/OnboardingHeader';
 import OnboardingButtonRow from '../../components/OnboardingButtonRow';
-import CustomSlider from '../../components/Slider';
 import ProgressBar from '../../components/ProgressBar';
 import { useOnboarding } from '../../OnboardingContext';
-import { commonStyles, colors, dimensions } from '../../utils/styles';
 
 const ScheduleInputScreen = ({ navigation }) => {
-  const [frequency, setFrequency] = useState(3);
-  const { updateOnboarding, onboarding, incrementStep, decrementStep } = useOnboarding();
-  const [hasInteracted, setHasInteracted] = useState(false);
-
-  const handleFrequencyChange = (value) => {
-    setFrequency(value);
-    setHasInteracted(true);
-  };
+  const [daysPerWeek, setDaysPerWeek] = useState(3);
+  const { updateOnboarding, incrementStep, decrementStep } = useOnboarding();
 
   const handleNext = () => {
-    updateOnboarding({ frequency });
+    updateOnboarding({ workoutsPerWeek: daysPerWeek });
+    incrementStep();
     navigation.navigate('ExerciseLocation');
   };
 
@@ -28,36 +21,49 @@ const ScheduleInputScreen = ({ navigation }) => {
   };
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
+    <View style={styles.container}>
       <View style={styles.spacer} />
       <OnboardingHeader
-        title="Training Schedule"
+        title="Workout Schedule"
         onBack={handleBack}
         onSkip={null}
         showSkip={false}
       />
       <ProgressBar currentStep={7} totalSteps={15} />
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>How many days per week can you work out?</Text>
-        <View style={styles.sliderContainer}>
-          <CustomSlider
-            value={frequency}
-            onValueChange={handleFrequencyChange}
-            minimumValue={1}
-            maximumValue={7}
-            step={1}
-          />
+      <View style={styles.content}>
+        <Text style={styles.title}>How often can you work out?</Text>
+        <View style={styles.pickerContainer}>
+          <View style={styles.numberLine}>
+            {Array.from({ length: 7 }, (_, i) => i + 1).map((n) => (
+              <TouchableOpacity
+                key={n}
+                style={[
+                  styles.numberContainer,
+                  n === daysPerWeek && styles.selectedContainer
+                ]}
+                onPress={() => setDaysPerWeek(n)}
+              >
+                <Text 
+                  style={[
+                    styles.number,
+                    n === daysPerWeek && styles.selectedNumber
+                  ]}
+                >
+                  {n}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <View style={styles.line} />
         </View>
-      </ScrollView>
+      </View>
+
       <OnboardingButtonRow
-        onBack={handleBack}
         onNext={handleNext}
+        onBack={handleBack}
         nextEnabled={true}
       />
-    </KeyboardAvoidingView>
+    </View>
   );
 };
 
@@ -70,21 +76,57 @@ const styles = StyleSheet.create({
     height: '15%',
     width: '100%',
   },
+  content: {
+    flex: 1,
+    padding: 24,
+    justifyContent: 'space-between',
+  },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#1B365D',
+    marginBottom: 32,
     textAlign: 'center',
-    marginTop: 24,
-    marginBottom: 24,
-    paddingHorizontal: 24,
   },
-  sliderContainer: {
-    marginVertical: 24,
+  pickerContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 20,
   },
-  content: {
-    padding: 24,
+  numberLine: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: 20,
+  },
+  numberContainer: {
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
+    backgroundColor: '#F5F5F5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+  },
+  selectedContainer: {
+    backgroundColor: '#1B365D',
+    borderColor: '#1B365D',
+  },
+  number: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#666',
+  },
+  selectedNumber: {
+    color: '#FFFFFF',
+  },
+  line: {
+    width: '100%',
+    height: 2,
+    backgroundColor: '#E0E0E0',
+    marginTop: 10,
   },
 });
 

@@ -1,93 +1,98 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, Text } from 'react-native';
+import OnboardingOptionCard from '../../components/OnboardingOptionCard';
 import OnboardingHeader from '../../components/OnboardingHeader';
 import OnboardingButtonRow from '../../components/OnboardingButtonRow';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useOnboarding } from '../../OnboardingContext';
-import { commonStyles, colors, dimensions } from '../../utils/styles';
 import ProgressBar from '../../components/ProgressBar';
-
-const LOCATIONS = [
-  {
-    id: 'commercial_gym',
-    label: 'Commercial Gym',
-    icon: 'dumbbell',
-  },
-  {
-    id: 'home_gym',
-    label: 'Home Gym',
-    icon: 'home',
-  },
-  {
-    id: 'outdoor',
-    label: 'Outdoor',
-    icon: 'run',
-  },
-  {
-    id: 'other',
-    label: 'Other',
-    icon: 'dots-horizontal',
-  },
-];
+import { useOnboarding } from '../../OnboardingContext';
 
 const ExerciseLocationScreen = ({ navigation }) => {
-  const [selected, setSelected] = useState(null);
-  const { updateOnboarding } = useOnboarding();
-
-  const handleSelect = (id) => {
-    setSelected(id);
-  };
+  const { updateOnboarding, incrementStep, decrementStep } = useOnboarding();
+  const [selectedLocation, setSelectedLocation] = useState(null);
 
   const handleNext = () => {
-    if (selected) {
-      updateOnboarding({ location: selected });
+    if (selectedLocation) {
+      updateOnboarding({ exerciseLocation: selectedLocation });
+      incrementStep();
       navigation.navigate('TargetMuscles');
     }
   };
 
   const handleBack = () => {
+    decrementStep();
     navigation.goBack();
   };
+
+  const locationOptions = [
+    {
+      title: 'Home',
+      description: 'I prefer working out at home',
+      icon: 'home',
+      value: 'home',
+      iconColor: '#4CAF50',
+      iconBackground: '#E8F5E9'
+    },
+    {
+      title: 'Gym',
+      description: 'I have access to a gym',
+      icon: 'weight-lifter',
+      value: 'gym',
+      iconColor: '#2196F3',
+      iconBackground: '#E3F2FD'
+    },
+    {
+      title: 'Outdoors',
+      description: 'I prefer outdoor workouts',
+      icon: 'nature',
+      value: 'outdoors',
+      iconColor: '#FF9800',
+      iconBackground: '#FFF3E0'
+    },
+    {
+      title: 'Mixed',
+      description: 'I work out in multiple locations',
+      icon: 'map-marker-multiple',
+      value: 'mixed',
+      iconColor: '#9C27B0',
+      iconBackground: '#F3E5F5'
+    }
+  ];
 
   return (
     <View style={styles.container}>
       <View style={styles.spacer} />
       <OnboardingHeader
-        title="Where do you exercise?"
+        title="Workout Location"
         onBack={handleBack}
         onSkip={null}
         showSkip={false}
       />
-      <ProgressBar currentStep={8} totalSteps={15} />
-      <ScrollView contentContainerStyle={styles.cardList} showsVerticalScrollIndicator={false}>
-        {LOCATIONS.map(location => {
-          const isSelected = selected === location.id;
-          return (
-            <View
-              key={location.id}
-              style={[styles.card, isSelected ? styles.cardSelected : styles.cardUnselected]}
-            >
-              <Text style={[styles.label, isSelected ? styles.labelSelected : styles.labelUnselected]}>{location.label}</Text>
-              <MaterialCommunityIcons
-                name={location.icon}
-                size={24}
-                color={isSelected ? '#FFFFFF' : '#1B365D'}
-                style={styles.icon}
-              />
-              <View style={StyleSheet.absoluteFillObject}>
-                <Text
-                  style={{ width: '100%', height: '100%' }}
-                  onPress={() => handleSelect(location.id)}
-                />
-              </View>
-            </View>
-          );
-        })}
+      <ProgressBar currentStep={8} totalSteps={12} />
+      <Text style={styles.title}>Where do you prefer to work out?</Text>
+      
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {locationOptions.map((option) => (
+          <OnboardingOptionCard
+            key={option.value}
+            title={option.title}
+            description={option.description}
+            icon={option.icon}
+            isSelected={selectedLocation === option.value}
+            onSelect={() => setSelectedLocation(option.value)}
+            iconColor={option.iconColor}
+            iconBackground={option.iconBackground}
+          />
+        ))}
       </ScrollView>
+
       <OnboardingButtonRow
-        onBack={handleBack}
         onNext={handleNext}
-        nextEnabled={!!selected}
+        onBack={handleBack}
+        nextEnabled={!!selectedLocation}
       />
     </View>
   );
@@ -102,43 +107,18 @@ const styles = StyleSheet.create({
     height: '15%',
     width: '100%',
   },
-  cardList: {
-    paddingHorizontal: 16,
-    paddingBottom: 32,
-  },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 56,
-    borderRadius: 8,
-    borderWidth: 2,
-    marginBottom: 16,
-    paddingLeft: 16,
-    paddingRight: 16,
-    justifyContent: 'space-between',
-    position: 'relative',
-  },
-  cardUnselected: {
-    backgroundColor: '#F7F8FA',
-    borderColor: '#2075FF',
-  },
-  cardSelected: {
-    backgroundColor: '#2075FF',
-    borderColor: '#2075FF',
-  },
-  label: {
-    fontSize: 18,
-    fontWeight: '500',
-  },
-  labelUnselected: {
-    color: '#1B365D',
-  },
-  labelSelected: {
-    color: '#FFFFFF',
+  title: {
+    fontSize: 24,
     fontWeight: 'bold',
+    color: '#1B365D',
+    marginHorizontal: 24,
+    marginBottom: 24,
   },
-  icon: {
-    marginLeft: 8,
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 24,
   },
 });
 

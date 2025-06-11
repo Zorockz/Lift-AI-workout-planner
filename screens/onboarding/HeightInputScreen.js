@@ -7,13 +7,12 @@ import { useOnboarding } from '../../OnboardingContext';
 import HeightWeightPicker from '../../components/HeightWeightPicker';
 
 const HeightInputScreen = ({ navigation }) => {
-  const [height, setHeight] = useState(67); // Default to 5'7"
+  const [height, setHeight] = useState(165);
   const { updateOnboarding, onboarding, incrementStep, decrementStep } = useOnboarding();
 
   const handleNext = () => {
-    const feet = Math.floor(height / 12);
-    const inches = height % 12;
-    updateOnboarding({ height: { feet, inches } });
+    updateOnboarding({ height });
+    incrementStep();
     navigation.navigate('WeightInput');
   };
 
@@ -26,14 +25,14 @@ const HeightInputScreen = ({ navigation }) => {
     <View style={styles.container}>
       <View style={styles.spacer} />
       <OnboardingHeader
-        title="Your Height"
+        title="Height"
         onBack={handleBack}
         onSkip={null}
         showSkip={false}
       />
       <ProgressBar currentStep={10} totalSteps={15} />
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>How tall are you?</Text>
+        <Text style={styles.title}>What's your height?</Text>
         <View style={styles.pickerContainer}>
           <HeightWeightPicker
             type="height"
@@ -42,9 +41,10 @@ const HeightInputScreen = ({ navigation }) => {
           />
         </View>
       </ScrollView>
+
       <OnboardingButtonRow
-        onBack={handleBack}
         onNext={handleNext}
+        onBack={handleBack}
         nextEnabled={true}
       />
     </View>

@@ -7,11 +7,12 @@ import { useOnboarding } from '../../OnboardingContext';
 import HeightWeightPicker from '../../components/HeightWeightPicker';
 
 const WeightInputScreen = ({ navigation }) => {
-  const [weight, setWeight] = useState(175);
+  const [weight, setWeight] = useState(150);
   const { updateOnboarding, onboarding, incrementStep, decrementStep } = useOnboarding();
 
   const handleNext = () => {
     updateOnboarding({ weight });
+    incrementStep();
     navigation.navigate('GoalWeightInput');
   };
 
@@ -24,7 +25,7 @@ const WeightInputScreen = ({ navigation }) => {
     <View style={styles.container}>
       <View style={styles.spacer} />
       <OnboardingHeader
-        title="Your Weight"
+        title="Weight"
         onBack={handleBack}
         onSkip={null}
         showSkip={false}
@@ -40,9 +41,10 @@ const WeightInputScreen = ({ navigation }) => {
           />
         </View>
       </ScrollView>
+
       <OnboardingButtonRow
-        onBack={handleBack}
         onNext={handleNext}
+        onBack={handleBack}
         nextEnabled={true}
       />
     </View>

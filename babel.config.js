@@ -7,7 +7,7 @@ module.exports = function(api) {
         "moduleName": "@env",
         "path": ".env",
         "blacklist": null,
-        "whitelist": null,
+        "whitelist": ["OPENAI_KEY"],
         "safe": false,
         "allowUndefined": true
       }],

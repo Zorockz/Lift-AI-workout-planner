@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { generateWorkoutPlan, getExerciseDetails } from '../services/openaiService';
 
 const WorkoutContext = createContext();
 
@@ -9,6 +10,8 @@ export const WorkoutProvider = ({ children }) => {
   const [workoutPlan, setWorkoutPlan] = useState(null);
   const [completedExercises, setCompletedExercises] = useState({});
   const [currentDay, setCurrentDay] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   // Load completed exercises from AsyncStorage
   useEffect(() => {
@@ -38,6 +41,33 @@ export const WorkoutProvider = ({ children }) => {
 
     saveCompletedExercises();
   }, [completedExercises]);
+
+  const createWorkoutPlan = async (userPreferences) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const plan = await generateWorkoutPlan(userPreferences);
+      // Parse the plan and structure it
+      const structuredPlan = parseWorkoutPlan(plan);
+      setWorkoutPlan(structuredPlan);
+      await AsyncStorage.setItem('workoutPlan', JSON.stringify(structuredPlan));
+    } catch (error) {
+      setError(error.message);
+      console.error('Error creating workout plan:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getExerciseInstructions = async (exerciseName) => {
+    try {
+      const instructions = await getExerciseDetails(exerciseName);
+      return instructions;
+    } catch (error) {
+      console.error('Error getting exercise instructions:', error);
+      throw error;
+    }
+  };
 
   const toggleExerciseCompletion = (day, exerciseIndex) => {
     setCompletedExercises(prev => {
@@ -79,6 +109,33 @@ export const WorkoutProvider = ({ children }) => {
     };
   };
 
+  // Helper function to parse the workout plan from OpenAI response
+  const parseWorkoutPlan = (plan) => {
+    try {
+      // Assuming the plan is returned as a JSON string
+      const parsedPlan = JSON.parse(plan);
+      return {
+        weekPlan: parsedPlan,
+        createdAt: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('Error parsing workout plan:', error);
+      // Return a default plan if parsing fails
+      return {
+        weekPlan: {
+          'Day 1': [],
+          'Day 2': [],
+          'Day 3': [],
+          'Day 4': [],
+          'Day 5': [],
+          'Day 6': [],
+          'Day 7': []
+        },
+        createdAt: new Date().toISOString()
+      };
+    }
+  };
+
   return (
     <WorkoutContext.Provider value={{
       workoutPlan,
@@ -87,7 +144,11 @@ export const WorkoutProvider = ({ children }) => {
       setCurrentDay,
       getTodaysWorkout,
       toggleExerciseCompletion,
-      isExerciseCompleted
+      isExerciseCompleted,
+      createWorkoutPlan,
+      getExerciseInstructions,
+      loading,
+      error
     }}>
       {children}
     </WorkoutContext.Provider>

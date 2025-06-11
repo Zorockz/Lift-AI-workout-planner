@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useWorkout } from '../contexts/WorkoutContext';
@@ -7,9 +7,18 @@ import { useNavigation } from '@react-navigation/native';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
-  const { getTodaysWorkout, currentDay, setCurrentDay } = useWorkout();
+  const { 
+    getTodaysWorkout, 
+    currentDay, 
+    setCurrentDay,
+    createWorkoutPlan,
+    getExerciseInstructions,
+    loading,
+    error 
+  } = useWorkout();
   const todaysWorkout = getTodaysWorkout();
   const insets = useSafeAreaInsets();
+  const [exerciseDetails, setExerciseDetails] = useState({});
 
   const handleProfilePress = () => {
     navigation.navigate('Profile');
@@ -20,11 +29,30 @@ const HomeScreen = () => {
   };
 
   const handleStartWorkout = () => {
-    navigation.navigate('PlanPreview'); // Or a dedicated workout screen if available
+    navigation.navigate('PlanPreview');
   };
 
   const handleViewFullPlan = () => {
     navigation.navigate('PlanPreview');
+  };
+
+  const handleExercisePress = async (exerciseName) => {
+    try {
+      if (!exerciseDetails[exerciseName]) {
+        const details = await getExerciseInstructions(exerciseName);
+        setExerciseDetails(prev => ({
+          ...prev,
+          [exerciseName]: details
+        }));
+      }
+      // Navigate to exercise details screen
+      navigation.navigate('ExerciseDetails', {
+        exerciseName,
+        details: exerciseDetails[exerciseName]
+      });
+    } catch (error) {
+      console.error('Error loading exercise details:', error);
+    }
   };
 
   return (
@@ -43,14 +71,24 @@ const HomeScreen = () => {
           <Text style={styles.workoutTitle}>
             {todaysWorkout?.day || 'Day 1'}: {todaysWorkout?.title || 'Loading...'}
           </Text>
-          {todaysWorkout?.isRestDay ? (
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color="#2075FF" />
+              <Text style={styles.loadingText}>Loading workout...</Text>
+            </View>
+          ) : todaysWorkout?.isRestDay ? (
             <Text style={styles.restDayText}>Rest Day - Recovery is crucial for progress</Text>
           ) : (
             <View style={styles.exercisesList}>
               {todaysWorkout?.exercises?.slice(0, 3).map((exercise, index) => (
-                <Text key={index} style={styles.exerciseText}>
-                  {exercise}
-                </Text>
+                <TouchableOpacity 
+                  key={index} 
+                  style={styles.exerciseItem}
+                  onPress={() => handleExercisePress(exercise)}
+                >
+                  <Text style={styles.exerciseText}>{exercise}</Text>
+                  <MaterialCommunityIcons name="chevron-right" size={20} color="#6C7580" />
+                </TouchableOpacity>
               ))}
               {todaysWorkout?.exercises?.length > 3 && (
                 <Text style={styles.moreExercisesText}>
@@ -61,12 +99,26 @@ const HomeScreen = () => {
           )}
         </TouchableOpacity>
 
-        {/* Quick Actions Row (Prompt 2) */}
+        {error && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        )}
+
+        {/* Quick Actions Row */}
         <View style={styles.quickActionsRow}>
-          <TouchableOpacity style={styles.startWorkoutButton} onPress={handleStartWorkout}>
+          <TouchableOpacity 
+            style={[styles.startWorkoutButton, loading && styles.disabledButton]} 
+            onPress={handleStartWorkout}
+            disabled={loading}
+          >
             <Text style={styles.startWorkoutText}>Start Workout</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.viewPlanButton} onPress={handleViewFullPlan}>
+          <TouchableOpacity 
+            style={[styles.viewPlanButton, loading && styles.disabledButton]} 
+            onPress={handleViewFullPlan}
+            disabled={loading}
+          >
             <Text style={styles.viewPlanText}>View Full Plan</Text>
           </TouchableOpacity>
         </View>
@@ -90,7 +142,7 @@ const HomeScreen = () => {
           </View>
         </View>
 
-        {/* Quick Actions (old) */}
+        {/* Quick Actions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
           <View style={styles.quickActions}>
@@ -255,6 +307,34 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#1B365D',
     marginTop: 8,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    padding: 16,
+  },
+  loadingText: {
+    marginTop: 8,
+    color: '#6C7580',
+  },
+  errorContainer: {
+    marginHorizontal: 16,
+    marginTop: 8,
+    padding: 12,
+    backgroundColor: '#FFE5E5',
+    borderRadius: 8,
+  },
+  errorText: {
+    color: '#FF3B30',
+    fontSize: 14,
+  },
+  disabledButton: {
+    opacity: 0.5,
+  },
+  exerciseItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
   },
 });
 

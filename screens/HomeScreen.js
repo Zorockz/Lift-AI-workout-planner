@@ -5,6 +5,160 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useWorkout } from '../contexts/WorkoutContext';
 import { useNavigation } from '@react-navigation/native';
 
+const WeeklyBubbles = ({ data, onBubblePress }) => {
+  const getBubbleColor = (type) => {
+    switch (type) {
+      case 'workout':
+        return '#4CAF50'; // Green
+      case 'rest':
+        return '#2075FF'; // Blue
+      default:
+        return '#FFFFFF'; // White for empty
+    }
+  };
+
+  const getDayInitial = (date) => {
+    const day = new Date(date).getDay();
+    const initials = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+    return initials[day];
+  };
+
+  return (
+    <View style={styles.bubblesContainer}>
+      <Text style={styles.bubblesTitle}>This Week</Text>
+      <View style={styles.bubblesContent}>
+        {data.map((day, index) => (
+          <TouchableOpacity
+            key={day.date}
+            onPress={() => onBubblePress(day)}
+            style={styles.bubbleContainer}
+          >
+            <View style={[
+              styles.bubble,
+              {
+                backgroundColor: day.type ? getBubbleColor(day.type) : '#FFFFFF',
+                borderColor: '#E0E0E0',
+                borderWidth: 1,
+              }
+            ]} />
+            <Text style={styles.bubbleLabel}>
+              {getDayInitial(day.date)}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      <View style={styles.legendContainer}>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendColor, { backgroundColor: '#4CAF50' }]} />
+          <Text style={styles.legendText}>Workout</Text>
+        </View>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendColor, { backgroundColor: '#2075FF' }]} />
+          <Text style={styles.legendText}>Rest</Text>
+        </View>
+      </View>
+    </View>
+  );
+};
+
+const DetailsPanel = ({ title, items, isExpanded, onToggle }) => {
+  return (
+    <View style={styles.detailsPanel}>
+      <TouchableOpacity 
+        style={styles.detailsHeader}
+        onPress={onToggle}
+      >
+        <Text style={styles.detailsTitle}>{title}</Text>
+        <MaterialCommunityIcons 
+          name={isExpanded ? "chevron-up" : "chevron-down"} 
+          size={24} 
+          color="#6C7580" 
+        />
+      </TouchableOpacity>
+
+      {isExpanded && (
+        <View style={styles.detailsContent}>
+          {items.map((item, index) => (
+            <View key={index} style={styles.detailItem}>
+              <Text style={styles.detailLabel}>{item.label}</Text>
+              <Text style={styles.detailValue}>{item.value}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+    </View>
+  );
+};
+
+const WorkoutCard = ({ workout, onStartPress, loading }) => {
+  const getWorkoutIcon = (title) => {
+    const lowerTitle = title?.toLowerCase() || '';
+    if (lowerTitle.includes('upper')) return 'arm-flex';
+    if (lowerTitle.includes('lower')) return 'leg';
+    if (lowerTitle.includes('core')) return 'abdominal';
+    if (lowerTitle.includes('cardio')) return 'run';
+    return 'dumbbell';
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.workoutCard}>
+        <View style={styles.workoutAccent} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#2075FF" />
+          <Text style={styles.loadingText}>Loading workout...</Text>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.workoutCard}>
+      <View style={styles.workoutAccent} />
+      <MaterialCommunityIcons 
+        name={getWorkoutIcon(workout?.title)} 
+        size={24} 
+        color="#2075FF" 
+        style={styles.workoutIcon}
+      />
+      <Text style={styles.workoutHeader}>Today's Workout</Text>
+      <Text style={styles.workoutTitle}>
+        {workout?.title || 'No Workout Scheduled'}
+      </Text>
+
+      {workout?.isRestDay ? (
+        <View style={styles.restDayContainer}>
+          <MaterialCommunityIcons name="bed" size={24} color="#6C7580" />
+          <Text style={styles.restDayText}>Rest Day</Text>
+          <Text style={styles.restDaySubtext}>Recovery is crucial for progress</Text>
+        </View>
+      ) : (
+        <View style={styles.exercisesList}>
+          {workout?.exercises?.map((exercise, index) => (
+            <View key={index} style={styles.exerciseItem}>
+              <Text style={styles.exerciseNumber}>{index + 1}</Text>
+              <Text style={styles.exerciseName}>{exercise}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+
+      <TouchableOpacity 
+        style={[
+          styles.startWorkoutButton,
+          (!workout || workout.isRestDay) && styles.disabledButton
+        ]} 
+        onPress={onStartPress}
+        disabled={!workout || workout.isRestDay}
+      >
+        <Text style={styles.startWorkoutText}>
+          {!workout ? 'No Workout' : workout.isRestDay ? 'Rest Day' : '▶︎ Start Workout'}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
 const HomeScreen = () => {
   const navigation = useNavigation();
   const { 
@@ -14,26 +168,28 @@ const HomeScreen = () => {
     createWorkoutPlan,
     getExerciseInstructions,
     loading,
-    error 
+    error,
+    currentStreak,
+    bestStreak
   } = useWorkout();
   const todaysWorkout = getTodaysWorkout();
   const insets = useSafeAreaInsets();
   const [exerciseDetails, setExerciseDetails] = useState({});
+  const [isDetailsExpanded, setIsDetailsExpanded] = useState(true);
+  const [screenHeight, setScreenHeight] = useState(0);
 
-  const handleProfilePress = () => {
-    navigation.navigate('Profile');
+  const onLayout = (event) => {
+    const { height } = event.nativeEvent.layout;
+    setScreenHeight(height);
   };
 
-  const handleWorkoutPress = () => {
-    navigation.navigate('PlanPreview');
+  const handleSettingsPress = () => {
+    navigation.navigate('Settings');
   };
 
   const handleStartWorkout = () => {
-    navigation.navigate('PlanPreview');
-  };
-
-  const handleViewFullPlan = () => {
-    navigation.navigate('PlanPreview');
+    if (!todaysWorkout || todaysWorkout.isRestDay) return;
+    navigation.navigate('WorkoutSession', { workout: todaysWorkout });
   };
 
   const handleExercisePress = async (exerciseName) => {
@@ -45,7 +201,6 @@ const HomeScreen = () => {
           [exerciseName]: details
         }));
       }
-      // Navigate to exercise details screen
       navigation.navigate('ExerciseDetails', {
         exerciseName,
         details: exerciseDetails[exerciseName]
@@ -55,73 +210,141 @@ const HomeScreen = () => {
     }
   };
 
+  const calculateWorkoutMetrics = () => {
+    if (!todaysWorkout?.exercises) return { totalSets: 0, estimatedTime: 0 };
+    
+    const totalSets = todaysWorkout.exercises.reduce((sum, exercise) => {
+      // Assuming each exercise has 3 sets by default
+      return sum + 3;
+    }, 0);
+
+    // Assuming 2 minutes per set (including rest)
+    const estimatedTime = totalSets * 2;
+
+    return { totalSets, estimatedTime };
+  };
+
+  const handleRestTimerPress = () => {
+    navigation.navigate('RestTimer', { duration: 60 }); // Default 60 seconds
+  };
+
+  const { totalSets, estimatedTime } = calculateWorkoutMetrics();
+
+  const getWeeklyData = () => {
+    const today = new Date();
+    const days = [];
+    
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - 6 + i);
+      const dateStr = date.toISOString().split('T')[0];
+      
+      // This is mock data - replace with actual workout data
+      const types = ['workout', 'rest'];
+      const randomType = Math.random() > 0.3 ? types[Math.floor(Math.random() * types.length)] : null;
+      
+      days.push({
+        date: dateStr,
+        type: randomType,
+        sets: randomType ? Math.floor(Math.random() * 15) + 5 : 0
+      });
+    }
+    
+    return days;
+  };
+
+  const handleBarPress = (day) => {
+    // Navigate to the specific day's workout
+    navigation.navigate('WorkoutDetails', { date: day.date });
+  };
+
+  const getWorkoutDetails = () => {
+    // Sample workout data - replace with real data later
+    const sampleWorkout = {
+      exercises: [
+        { name: 'Push-ups', sets: 3, reps: 12 },
+        { name: 'Squats', sets: 4, reps: 15 },
+        { name: 'Plank', sets: 3, reps: 60 },
+        { name: 'Lunges', sets: 3, reps: 10 }
+      ],
+      primaryMuscles: ['Chest', 'Shoulders', 'Legs', 'Core'],
+      equipment: ['None', 'Bodyweight'],
+      estimatedDuration: 30
+    };
+
+    return [
+      { 
+        label: 'Total Exercises', 
+        value: sampleWorkout.exercises.length 
+      },
+      { 
+        label: 'Total Sets', 
+        value: sampleWorkout.exercises.reduce((sum, e) => sum + e.sets, 0) 
+      },
+      { 
+        label: 'Est. Duration', 
+        value: `${sampleWorkout.estimatedDuration} min`
+      },
+      { 
+        label: 'Primary Muscles', 
+        value: sampleWorkout.primaryMuscles.join(', ') 
+      },
+      { 
+        label: 'Equipment', 
+        value: sampleWorkout.equipment.join(', ') 
+      }
+    ];
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']} onLayout={onLayout}>
       {/* Header */}
       <View style={styles.header}>
+        <View style={styles.headerSpacer} />
         <Text style={styles.headerTitle}>FitBuddy</Text>
-        <TouchableOpacity style={styles.profileButton} onPress={handleProfilePress}>
-          <MaterialCommunityIcons name="account-circle" size={24} color="#1B365D" />
+        <TouchableOpacity style={styles.settingsButton} onPress={handleSettingsPress}>
+          <MaterialCommunityIcons name="cog" size={24} color="#1B365D" />
         </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={{paddingBottom: insets.bottom + 16}}>
-        {/* Today's Workout Card */}
-        <TouchableOpacity style={styles.workoutCard} onPress={handleWorkoutPress}>
-          <Text style={styles.workoutTitle}>
-            {todaysWorkout?.day || 'Day 1'}: {todaysWorkout?.title || 'Loading...'}
+        {/* Streak Display */}
+        <View style={styles.streakContainer}>
+          <MaterialCommunityIcons name="fire" size={20} color="#FF6B6B" />
+          <Text style={styles.streakText}>
+            {currentStreak}-Day Streak • Best: {bestStreak}
           </Text>
-          {loading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="small" color="#2075FF" />
-              <Text style={styles.loadingText}>Loading workout...</Text>
-            </View>
-          ) : todaysWorkout?.isRestDay ? (
-            <Text style={styles.restDayText}>Rest Day - Recovery is crucial for progress</Text>
-          ) : (
-            <View style={styles.exercisesList}>
-              {todaysWorkout?.exercises?.slice(0, 3).map((exercise, index) => (
-                <TouchableOpacity 
-                  key={index} 
-                  style={styles.exerciseItem}
-                  onPress={() => handleExercisePress(exercise)}
-                >
-                  <Text style={styles.exerciseText}>{exercise}</Text>
-                  <MaterialCommunityIcons name="chevron-right" size={20} color="#6C7580" />
-                </TouchableOpacity>
-              ))}
-              {todaysWorkout?.exercises?.length > 3 && (
-                <Text style={styles.moreExercisesText}>
-                  +{todaysWorkout.exercises.length - 3} more exercises
-                </Text>
-              )}
-            </View>
-          )}
-        </TouchableOpacity>
-
-        {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        )}
-
-        {/* Quick Actions Row */}
-        <View style={styles.quickActionsRow}>
-          <TouchableOpacity 
-            style={[styles.startWorkoutButton, loading && styles.disabledButton]} 
-            onPress={handleStartWorkout}
-            disabled={loading}
-          >
-            <Text style={styles.startWorkoutText}>Start Workout</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.viewPlanButton, loading && styles.disabledButton]} 
-            onPress={handleViewFullPlan}
-            disabled={loading}
-          >
-            <Text style={styles.viewPlanText}>View Full Plan</Text>
-          </TouchableOpacity>
         </View>
+
+        {/* Weekly Bubbles */}
+        <View style={styles.section}>
+          <WeeklyBubbles 
+            data={getWeeklyData()} 
+            onBubblePress={handleBarPress}
+          />
+        </View>
+
+        {/* Today's Workout Card */}
+        <View style={[
+          styles.workoutCardContainer,
+          screenHeight > 0 && { minHeight: screenHeight * 0.4 }
+        ]}>
+          <WorkoutCard
+            workout={todaysWorkout}
+            onStartPress={handleStartWorkout}
+            loading={loading}
+          />
+        </View>
+
+        {/* Details Panel */}
+        {!todaysWorkout?.isRestDay && (
+          <DetailsPanel
+            title="Workout Details"
+            items={getWorkoutDetails()}
+            isExpanded={isDetailsExpanded}
+            onToggle={() => setIsDetailsExpanded(!isDetailsExpanded)}
+          />
+        )}
 
         {/* Progress Section */}
         <View style={styles.section}>
@@ -142,24 +365,12 @@ const HomeScreen = () => {
           </View>
         </View>
 
-        {/* Quick Actions */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
-          <View style={styles.quickActions}>
-            <TouchableOpacity style={styles.actionButton}>
-              <MaterialCommunityIcons name="calendar" size={24} color="#1B365D" />
-              <Text style={styles.actionText}>View Schedule</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
-              <MaterialCommunityIcons name="chart-line" size={24} color="#1B365D" />
-              <Text style={styles.actionText}>Progress</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
-              <MaterialCommunityIcons name="cog" size={24} color="#1B365D" />
-              <Text style={styles.actionText}>Settings</Text>
-            </TouchableOpacity>
+        {/* Rest of the content */}
+        {error && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
           </View>
-        </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -168,8 +379,7 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
-    paddingTop: 24,
+    backgroundColor: '#F7F8FA',
   },
   scrollView: {
     flex: 1,
@@ -177,88 +387,162 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     height: 56,
     paddingHorizontal: 16,
-    position: 'relative',
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E5EA',
+  },
+  headerSpacer: {
+    width: 24, // Same width as settings button for true center
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '500',
     color: '#1B365D',
+    flex: 1,
+    textAlign: 'center',
+    fontFamily: 'System',
   },
-  profileButton: {
-    position: 'absolute',
-    right: 16,
-    padding: 4,
+  settingsButton: {
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  streakContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    backgroundColor: '#EFF1F5',
+    marginTop: 12,
+    borderRadius: 8,
+    marginHorizontal: 16,
+  },
+  streakText: {
+    marginLeft: 8,
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#FF6B6B',
+    fontFamily: 'System',
+  },
+  workoutCardContainer: {
+    marginHorizontal: 16,
+    marginTop: 24,
   },
   workoutCard: {
     marginHorizontal: 16,
     marginTop: 24,
-    padding: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E2E5EA',
+    padding: 40,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
+    position: 'relative',
+  },
+  workoutAccent: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 6,
+    backgroundColor: '#2075FF',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+  },
+  workoutIcon: {
+    position: 'absolute',
+    top: 24,
+    right: 24,
+  },
+  workoutHeader: {
+    fontSize: 40,
+    fontWeight: '600',
+    color: '#1B365D',
+    textAlign: 'center',
+    marginBottom: 12,
+    fontFamily: 'System',
   },
   workoutTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1B365D',
-    marginBottom: 12,
+    fontWeight: '500',
+    color: '#6C7580',
+    textAlign: 'center',
+    marginBottom: 40,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    fontFamily: 'System',
   },
   exercisesList: {
-    gap: 8,
+    marginBottom: 40,
   },
-  exerciseText: {
-    fontSize: 16,
-    color: '#6C7580',
-  },
-  restDayText: {
-    fontSize: 16,
-    color: '#6C7580',
-    fontStyle: 'italic',
-  },
-  moreExercisesText: {
-    fontSize: 14,
-    color: '#2075FF',
-    marginTop: 4,
-  },
-  quickActionsRow: {
+  exerciseItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginHorizontal: 16,
-    marginTop: 16,
-    marginBottom: 0,
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E5EA',
+  },
+  exerciseNumber: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1B365D',
+    width: 32,
+    marginRight: 16,
+    fontFamily: 'System',
+  },
+  exerciseName: {
+    flex: 1,
+    fontSize: 20,
+    fontWeight: '400',
+    color: '#1B365D',
+    fontFamily: 'System',
   },
   startWorkoutButton: {
-    flex: 1,
-    height: 48,
+    height: 64,
     backgroundColor: '#2075FF',
-    borderRadius: 8,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 8,
+    marginTop: 32,
+    shadowColor: '#2075FF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   startWorkoutText: {
     color: '#FFF',
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 22,
+    fontWeight: '600',
+    fontFamily: 'System',
   },
-  viewPlanButton: {
-    flex: 1,
-    height: 48,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: '#1B365D',
+  restDayContainer: {
     alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 8,
-    backgroundColor: '#FFF',
+    padding: 32,
+    backgroundColor: '#FFF3E0',
+    borderRadius: 12,
+    marginBottom: 32,
   },
-  viewPlanText: {
-    color: '#1B365D',
+  restDayText: {
+    fontSize: 24,
+    fontWeight: '500',
+    color: '#E65100',
+    marginTop: 16,
+    marginBottom: 8,
+    fontFamily: 'System',
+  },
+  restDaySubtext: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '400',
+    color: '#6C7580',
+    textAlign: 'center',
+    fontFamily: 'System',
   },
   section: {
     marginTop: 24,
@@ -266,55 +550,34 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#1B365D',
     marginBottom: 12,
+    fontFamily: 'System',
   },
   progressCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: '#F7F8FA',
-    borderRadius: 8,
-    padding: 16,
+    backgroundColor: '#EFF1F5',
+    borderRadius: 12,
+    padding: 20,
+    marginTop: 12,
   },
   progressItem: {
     alignItems: 'center',
   },
   progressValue: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: '500',
     color: '#2075FF',
+    fontFamily: 'System',
   },
   progressLabel: {
     fontSize: 12,
+    fontWeight: '400',
     color: '#6C7580',
     marginTop: 4,
-  },
-  quickActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 8,
-  },
-  actionButton: {
-    flex: 1,
-    alignItems: 'center',
-    backgroundColor: '#F7F8FA',
-    borderRadius: 8,
-    padding: 16,
-    marginHorizontal: 4,
-  },
-  actionText: {
-    fontSize: 12,
-    color: '#1B365D',
-    marginTop: 8,
-  },
-  loadingContainer: {
-    alignItems: 'center',
-    padding: 16,
-  },
-  loadingText: {
-    marginTop: 8,
-    color: '#6C7580',
+    fontFamily: 'System',
   },
   errorContainer: {
     marginHorizontal: 16,
@@ -327,14 +590,119 @@ const styles = StyleSheet.create({
     color: '#FF3B30',
     fontSize: 14,
   },
-  disabledButton: {
-    opacity: 0.5,
+  detailsPanel: {
+    marginHorizontal: 16,
+    marginTop: 24,
+    backgroundColor: '#EFF1F5',
+    borderRadius: 12,
+    overflow: 'hidden',
   },
-  exerciseItem: {
+  detailsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#FFFFFF',
+  },
+  detailsTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#1B365D',
+    fontFamily: 'System',
+  },
+  detailsContent: {
+    padding: 16,
+  },
+  detailItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E5EA',
+  },
+  detailLabel: {
+    fontSize: 14,
+    color: '#6C7580',
+    fontFamily: 'System',
+  },
+  detailValue: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#1B365D',
+    fontFamily: 'System',
+  },
+  bubblesContainer: {
+    backgroundColor: '#EFF1F5',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 24,
+  },
+  bubblesTitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#1B365D',
+    marginBottom: 12,
+    fontFamily: 'System',
+  },
+  bubblesContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  bubbleContainer: {
+    alignItems: 'center',
+    gap: 4,
+  },
+  bubble: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  bubbleLabel: {
+    fontSize: 10,
+    fontWeight: '400',
+    color: '#6C7580',
+    fontFamily: 'System',
+  },
+  legendContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 12,
+    gap: 16,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  legendColor: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  legendText: {
+    fontSize: 10,
+    fontWeight: '400',
+    color: '#6C7580',
+    fontFamily: 'System',
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 40,
+  },
+  loadingText: {
+    marginTop: 20,
+    fontSize: 18,
+    color: '#6C7580',
+    fontFamily: 'System',
+  },
+  disabledButton: {
+    opacity: 0.5,
   },
 });
 

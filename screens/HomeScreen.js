@@ -1,62 +1,27 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useWorkout } from '../contexts/WorkoutContext';
 import { useNavigation } from '@react-navigation/native';
+import StreakBar from '../components/StreakBar';
+import WeeklyBubbles from '../components/WeeklyBubbles';
+import TodayCard from '../components/TodayCard';
 
-const WeeklyBubbles = ({ data, onBubblePress }) => {
-  const getBubbleColor = (type) => {
-    switch (type) {
-      case 'workout':
-        return '#4CAF50'; // Green
-      case 'rest':
-        return '#2075FF'; // Blue
-      default:
-        return '#FFFFFF'; // White for empty
-    }
-  };
-
-  const getDayInitial = (date) => {
-    const day = new Date(date).getDay();
-    const initials = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-    return initials[day];
-  };
-
+// Header component definition
+const Header = ({ onSettingsPress }) => {
   return (
-    <View style={styles.bubblesContainer}>
-      <Text style={styles.bubblesTitle}>This Week</Text>
-      <View style={styles.bubblesContent}>
-        {data.map((day, index) => (
-          <TouchableOpacity
-            key={day.date}
-            onPress={() => onBubblePress(day)}
-            style={styles.bubbleContainer}
-          >
-            <View style={[
-              styles.bubble,
-              {
-                backgroundColor: day.type ? getBubbleColor(day.type) : '#FFFFFF',
-                borderColor: '#E0E0E0',
-                borderWidth: 1,
-              }
-            ]} />
-            <Text style={styles.bubbleLabel}>
-              {getDayInitial(day.date)}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-      <View style={styles.legendContainer}>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendColor, { backgroundColor: '#4CAF50' }]} />
-          <Text style={styles.legendText}>Workout</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendColor, { backgroundColor: '#2075FF' }]} />
-          <Text style={styles.legendText}>Rest</Text>
-        </View>
-      </View>
+    <View style={styles.header}>
+      <View style={styles.leftSection} />
+      <Text style={styles.title}>FitnessPal</Text>
+      <TouchableOpacity 
+        onPress={onSettingsPress} 
+        style={styles.rightSection}
+        hitSlop={{top: 8, left: 8, right: 8, bottom: 8}}
+      >
+        <MaterialCommunityIcons name="cog" size={24} color="#1B365D" />
+      </TouchableOpacity>
     </View>
   );
 };
@@ -170,7 +135,8 @@ const HomeScreen = () => {
     loading,
     error,
     currentStreak,
-    bestStreak
+    bestStreak,
+    weekData
   } = useWorkout();
   const todaysWorkout = getTodaysWorkout();
   const insets = useSafeAreaInsets();
@@ -237,16 +203,13 @@ const HomeScreen = () => {
     for (let i = 0; i < 7; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() - 6 + i);
-      const dateStr = date.toISOString().split('T')[0];
       
       // This is mock data - replace with actual workout data
-      const types = ['workout', 'rest'];
+      const types = ['workout', 'rest', 'recovery', 'hiit'];
       const randomType = Math.random() > 0.3 ? types[Math.floor(Math.random() * types.length)] : null;
       
       days.push({
-        date: dateStr,
-        type: randomType,
-        sets: randomType ? Math.floor(Math.random() * 15) + 5 : 0
+        type: randomType
       });
     }
     
@@ -298,31 +261,39 @@ const HomeScreen = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']} onLayout={onLayout}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerSpacer} />
-        <Text style={styles.headerTitle}>FitBuddy</Text>
-        <TouchableOpacity style={styles.settingsButton} onPress={handleSettingsPress}>
-          <MaterialCommunityIcons name="cog" size={24} color="#1B365D" />
-        </TouchableOpacity>
-      </View>
-
+      <Header onSettingsPress={handleSettingsPress} />
+      
       <ScrollView style={styles.scrollView} contentContainerStyle={{paddingBottom: insets.bottom + 16}}>
-        {/* Streak Display */}
         <View style={styles.streakContainer}>
-          <MaterialCommunityIcons name="fire" size={20} color="#FF6B6B" />
-          <Text style={styles.streakText}>
-            {currentStreak}-Day Streak • Best: {bestStreak}
-          </Text>
+          <StreakBar current={currentStreak} best={bestStreak} />
         </View>
-
-        {/* Weekly Bubbles */}
+        
         <View style={styles.section}>
-          <WeeklyBubbles 
-            data={getWeeklyData()} 
-            onBubblePress={handleBarPress}
-          />
+          <WeeklyBubbles weekData={getWeeklyData()} />
         </View>
+        
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#4F46E5" />
+          </View>
+        ) : error ? (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        ) : todaysWorkout && !todaysWorkout.isRestDay ? (
+          <TodayCard
+            plan={{
+              name: todaysWorkout.title,
+              exercises: todaysWorkout.exercises.map(exercise => ({
+                name: exercise,
+                sets: 3,
+                reps: 8,
+                weight: 135
+              }))
+            }}
+            onStart={handleStartWorkout}
+          />
+        ) : null}
 
         {/* Today's Workout Card */}
         <View style={[
@@ -364,13 +335,6 @@ const HomeScreen = () => {
             </View>
           </View>
         </View>
-
-        {/* Rest of the content */}
-        {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -384,48 +348,13 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    height: 56,
-    paddingHorizontal: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E5EA',
-  },
-  headerSpacer: {
-    width: 24, // Same width as settings button for true center
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '500',
-    color: '#1B365D',
-    flex: 1,
-    textAlign: 'center',
-    fontFamily: 'System',
-  },
-  settingsButton: {
-    width: 24,
-    height: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   streakContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    backgroundColor: '#EFF1F5',
-    marginTop: 12,
-    borderRadius: 8,
     marginHorizontal: 16,
+    marginTop: 12,
   },
   streakText: {
-    marginLeft: 8,
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#FF6B6B',
+    fontSize: 14,
+    color: '#334155',
     fontFamily: 'System',
   },
   workoutCardContainer: {
@@ -546,7 +475,6 @@ const styles = StyleSheet.create({
   },
   section: {
     marginTop: 24,
-    paddingHorizontal: 16,
   },
   sectionTitle: {
     fontSize: 18,
@@ -703,6 +631,23 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.5,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+  },
+  leftSection: {
+    flex: 1,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1B365D',
+    fontFamily: 'System',
+  },
+  rightSection: {
+    padding: 8,
   },
 });
 

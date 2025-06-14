@@ -1,6 +1,3 @@
-import React from 'react';
-import { enableScreens } from 'react-native-screens';
-enableScreens();
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -8,6 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { OnboardingProvider } from './OnboardingContext';
 import { WorkoutProvider } from './contexts/WorkoutContext';
 import ErrorBoundary from './components/ErrorBoundary';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 // Onboarding Screens (now in subfolder)
 import WelcomeScreen from './screens/onboarding/WelcomeScreen';
@@ -63,24 +61,36 @@ const MainNavigator = () => (
   </MainStack.Navigator>
 );
 
+function Navigation() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return null;
+  }
+
+  return (
+    <RootStack.Navigator screenOptions={{ headerShown: false }}>
+      {user ? (
+        <RootStack.Screen name="Main" component={MainNavigator} />
+      ) : (
+        <RootStack.Screen name="Onboarding" component={OnboardingNavigator} />
+      )}
+    </RootStack.Navigator>
+  );
+}
+
 export default function App() {
   return (
     <ErrorBoundary>
       <SafeAreaProvider>
         <OnboardingProvider>
           <WorkoutProvider>
-            <NavigationContainer>
-              <StatusBar style="auto" />
-              <RootStack.Navigator 
-                screenOptions={{ 
-                  headerShown: false,
-                  animation: 'fade',
-                }}
-              >
-                <RootStack.Screen name="Onboarding" component={OnboardingNavigator} />
-                <RootStack.Screen name="Main" component={MainNavigator} />
-              </RootStack.Navigator>
-            </NavigationContainer>
+            <AuthProvider>
+              <NavigationContainer>
+                <StatusBar style="auto" />
+                <Navigation />
+              </NavigationContainer>
+            </AuthProvider>
           </WorkoutProvider>
         </OnboardingProvider>
       </SafeAreaProvider>

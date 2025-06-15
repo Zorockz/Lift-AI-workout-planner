@@ -7,7 +7,7 @@ import { useOnboarding } from '../../OnboardingContext';
 import HeightWeightPicker from '../../components/HeightWeightPicker';
 
 const HeightInputScreen = ({ navigation }) => {
-  const [height, setHeight] = useState(165);
+  const [height, setHeight] = useState(65); // 5'5" = 65 inches
   const { updateOnboarding, onboarding, incrementStep, decrementStep } = useOnboarding();
 
   const handleNext = () => {

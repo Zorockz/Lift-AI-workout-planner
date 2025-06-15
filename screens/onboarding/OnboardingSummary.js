@@ -15,68 +15,120 @@ const OnboardingSummary = ({ navigation }) => {
     return value;
   };
 
-  const summaryItems = [
+  const formatHeight = (totalInches) => {
+    if (!totalInches) return 'Not set';
+    const feet = Math.floor(totalInches / 12);
+    const inches = totalInches % 12;
+    return `${feet}′ ${inches}″`;
+  };
+
+  const calculateBMI = (heightInches, weightLbs) => {
+    if (!heightInches || !weightLbs) return 'Not set';
+    // Convert height from inches to meters
+    const heightMeters = heightInches * 0.0254;
+    // Convert weight from pounds to kg
+    const weightKg = weightLbs * 0.453592;
+    // Calculate BMI
+    const bmi = weightKg / (heightMeters * heightMeters);
+    
+    // Get BMI category and emoji
+    let category = '';
+    let emoji = '';
+    if (bmi < 18.5) {
+      category = 'Underweight';
+      emoji = '⚠️';
+    } else if (bmi < 25) {
+      category = 'Normal';
+      emoji = '✅';
+    } else if (bmi < 30) {
+      category = 'Overweight';
+      emoji = '⚠️';
+    } else {
+      category = 'Obese';
+      emoji = '⚠️';
+    }
+    
+    return `${bmi.toFixed(1)} (${category}) ${emoji}`;
+  };
+
+  const personalInfoItems = [
     {
       icon: 'gender-male-female',
       label: 'Gender',
-      value: formatValue(onboarding.gender),
-      valueColor: '#2075FF'
+      value: formatValue(onboarding.gender)
     },
     {
       icon: 'map-marker',
-      label: 'Location',
-      value: formatValue(onboarding.location),
-      valueColor: '#2075FF'
+      label: 'Workout Location',
+      value: formatValue(onboarding.exerciseLocation)
     },
     {
       icon: 'human-male-height',
+      label: 'BMI',
+      value: calculateBMI(onboarding.height, onboarding.weight)
+    }
+  ];
+
+  const bodyStatsItems = [
+    {
+      icon: 'human-male-height',
       label: 'Height',
-      value: `${onboarding.height.feet} ft ${onboarding.height.inches} in`,
-      valueColor: '#2075FF'
+      value: formatHeight(onboarding.height)
     },
     {
       icon: 'weight',
       label: 'Current Weight',
-      value: `${onboarding.weight} lb`,
-      valueColor: '#2075FF'
+      value: `${onboarding.weight} lb`
     },
     {
       icon: 'target',
       label: 'Goal Weight',
-      value: `${onboarding.goalWeight} lb`,
-      valueColor: '#2075FF'
-    },
+      value: `${onboarding.goalWeight} lb`
+    }
+  ];
+
+  const planDetailsItems = [
     {
       icon: 'flag',
       label: 'Goal',
-      value: formatValue(onboarding.goal),
-      valueColor: '#2075FF'
+      value: formatValue(onboarding.goal)
     },
     {
       icon: 'star',
       label: 'Experience Level',
-      value: formatValue(onboarding.experienceLevel),
-      valueColor: '#2075FF'
+      value: formatValue(onboarding.experienceLevel)
     },
     {
       icon: 'history',
       label: 'Strength History',
-      value: formatValue(onboarding.strengthHistory),
-      valueColor: '#2075FF'
+      value: formatValue(onboarding.strengthHistory)
     },
     {
       icon: 'dumbbell',
       label: 'Equipment',
-      value: onboarding.equipment.map(item => formatValue(item)).join(', '),
-      valueColor: '#2075FF'
+      value: onboarding.equipment.map(item => formatValue(item)).join(', ')
     },
     {
       icon: 'calendar',
       label: 'Training Frequency',
-      value: `${onboarding.frequency} Days Per Week`,
-      valueColor: '#2075FF'
+      value: `${onboarding.frequency} Days Per Week`
     }
   ];
+
+  const InfoCard = ({ title, items }) => (
+    <View style={styles.card}>
+      <Text style={styles.cardTitle}>{title}</Text>
+      {items.map((item, index) => (
+        <View key={index} style={styles.cardRow}>
+          <View style={styles.cardRowLeft}>
+            <MaterialCommunityIcons name={item.icon} size={24} color="#2075FF" />
+            <Text style={styles.cardLabel}>{item.label}</Text>
+          </View>
+          <Text style={styles.cardValue}>{item.value}</Text>
+        </View>
+      ))}
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -88,7 +140,7 @@ const OnboardingSummary = ({ navigation }) => {
         >
           <MaterialCommunityIcons name="arrow-left" size={24} color="#1B365D" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Summary</Text>
+        <Text style={styles.headerTitle}>Review</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -102,24 +154,9 @@ const OnboardingSummary = ({ navigation }) => {
         <Text style={styles.title}>Review Your Information</Text>
         <Text style={styles.subtitle}>Please confirm your details before we generate your plan</Text>
 
-        <View style={styles.summaryGrid}>
-          {summaryItems.map((item, index) => (
-            <View key={index} style={styles.summaryCard}>
-              <View style={styles.cardHeader}>
-                <MaterialCommunityIcons 
-                  name={item.icon} 
-                  size={24} 
-                  color="#2075FF" 
-                  style={styles.cardIcon}
-                />
-                <Text style={styles.cardLabel}>{item.label}</Text>
-              </View>
-              <Text style={[styles.cardValue, { color: item.valueColor }]}>
-                {item.value}
-              </Text>
-            </View>
-          ))}
-        </View>
+        <InfoCard title="Personal Info" items={personalInfoItems} />
+        <InfoCard title="Body Stats" items={bodyStatsItems} />
+        <InfoCard title="Plan Details" items={planDetailsItems} />
       </ScrollView>
 
       <View style={styles.buttonContainer}>
@@ -182,68 +219,57 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
   },
-  summaryGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 16,
-  },
-  summaryCard: {
-    width: '47%',
-    backgroundColor: '#F7F8FA',
-    borderRadius: 12,
-    padding: 16,
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    padding: 24,
+    marginBottom: 24,
     borderWidth: 1,
     borderColor: '#E2E5EA',
-    shadowColor: '#2075FF22',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 2,
   },
-  cardHeader: {
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1B365D',
+    marginBottom: 16,
+  },
+  cardRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
   },
-  cardIcon: {
-    marginRight: 8,
+  cardRowLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   cardLabel: {
     fontSize: 14,
     color: '#666666',
-    fontWeight: '500',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    marginLeft: 12,
   },
   cardValue: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#2075FF',
-    lineHeight: 24,
+    fontSize: 16,
+    color: '#1B365D',
+    fontWeight: '500',
   },
   buttonContainer: {
-    padding: 24,
+    padding: 16,
+    paddingBottom: 28, // 16px padding + 12px safe area
     borderTopWidth: 1,
     borderTopColor: '#E2E5EA',
   },
   generateButton: {
     backgroundColor: '#2075FF',
     borderRadius: 12,
-    height: 56,
+    height: 48,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#2075FF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
   },
   generateButtonText: {
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '600',
-    letterSpacing: 0.5,
   },
 });
 

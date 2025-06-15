@@ -40,20 +40,38 @@ export const AuthProvider = ({ children }) => {
 
   // Initialize auth state listener
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(
-      (user) => {
-        setUser(user);
-        setLoading(false);
-        setError(null);
-      },
-      (error) => {
-        console.error('Auth state change error:', error);
-        setError('Authentication error. Please try again.');
+    let unsubscribe;
+    
+    const initializeAuth = async () => {
+      try {
+        // Wait for auth to be ready
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        unsubscribe = auth.onAuthStateChanged(
+          (user) => {
+            setUser(user);
+            setLoading(false);
+            setError(null);
+          },
+          (error) => {
+            console.error('Auth state change error:', error);
+            setError('Authentication error. Please try again.');
+            setLoading(false);
+          }
+        );
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        setError('Failed to initialize authentication');
         setLoading(false);
       }
-    );
+    };
 
-    return () => unsubscribe();
+    initializeAuth();
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, []);
 
   // Use the redirect URI from app.json if available, otherwise generate one

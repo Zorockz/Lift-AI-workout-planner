@@ -1,4 +1,4 @@
-import { OPENAI_API_KEY } from '@env';
+import { OPENAI_KEY } from '@env';
 
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
@@ -8,7 +8,7 @@ export const sendMessageToAI = async (message) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Authorization': `Bearer ${OPENAI_KEY}`,
       },
       body: JSON.stringify({
         model: 'gpt-3.5-turbo',

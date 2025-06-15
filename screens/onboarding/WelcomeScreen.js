@@ -1,20 +1,38 @@
-import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
 import Button from '../../components/Button';
 import ProgressBar from '../../components/ProgressBar';
 import { commonStyles } from '../../utils/styles';
-import { useOnboarding } from '../../OnboardingContext';
 import { useAuth } from '../../contexts/AuthContext';
 import GoogleLogo from '../../assets/google_logo.png';
 
 const WelcomeScreen = ({ navigation }) => {
-  const { onboarding } = useOnboarding();
-  const { signIn } = useAuth();
+  const { signIn, error, clearError, loading } = useAuth();
 
-  // Handler for Google sign-in, then continue onboarding
+  // Show error alert when authentication error occurs
+  useEffect(() => {
+    if (error) {
+      Alert.alert(
+        'Authentication Error',
+        error,
+        [
+          {
+            text: 'OK',
+            onPress: clearError
+          }
+        ]
+      );
+    }
+  }, [error]);
+
+  // Handler for Google sign-in
   const handleGoogleSignIn = async () => {
-    await signIn();
-    navigation.navigate('GenderSelection');
+    try {
+      await signIn();
+      // Navigation will be handled by the auth state change in App.js
+    } catch (error) {
+      console.error('Error signing in:', error);
+    }
   };
 
   return (
@@ -31,9 +49,16 @@ const WelcomeScreen = ({ navigation }) => {
           onPress={() => navigation.navigate('GenderSelection')}
           style={[commonStyles.button, { marginBottom: 16 }]}
         />
-        <TouchableOpacity style={styles.googleButton} onPress={handleGoogleSignIn} activeOpacity={0.8}>
+        <TouchableOpacity 
+          style={[styles.googleButton, loading && styles.disabledButton]} 
+          onPress={handleGoogleSignIn} 
+          activeOpacity={0.8}
+          disabled={loading}
+        >
           <Image source={GoogleLogo} style={styles.googleLogo} />
-          <Text style={styles.googleButtonText}>Sign in with Google</Text>
+          <Text style={styles.googleButtonText}>
+            {loading ? 'Signing in...' : 'Sign in with Google'}
+          </Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -53,6 +78,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     alignSelf: 'stretch',
     justifyContent: 'center',
+  },
+  disabledButton: {
+    opacity: 0.7,
   },
   googleLogo: {
     width: 22,

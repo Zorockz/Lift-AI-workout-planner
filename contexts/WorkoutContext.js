@@ -4,30 +4,64 @@ import { generateWorkoutPlan, getExerciseDetails } from '../services/openaiServi
 
 const WorkoutContext = createContext();
 
-export const useWorkout = () => useContext(WorkoutContext);
+export const useWorkout = () => {
+  const context = useContext(WorkoutContext);
+  if (!context) {
+    throw new Error('useWorkout must be used within a WorkoutProvider');
+  }
+  return context;
+};
 
 export const WorkoutProvider = ({ children }) => {
   const [workoutPlan, setWorkoutPlan] = useState(null);
   const [completedExercises, setCompletedExercises] = useState({});
   const [currentDay, setCurrentDay] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Load completed exercises from AsyncStorage
+  // Initialize context
   useEffect(() => {
-    const loadCompletedExercises = async () => {
+    const initialize = async () => {
       try {
+        setLoading(true);
+        // Load workout plan
+        const savedPlan = await AsyncStorage.getItem('workoutPlan');
+        if (savedPlan) {
+          setWorkoutPlan(JSON.parse(savedPlan));
+        }
+
+        // Load completed exercises
         const savedExercises = await AsyncStorage.getItem('completedExercises');
         if (savedExercises) {
           setCompletedExercises(JSON.parse(savedExercises));
         }
+
+        setIsInitialized(true);
       } catch (error) {
-        console.error('Error loading completed exercises:', error);
+        console.error('Error initializing WorkoutContext:', error);
+        setError('Failed to load workout data');
+      } finally {
+        setLoading(false);
       }
     };
 
-    loadCompletedExercises();
+    initialize();
   }, []);
+
+  // Save workout plan to AsyncStorage
+  useEffect(() => {
+    const saveWorkoutPlan = async () => {
+      if (!workoutPlan) return;
+      try {
+        await AsyncStorage.setItem('workoutPlan', JSON.stringify(workoutPlan));
+      } catch (error) {
+        console.error('Error saving workout plan:', error);
+      }
+    };
+
+    saveWorkoutPlan();
+  }, [workoutPlan]);
 
   // Save completed exercises to AsyncStorage
   useEffect(() => {
@@ -47,10 +81,8 @@ export const WorkoutProvider = ({ children }) => {
     setError(null);
     try {
       const plan = await generateWorkoutPlan(userPreferences);
-      // Parse the plan and structure it
       const structuredPlan = parseWorkoutPlan(plan);
       setWorkoutPlan(structuredPlan);
-      await AsyncStorage.setItem('workoutPlan', JSON.stringify(structuredPlan));
     } catch (error) {
       setError(error.message);
       console.error('Error creating workout plan:', error);
@@ -109,10 +141,8 @@ export const WorkoutProvider = ({ children }) => {
     };
   };
 
-  // Helper function to parse the workout plan from OpenAI response
   const parseWorkoutPlan = (plan) => {
     try {
-      // Assuming the plan is returned as a JSON string
       const parsedPlan = JSON.parse(plan);
       return {
         weekPlan: parsedPlan,
@@ -120,7 +150,6 @@ export const WorkoutProvider = ({ children }) => {
       };
     } catch (error) {
       console.error('Error parsing workout plan:', error);
-      // Return a default plan if parsing fails
       return {
         weekPlan: {
           'Day 1': [],
@@ -135,6 +164,10 @@ export const WorkoutProvider = ({ children }) => {
       };
     }
   };
+
+  if (!isInitialized) {
+    return null;
+  }
 
   return (
     <WorkoutContext.Provider value={{

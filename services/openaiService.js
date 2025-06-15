@@ -15,7 +15,7 @@ export const generateWorkoutPlan = async (userPreferences) => {
         messages: [
           {
             role: "system",
-            content: "You are a professional fitness trainer. Generate a 7-day workout plan based on the user's preferences."
+            content: "You are a professional fitness trainer. Generate a 7-day workout plan based on the user's preferences. Return the response in JSON format with the following structure: { 'Day 1': [array of exercises], 'Day 2': [array of exercises], etc. }"
           },
           {
             role: "user",
@@ -51,7 +51,7 @@ export const getExerciseDetails = async (exerciseName) => {
         messages: [
           {
             role: "system",
-            content: "You are a professional fitness trainer. Provide detailed instructions for exercises."
+            content: "You are a professional fitness trainer. Provide detailed instructions for exercises in a clear, concise format."
           },
           {
             role: "user",

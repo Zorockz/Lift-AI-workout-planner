@@ -4,13 +4,7 @@
     "slug": "fitnesspal",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -19,14 +13,7 @@
       "bundleIdentifier": "com.fitnesspal.app"
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
       "package": "com.fitnesspal.app"
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-secure-store",
@@ -35,7 +22,11 @@
     ],
     "scheme": "fitnesspal",
     "extra": {
-      "googleClientId": "234734836314-q9irge2opsfgv4ivjvcvjuk976ofrfu3.apps.googleusercontent.com"
+      "googleClientId": "234734836314-q9irge2opsfgv4ivjvcvjuk976ofrfu3.apps.googleusercontent.com",
+      "authSession": {
+        "redirectUri": "fitnesspal://redirect",
+        "useProxy": true
+      }
     }
   }
 }

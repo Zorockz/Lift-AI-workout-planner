@@ -1,6 +1,7 @@
-import { doc, setDoc, collection } from 'firebase/firestore';
-import { db } from '../config/firebaseConfig';
-import { auth } from '../config/firebaseConfig';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '../config/firebase';
+import { auth } from '../config/firebase';
+import { generatePlan } from '../utils/planGenerator';
 
 /**
  * Saves the user's profile to Firestore
@@ -65,7 +66,7 @@ export const generateAndSavePlan = async (profile) => {
     // First save the profile
     await saveUserProfile(profile);
     
-    // Generate the plan (assuming this function exists)
+    // Generate the plan
     const plan = await generatePlan(profile);
     
     // Save the generated plan

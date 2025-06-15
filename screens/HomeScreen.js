@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
@@ -132,17 +132,48 @@ const HomeScreen = () => {
     setCurrentDay,
     createWorkoutPlan,
     getExerciseInstructions,
-    loading,
-    error,
+    loading: workoutLoading,
+    error: workoutError,
     currentStreak,
     bestStreak,
     weekData
   } = useWorkout();
-  const todaysWorkout = getTodaysWorkout();
-  const insets = useSafeAreaInsets();
+  
+  const [isInitialized, setIsInitialized] = useState(false);
   const [exerciseDetails, setExerciseDetails] = useState({});
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(true);
   const [screenHeight, setScreenHeight] = useState(0);
+  const insets = useSafeAreaInsets();
+
+  // Initialize the screen
+  useEffect(() => {
+    const initialize = async () => {
+      try {
+        // Get today's workout
+        const workout = getTodaysWorkout();
+        if (workout?.exercises) {
+          // Preload exercise details
+          const details = {};
+          for (const exercise of workout.exercises) {
+            try {
+              details[exercise] = await getExerciseInstructions(exercise);
+            } catch (error) {
+              console.error(`Error loading details for ${exercise}:`, error);
+            }
+          }
+          setExerciseDetails(details);
+        }
+        setIsInitialized(true);
+      } catch (error) {
+        console.error('Error initializing HomeScreen:', error);
+        setIsInitialized(true); // Still set initialized to true to show error state
+      }
+    };
+
+    initialize();
+  }, [getTodaysWorkout, getExerciseInstructions]);
+
+  const todaysWorkout = getTodaysWorkout();
 
   const onLayout = (event) => {
     const { height } = event.nativeEvent.layout;
@@ -259,6 +290,36 @@ const HomeScreen = () => {
     ];
   };
 
+  if (!isInitialized || workoutLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Header onSettingsPress={handleSettingsPress} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#2075FF" />
+          <Text style={styles.loadingText}>Loading your workout...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (workoutError) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Header onSettingsPress={handleSettingsPress} />
+        <View style={styles.errorContainer}>
+          <MaterialCommunityIcons name="alert-circle" size={48} color="#FF3B30" />
+          <Text style={styles.errorText}>Error loading workout data</Text>
+          <TouchableOpacity 
+            style={styles.retryButton}
+            onPress={() => setIsInitialized(false)}
+          >
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={['top']} onLayout={onLayout}>
       <Header onSettingsPress={handleSettingsPress} />
@@ -272,15 +333,7 @@ const HomeScreen = () => {
           <WeeklyBubbles weekData={getWeeklyData()} />
         </View>
         
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#4F46E5" />
-          </View>
-        ) : error ? (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        ) : todaysWorkout && !todaysWorkout.isRestDay ? (
+        {todaysWorkout && !todaysWorkout.isRestDay ? (
           <TodayCard
             plan={{
               name: todaysWorkout.title,
@@ -303,7 +356,7 @@ const HomeScreen = () => {
           <WorkoutCard
             workout={todaysWorkout}
             onStartPress={handleStartWorkout}
-            loading={loading}
+            loading={workoutLoading}
           />
         </View>
 
@@ -648,6 +701,18 @@ const styles = StyleSheet.create({
   },
   rightSection: {
     padding: 8,
+  },
+  retryButton: {
+    backgroundColor: '#2075FF',
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  retryButtonText: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: '600',
+    fontFamily: 'System',
   },
 });
 

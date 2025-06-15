@@ -1,26 +1,52 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useOnboarding } from '../OnboardingContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth } from '../contexts/AuthContext';
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
   const { onboarding } = useOnboarding();
+  const { signOut, error, clearError, loading } = useAuth();
+
+  // Show error alert when authentication error occurs
+  useEffect(() => {
+    if (error) {
+      Alert.alert(
+        'Authentication Error',
+        error,
+        [
+          {
+            text: 'OK',
+            onPress: clearError
+          }
+        ]
+      );
+    }
+  }, [error]);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
   const menuItems = [
     {
       icon: 'account',
       title: 'Personal Information',
       subtitle: 'Update your profile details',
-      onPress: () => console.log('Personal Info pressed'),
+      onPress: () => navigation.navigate('PersonalInfo'),
     },
     {
       icon: 'dumbbell',
       title: 'Workout Preferences',
       subtitle: 'Modify your workout settings',
-      onPress: () => console.log('Workout Preferences pressed'),
+      onPress: () => navigation.navigate('WorkoutPreferences'),
     },
     {
       icon: 'chart-line',
@@ -32,7 +58,7 @@ const ProfileScreen = () => {
       icon: 'bell',
       title: 'Notifications',
       subtitle: 'Manage your alerts',
-      onPress: () => console.log('Notifications pressed'),
+      onPress: () => navigation.navigate('Notifications'),
     },
     {
       icon: 'cog',
@@ -108,11 +134,14 @@ const ProfileScreen = () => {
 
         {/* Logout Button */}
         <TouchableOpacity 
-          style={styles.logoutButton}
-          onPress={() => navigation.navigate('Welcome')}
+          style={[styles.logoutButton, loading && styles.disabledButton]}
+          onPress={handleSignOut}
+          disabled={loading}
         >
           <MaterialCommunityIcons name="logout" size={24} color="#FF3B30" />
-          <Text style={styles.logoutText}>Log Out</Text>
+          <Text style={styles.logoutText}>
+            {loading ? 'Signing out...' : 'Log Out'}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -232,6 +261,9 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#FF3B30',
     marginLeft: 8,
+  },
+  disabledButton: {
+    opacity: 0.7,
   },
 });
 

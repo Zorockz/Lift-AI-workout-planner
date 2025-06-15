@@ -4,30 +4,63 @@ import * as Google from 'expo-auth-session/providers/google';
 import * as AuthSession from 'expo-auth-session';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
+import { GoogleAuthProvider } from 'firebase/compat/auth';
+import { auth } from '../config/firebase';
+import { Platform } from 'react-native';
 
 WebBrowser.maybeCompleteAuthSession();
 
-const AuthContext = createContext({});
+const defaultContext = {
+  user: null,
+  loading: true,
+  error: null,
+  signIn: () => {},
+  signOut: () => {},
+  clearError: () => {}
+};
 
-export const useAuth = () => useContext(AuthContext);
+const AuthContext = createContext(defaultContext);
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  // Get the Google Client ID from app.json
   const clientId = Constants.expoConfig?.extra?.googleClientId;
-  
-  if (!clientId) {
-    console.error('Google Client ID is not configured. Please check your app.json file.');
-  }
+  const authSession = Constants.expoConfig?.extra?.authSession;
 
-  // Generate the redirect URI
-  const redirectUri = AuthSession.makeRedirectUri({
+  // Initialize auth state listener
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(
+      (user) => {
+        setUser(user);
+        setLoading(false);
+        setError(null);
+      },
+      (error) => {
+        console.error('Auth state change error:', error);
+        setError('Authentication error. Please try again.');
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
+
+  // Use the redirect URI from app.json if available, otherwise generate one
+  const redirectUri = authSession?.redirectUri || AuthSession.makeRedirectUri({
     scheme: 'fitnesspal',
-    useProxy: true
+    useProxy: authSession?.useProxy ?? Platform.OS !== 'web'
   });
-
-  console.log('Redirect URI:', redirectUri); // Log this URI to add to Google Cloud Console
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     clientId,
@@ -35,70 +68,75 @@ export const AuthProvider = ({ children }) => {
     androidClientId: clientId,
     webClientId: clientId,
     redirectUri,
+    scopes: ['profile', 'email']
   });
 
   useEffect(() => {
     if (response?.type === 'success') {
-      const { authentication } = response;
-      handleSignIn(authentication);
+      const { id_token } = response.params;
+      handleSignIn(id_token);
+    } else if (response?.type === 'error') {
+      setError('Google sign in failed. Please try again.');
+      console.error('Google sign in error:', response.error);
     }
   }, [response]);
 
-  useEffect(() => {
-    loadUser();
-  }, []);
-
-  const loadUser = async () => {
+  const handleSignIn = async (idToken) => {
     try {
-      const userJson = await AsyncStorage.getItem('user');
-      if (userJson) {
-        setUser(JSON.parse(userJson));
-      }
-    } catch (error) {
-      console.error('Error loading user:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSignIn = async (authentication) => {
-    try {
-      const userInfoResponse = await fetch('https://www.googleapis.com/userinfo/v2/me', {
-        headers: { Authorization: `Bearer ${authentication.accessToken}` },
-      });
-
-      const userInfo = await userInfoResponse.json();
+      setLoading(true);
+      setError(null);
+      
+      // Create a Google credential with the token
+      const credential = GoogleAuthProvider.credential(idToken);
+      
+      // Sign in with Firebase using the credential
+      await auth.signInWithCredential(credential);
+      
+      // Store user data in AsyncStorage
       const userData = {
-        id: userInfo.id,
-        email: userInfo.email,
-        name: userInfo.name,
-        picture: userInfo.picture,
-        accessToken: authentication.accessToken,
+        id: auth.currentUser.uid,
+        email: auth.currentUser.email,
+        name: auth.currentUser.displayName,
+        picture: auth.currentUser.photoURL,
       };
-
+      
       await AsyncStorage.setItem('user', JSON.stringify(userData));
-      setUser(userData);
     } catch (error) {
       console.error('Error signing in:', error);
+      setError('Failed to sign in. Please try again.');
+      setLoading(false);
     }
   };
 
   const signOut = async () => {
     try {
+      setLoading(true);
+      setError(null);
+      await auth.signOut();
       await AsyncStorage.removeItem('user');
       setUser(null);
     } catch (error) {
       console.error('Error signing out:', error);
+      setError('Failed to sign out. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
+
+  const clearError = () => setError(null);
 
   return (
     <AuthContext.Provider
       value={{
         user,
         loading,
-        signIn: () => promptAsync(),
+        error,
+        signIn: () => {
+          setError(null);
+          promptAsync();
+        },
         signOut,
+        clearError,
       }}
     >
       {children}

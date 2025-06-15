@@ -6,8 +6,9 @@ import { OnboardingProvider } from './OnboardingContext';
 import { WorkoutProvider } from './contexts/WorkoutContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { View, ActivityIndicator } from 'react-native';
 
-// Onboarding Screens (now in subfolder)
+// Onboarding Screens
 import WelcomeScreen from './screens/onboarding/WelcomeScreen';
 import GenderSelectionScreen from './screens/onboarding/GenderSelectionScreen';
 import GoalSelectionScreen from './screens/onboarding/GoalSelectionScreen';
@@ -29,43 +30,55 @@ import HomeScreen from './screens/HomeScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import FullPlanScreen from './screens/FullPlanScreen';
 
+const Stack = createNativeStackNavigator();
 const RootStack = createNativeStackNavigator();
-const OnboardingStack = createNativeStackNavigator();
-const MainStack = createNativeStackNavigator();
 
+// Loading screen component
+const LoadingScreen = () => (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <ActivityIndicator size="large" color="#2075FF" />
+  </View>
+);
+
+// Onboarding navigator
 const OnboardingNavigator = () => (
-  <OnboardingStack.Navigator screenOptions={{ headerShown: false }}>
-    <OnboardingStack.Screen name="Welcome" component={WelcomeScreen} />
-    <OnboardingStack.Screen name="GenderSelection" component={GenderSelectionScreen} />
-    <OnboardingStack.Screen name="GoalSelection" component={GoalSelectionScreen} />
-    <OnboardingStack.Screen name="ExperienceLevel" component={ExperienceLevelScreen} />
-    <OnboardingStack.Screen name="StrengthTrainingHistory" component={StrengthTrainingHistoryScreen} />
-    <OnboardingStack.Screen name="EquipmentInput" component={EquipmentInputScreen} />
-    <OnboardingStack.Screen name="ScheduleInput" component={ScheduleInputScreen} />
-    <OnboardingStack.Screen name="ExerciseLocation" component={ExerciseLocationScreen} />
-    <OnboardingStack.Screen name="TargetMuscles" component={TargetMusclesScreen} />
-    <OnboardingStack.Screen name="HeightInput" component={HeightInputScreen} />
-    <OnboardingStack.Screen name="WeightInput" component={WeightInputScreen} />
-    <OnboardingStack.Screen name="GoalWeightInput" component={GoalWeightInputScreen} />
-    <OnboardingStack.Screen name="OnboardingSummary" component={OnboardingSummary} />
-    <OnboardingStack.Screen name="PlanGeneration" component={PlanGenerationScreen} />
-    <OnboardingStack.Screen name="PlanPreview" component={PlanPreviewScreen} />
-  </OnboardingStack.Navigator>
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="Welcome" component={WelcomeScreen} />
+    <Stack.Screen name="GenderSelection" component={GenderSelectionScreen} />
+    <Stack.Screen name="GoalSelection" component={GoalSelectionScreen} />
+    <Stack.Screen name="ExperienceLevel" component={ExperienceLevelScreen} />
+    <Stack.Screen name="StrengthTrainingHistory" component={StrengthTrainingHistoryScreen} />
+    <Stack.Screen name="EquipmentInput" component={EquipmentInputScreen} />
+    <Stack.Screen name="ScheduleInput" component={ScheduleInputScreen} />
+    <Stack.Screen name="OnboardingSummary" component={OnboardingSummary} />
+    <Stack.Screen name="PlanGeneration" component={PlanGenerationScreen} />
+    <Stack.Screen name="PlanPreview" component={PlanPreviewScreen} />
+    <Stack.Screen name="ExerciseLocation" component={ExerciseLocationScreen} />
+    <Stack.Screen name="TargetMuscles" component={TargetMusclesScreen} />
+    <Stack.Screen name="HeightInput" component={HeightInputScreen} />
+    <Stack.Screen name="WeightInput" component={WeightInputScreen} />
+    <Stack.Screen name="GoalWeightInput" component={GoalWeightInputScreen} />
+  </Stack.Navigator>
 );
 
+// Main app navigator
 const MainNavigator = () => (
-  <MainStack.Navigator screenOptions={{ headerShown: false }}>
-    <MainStack.Screen name="Home" component={HomeScreen} />
-    <MainStack.Screen name="Profile" component={ProfileScreen} />
-    <MainStack.Screen name="FullPlan" component={FullPlanScreen} />
-  </MainStack.Navigator>
+  <Stack.Navigator>
+    <Stack.Screen name="Home" component={HomeScreen} />
+    <Stack.Screen name="Profile" component={ProfileScreen} />
+    <Stack.Screen name="FullPlan" component={FullPlanScreen} />
+  </Stack.Navigator>
 );
 
-function Navigation() {
+function AppNavigator() {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return null;
+    return (
+      <RootStack.Navigator screenOptions={{ headerShown: false }}>
+        <RootStack.Screen name="Loading" component={LoadingScreen} />
+      </RootStack.Navigator>
+    );
   }
 
   return (
@@ -83,16 +96,16 @@ export default function App() {
   return (
     <ErrorBoundary>
       <SafeAreaProvider>
-        <OnboardingProvider>
-          <WorkoutProvider>
-            <AuthProvider>
-              <NavigationContainer>
+        <NavigationContainer>
+          <AuthProvider>
+            <OnboardingProvider>
+              <WorkoutProvider>
                 <StatusBar style="auto" />
-                <Navigation />
-              </NavigationContainer>
-            </AuthProvider>
-          </WorkoutProvider>
-        </OnboardingProvider>
+                <AppNavigator />
+              </WorkoutProvider>
+            </OnboardingProvider>
+          </AuthProvider>
+        </NavigationContainer>
       </SafeAreaProvider>
     </ErrorBoundary>
   );

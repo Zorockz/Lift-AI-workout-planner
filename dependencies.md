@@ -22,7 +22,12 @@
 - @react-native-async-storage/async-storage (^2.1.2)
 - expo-secure-store (~14.2.3)
 - expo-file-system (~18.1.10)
-- firebase (^9.19.1)
+- firebase (^9.19.1)  # Using compat SDK for better React Native compatibility
+
+### Authentication
+- expo-auth-session (~6.2.0)
+- expo-web-browser (~14.1.6)
+- expo-random (^14.0.1)
 
 ### Media and Camera
 - expo-av (~15.1.6)
@@ -46,9 +51,6 @@
 - expo-updates (~0.28.14)
 - expo-splash-screen (~0.30.9)
 - expo-font (~13.3.1)
-- expo-web-browser (~14.1.6)
-- expo-auth-session (~6.2.0)
-- expo-random (^14.0.1)
 
 ### Development Dependencies
 - @babel/core (^7.20.0)
@@ -63,4 +65,5 @@
 ## Installation Notes
 - All Expo packages are installed using `expo install` to ensure version compatibility
 - Third-party packages are installed using `npm install`
+- Firebase is using the compat SDK (version 9.19.1) for better React Native compatibility
 - Keep babel.config.js updated when adding new packages that require babel configuration 

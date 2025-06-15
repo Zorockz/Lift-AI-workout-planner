@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import OnboardingHeader from '../../components/OnboardingHeader';
 import ProgressBar from '../../components/ProgressBar';
 import { useOnboarding } from '../../OnboardingContext';
-import { generateWorkoutPlan } from '../../services/workoutService';
+import { generatePlan } from '../../utils/planGenerator';
+import { generateAndSavePlan } from '../../services/userService';
 import { commonStyles, colors, dimensions } from '../../utils/styles';
 
 const PlanGenerationScreen = ({ navigation }) => {
@@ -13,9 +14,10 @@ const PlanGenerationScreen = ({ navigation }) => {
   useEffect(() => {
     const generatePlan = async () => {
       try {
-        const plan = await generateWorkoutPlan(onboarding);
+        const plan = await generatePlan(onboarding);
+        const planId = await generateAndSavePlan(onboarding);
         incrementStep();
-        navigation.navigate('PlanPreview', { plan });
+        navigation.navigate('OnboardingSummary');
       } catch (err) {
         setError(err.message || 'Failed to generate workout plan');
       }

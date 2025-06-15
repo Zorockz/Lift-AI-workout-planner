@@ -1,98 +1,66 @@
 # FitnessPal Dependencies
 
-## Core Dependencies
-- ✅ @react-navigation/native
-- ✅ @react-navigation/bottom-tabs
-- ✅ @react-navigation/native-stack
-- ✅ react-native-screens
-- ✅ react-native-safe-area-context
-- ✅ react-native-gesture-handler
-- ✅ react-native-reanimated
-- ✅ expo-status-bar
-- ✅ expo-blur
-- ✅ @react-native-async-storage/async-storage
-- ✅ @react-native-community/slider
-- ✅ @react-native-picker/picker
-- ✅ @expo/vector-icons
+## Installed Dependencies
+### Core Navigation
+- @react-navigation/native (^7.1.11)
+- @react-navigation/bottom-tabs (^7.3.15)
+- @react-navigation/native-stack (^7.3.15)
+- react-native-screens (~4.11.1)
+- react-native-safe-area-context (5.4.0)
 
-## Development Dependencies
-- ✅ react-native-dotenv
+### Animation and Gestures
+- react-native-gesture-handler (~2.24.0)
+- react-native-reanimated (~3.17.4)
 
-## Required Dependencies (Not Yet Installed)
-- expo-linear-gradient (for gradient backgrounds)
-- expo-image-picker (for profile image uploads)
-- expo-notifications (for workout reminders)
-- expo-calendar (for workout scheduling)
-- expo-haptics (for haptic feedback)
-- expo-sharing (for sharing workout plans)
-- expo-file-system (for saving workout data)
-- expo-secure-store (for secure storage of sensitive data)
-- expo-device (for device-specific features)
-- expo-constants (for app configuration)
-- expo-linking (for deep linking)
-- expo-updates (for OTA updates)
-- expo-splash-screen (for splash screen management)
-- expo-font (for custom fonts)
-- expo-av (for audio/video features)
-- expo-camera (for exercise form checking)
-- expo-sensors (for workout tracking)
-- expo-location (for outdoor workout tracking)
-- expo-background-fetch (for background tasks)
-- expo-task-manager (for background tasks)
+### UI Components
+- expo-blur (~14.1.5)
+- expo-status-bar (~2.2.3)
+- @react-native-community/slider (4.5.6)
+- @react-native-picker/picker (2.11.0)
 
-## Optional Dependencies (Consider Adding)
-- react-native-chart-kit (for progress visualization)
-- react-native-svg (for custom graphics)
-- react-native-maps (for outdoor workout tracking)
-- react-native-calendars (for workout scheduling)
-- react-native-modal (for custom modals)
-- react-native-animatable (for additional animations)
-- react-native-sound (for audio feedback)
-- react-native-video (for exercise tutorials)
-- react-native-camera (for exercise form checking)
-- react-native-fitness (for health data integration)
-- react-native-health (for health data integration)
-- react-native-google-signin (for Google authentication)
-- react-native-facebook-login (for Facebook authentication)
-- react-native-apple-authentication (for Apple authentication)
+### Storage and Data
+- @react-native-async-storage/async-storage (^2.1.2)
+- expo-secure-store (~14.2.3)
+- expo-file-system (~18.1.10)
+- firebase (^9.19.1)
+
+### Media and Camera
+- expo-av (~15.1.6)
+- expo-camera (~16.1.8)
+- expo-image-picker (~16.1.4)
+
+### Notifications and Background Tasks
+- expo-notifications (~0.31.3)
+- expo-background-fetch (~13.1.5)
+- expo-task-manager (~13.1.5)
+
+### Device Features
+- expo-device (~7.1.4)
+- expo-haptics (~14.1.4)
+- expo-sensors (~14.1.4)
+- expo-location (~18.1.5)
+
+### App Management
+- expo-constants (~17.1.6)
+- expo-linking (~7.1.5)
+- expo-updates (~0.28.14)
+- expo-splash-screen (~0.30.9)
+- expo-font (~13.3.1)
+- expo-web-browser (~14.1.6)
+- expo-auth-session (~6.2.0)
+- expo-random (^14.0.1)
+
+### Development Dependencies
+- @babel/core (^7.20.0)
+- react-native-dotenv (^3.4.11)
 
 ## Version Information
-Current React version: 19.0.0
-Current React DOM version: 19.0.0
-Current React Native version: (from Expo SDK)
+- React: 19.0.0
+- React DOM: 19.0.0
+- React Native: 0.79.3
+- Expo SDK: 53.0.0
 
-## Installation Commands
-```bash
-# Core Navigation
-expo install @react-navigation/native @react-navigation/bottom-tabs @react-navigation/native-stack react-native-screens react-native-safe-area-context
-
-# Animation and Gestures
-expo install react-native-gesture-handler react-native-reanimated
-
-# UI Components
-expo install expo-blur expo-status-bar @react-native-community/slider @react-native-picker/picker
-
-# Storage
-expo install @react-native-async-storage/async-storage expo-secure-store expo-file-system
-
-# Media
-expo install expo-image-picker expo-av expo-camera
-
-# Notifications and Background Tasks
-expo install expo-notifications expo-background-fetch expo-task-manager
-
-# Device Features
-expo install expo-device expo-haptics expo-sensors expo-location
-
-# App Management
-expo install expo-constants expo-linking expo-updates expo-splash-screen expo-font
-
-# Development
-npm install --save-dev react-native-dotenv
-```
-
-## Notes
-- All Expo packages should be installed using `expo install` to ensure version compatibility
-- Third-party packages should be installed using `npm install` or `yarn add`
-- Always check for version conflicts, especially with React and React Native versions
-- Keep the babel.config.js updated when adding new packages that require babel configuration 
+## Installation Notes
+- All Expo packages are installed using `expo install` to ensure version compatibility
+- Third-party packages are installed using `npm install`
+- Keep babel.config.js updated when adding new packages that require babel configuration 

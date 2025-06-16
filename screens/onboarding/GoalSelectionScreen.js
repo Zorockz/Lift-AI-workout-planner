@@ -109,6 +109,11 @@ const GoalSelectionScreen = ({ navigation }) => {
                   {goal.description}
                 </Text>
               </View>
+              {selected === goal.id && (
+                <View style={styles.checkmarkContainer}>
+                  <MaterialCommunityIcons name="check-circle" size={28} color="#2075FF" />
+                </View>
+              )}
             </View>
           </TouchableOpacity>
         ))}
@@ -148,12 +153,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 2,
   },
-  cardSelected: {
-    borderColor: '#1B365D',
-    backgroundColor: '#F5F7FA',
-  },
   cardUnselected: {
     borderColor: '#E0E0E0',
+    backgroundColor: '#FFFFFF',
+  },
+  cardSelected: {
+    borderColor: '#2075FF',
     backgroundColor: '#FFFFFF',
   },
   cardContent: {
@@ -190,6 +195,11 @@ const styles = StyleSheet.create({
   },
   descriptionUnselected: {
     color: '#999999',
+  },
+  checkmarkContainer: {
+    marginLeft: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

@@ -65,18 +65,8 @@ const PlanPreviewScreen = () => {
     );
   };
 
-  const renderDayCard = (day, exercises, index) => {
+  const renderDayCard = (day, dayObj, index) => {
     const isLocked = index >= 2;
-    const cardContent = (
-      <View style={styles.dayCard}>
-        <Text style={styles.dayTitle}>{day}</Text>
-        {Array.isArray(exercises)
-          ? exercises.map((exercise, index) => renderExercise(exercise, index))
-          : renderExercise(exercises, 0)
-        }
-      </View>
-    );
-
     if (isLocked) {
       return (
         <View key={day} style={styles.lockedCardContainer}>
@@ -84,20 +74,18 @@ const PlanPreviewScreen = () => {
             <BlurView intensity={20} style={StyleSheet.absoluteFillObject} />
             <View style={styles.dayCardContent}>
               <Text style={[styles.dayTitle, styles.lockedText]}>{day}</Text>
-              {Array.isArray(exercises)
-                ? exercises.map((exercise, index) => (
-                    <View key={index} style={styles.lockedExercise}>
-                      <Text style={styles.lockedText}>
-                        {exercise.type === "Rest Day" ? "Rest Day" : exercise.name}
-                      </Text>
-                    </View>
-                  ))
-                : (
-                    <View style={styles.lockedExercise}>
-                      <Text style={styles.lockedText}>Rest Day</Text>
-                    </View>
-                  )
-              }
+              {dayObj.type === 'rest' ? (
+                <View style={styles.lockedExercise}>
+                  <Text style={styles.lockedText}>Rest Day</Text>
+                  <Text style={styles.lockedText}>{dayObj.notes}</Text>
+                </View>
+              ) : (
+                dayObj.exercises.map((exercise, i) => (
+                  <View key={i} style={styles.lockedExercise}>
+                    <Text style={styles.lockedText}>{exercise.name}</Text>
+                  </View>
+                ))
+              )}
             </View>
           </View>
           <View style={styles.lockIconContainer}>
@@ -107,7 +95,40 @@ const PlanPreviewScreen = () => {
       );
     }
 
-    return <View key={day}>{cardContent}</View>;
+    // Unlocked card
+    return (
+      <View key={day} style={styles.dayCard}>
+        <Text style={styles.dayTitle}>{day}</Text>
+        {dayObj.type === 'rest' ? (
+          <View style={styles.restDayContainer}>
+            <Text style={styles.restDayText}>Rest Day</Text>
+            <Text style={styles.restDaySubtext}>{dayObj.notes}</Text>
+          </View>
+        ) : (
+          dayObj.exercises.map((exercise, i) => (
+            <View key={i} style={styles.exerciseContainer}>
+              <Text style={styles.exerciseName}>{exercise.name}</Text>
+              {exercise.sets && exercise.reps && (
+                <Text style={styles.exerciseDetail}>{exercise.sets} sets × {exercise.reps} reps</Text>
+              )}
+              {exercise.duration && (
+                <Text style={styles.exerciseDetail}>Duration: {exercise.duration} min</Text>
+              )}
+              {exercise.restTime && (
+                <Text style={styles.exerciseDetail}>Rest: {exercise.restTime} sec</Text>
+              )}
+              {exercise.intensity && (
+                <Text style={styles.exerciseDetail}>Intensity: {exercise.intensity}</Text>
+              )}
+              {exercise.notes && (
+                <Text style={styles.exerciseDetail}>Notes: {exercise.notes}</Text>
+              )}
+            </View>
+          ))
+        )}
+        <Text style={styles.dayNotes}>{dayObj.notes}</Text>
+      </View>
+    );
   };
 
   const handleFinish = async () => {
@@ -151,15 +172,9 @@ const PlanPreviewScreen = () => {
       <ScrollView contentContainerStyle={styles.content}>
         {plan?.weekPlan ? (
           <>
-            {Object.entries(plan.weekPlan).map(([day, exercises], index) => 
-              renderDayCard(day, exercises, index)
+            {Object.entries(plan.weekPlan).map(([day, dayObj], index) => 
+              renderDayCard(day, dayObj, index)
             )}
-            <TouchableOpacity 
-              style={styles.seeFullPlanButton}
-              onPress={() => navigation.navigate('FullPlan', { plan })}
-            >
-              <Text style={styles.seeFullPlanText}>See Full Plan</Text>
-            </TouchableOpacity>
           </>
         ) : (
           <Text style={styles.planText}>No plan data.</Text>
@@ -342,6 +357,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 16,
     marginBottom: 12,
+  },
+  dayNotes: {
+    fontSize: 14,
+    color: '#6C7580',
+    marginTop: 16,
   },
 });
 

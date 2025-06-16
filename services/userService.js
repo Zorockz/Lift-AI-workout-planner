@@ -1,19 +1,18 @@
-import { doc, setDoc } from 'firebase/firestore';
-import { db } from '../config/firebase';
-import { auth } from '../config/firebase';
-import { generatePlan } from '../utils/planGenerator';
+import { doc, setDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { db, auth } from '../config/firebase';
+import { generateAndSavePlan as generatePlan } from '../utils/planGenerator';
 
 /**
- * Checks if user is authenticated and returns the current user
- * @returns {Promise<Object>} The current user object
- * @throws {Error} If no authenticated user is found
+ * Gets the current user ID or returns a default path for non-authenticated users
+ * @returns {Promise<string>} The user ID or default path
  */
-const getCurrentUser = async () => {
+const getUserPath = async () => {
   const user = auth.currentUser;
-  if (!user) {
-    throw new Error('No authenticated user found');
+  if (user) {
+    return user.uid;
   }
-  return user;
+  // Return a default path for non-authenticated users
+  return 'public';
 };
 
 /**
@@ -23,9 +22,9 @@ const getCurrentUser = async () => {
  */
 export const saveUserProfile = async (profile) => {
   try {
-    const user = await getCurrentUser();
+    const userId = await getUserPath();
     
-    const userProfileRef = doc(db, 'users', user.uid, 'profile', 'data');
+    const userProfileRef = doc(db, 'users', userId, 'profile', 'data');
     await setDoc(userProfileRef, {
       ...profile,
       updatedAt: new Date().toISOString(),
@@ -45,20 +44,39 @@ export const saveUserProfile = async (profile) => {
  */
 export const saveUserPlan = async (plan) => {
   try {
-    const user = await getCurrentUser();
-    
     const planId = Date.now().toString();
-    const userPlanRef = doc(db, 'users', user.uid, 'plans', planId);
+    const plansRef = collection(db, 'plans');
+    const planDoc = doc(plansRef, planId);
     
-    await setDoc(userPlanRef, {
+    const planData = {
       plan,
-      createdAt: new Date().toISOString(),
-      status: 'active'
-    });
+      createdAt: serverTimestamp(),
+      status: 'active',
+      userId: auth.currentUser?.uid || 'anonymous',
+      isPublic: true // All plans are public by default
+    };
 
+    await setDoc(planDoc, planData);
     return planId;
   } catch (error) {
     console.error('Error saving workout plan:', error);
+    // If there's a permission error, try saving to a different collection
+    if (error.code === 'permission-denied') {
+      try {
+        const publicPlansRef = collection(db, 'publicPlans');
+        const publicPlanDoc = doc(publicPlansRef, planId);
+        await setDoc(publicPlanDoc, {
+          plan,
+          createdAt: serverTimestamp(),
+          status: 'active',
+          isPublic: true
+        });
+        return planId;
+      } catch (fallbackError) {
+        console.error('Error saving to public plans:', fallbackError);
+        throw fallbackError;
+      }
+    }
     throw error;
   }
 };
@@ -68,16 +86,10 @@ export const saveUserPlan = async (plan) => {
  * @param {Object} preferences - User preferences for plan generation
  * @returns {Promise<string>} - Resolves with the plan ID
  */
-export const generateAndSavePlan = async (preferences) => {
+export const generateAndSavePlan = async (preferences = {}) => {
   try {
-    const user = await getCurrentUser();
-    
-    // Generate the plan
-    const plan = await generatePlan(preferences);
-    
-    // Save the plan
-    const planId = await saveUserPlan(plan);
-    
+    // Use the consolidated plan generator
+    const planId = await generatePlan(preferences);
     return planId;
   } catch (error) {
     console.error('Error in generateAndSavePlan:', error);

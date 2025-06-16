@@ -12,19 +12,24 @@ const PlanGenerationScreen = ({ navigation }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const generatePlan = async () => {
+    const generatePlanAndNavigate = async () => {
       try {
+        console.log('Starting plan generation...');
         const plan = await generatePlan(onboarding);
         const planId = await generateAndSavePlan(onboarding);
+        console.log('Plan generated and saved:', planId);
         incrementStep();
-        navigation.navigate('OnboardingSummary');
+        console.log('Step incremented');
+        navigation.replace('PlanPreview', { plan });
+        console.log('Navigated to PlanPreview');
       } catch (err) {
         setError(err.message || 'Failed to generate workout plan');
+        console.error('Error in plan generation:', err);
       }
     };
 
-    generatePlan();
-  }, [navigation, onboarding, incrementStep]);
+    generatePlanAndNavigate();
+  }, []);
 
   if (error) {
     return (

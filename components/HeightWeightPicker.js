@@ -5,9 +5,13 @@ const { width, height } = Dimensions.get('window');
 const ITEM_HEIGHT = 60;
 const VISIBLE_ITEMS = 5;
 
-const HeightWeightPicker = ({ type, value, onChange }) => {
+const HeightWeightPicker = ({ type = 'height', value, onChange }) => {
   const scrollY = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef(null);
+
+  // Validate props
+  const validType = type === 'height' || type === 'weight' ? type : 'height';
+  const validValue = value || (validType === 'height' ? 66 : 150); // Default values
 
   const generateHeightOptions = () => {
     const options = [];
@@ -36,8 +40,8 @@ const HeightWeightPicker = ({ type, value, onChange }) => {
     return options;
   };
 
-  const options = type === 'height' ? generateHeightOptions() : generateWeightOptions();
-  const currentIndex = options.findIndex(option => option.value === value);
+  const options = validType === 'height' ? generateHeightOptions() : generateWeightOptions();
+  const currentIndex = options.findIndex(option => option.value === validValue);
 
   useEffect(() => {
     if (scrollViewRef.current && currentIndex !== -1) {
@@ -54,7 +58,7 @@ const HeightWeightPicker = ({ type, value, onChange }) => {
   const handleMomentumScrollEnd = (event) => {
     const offsetY = event.nativeEvent.contentOffset.y;
     const index = Math.round(offsetY / ITEM_HEIGHT);
-    if (index >= 0 && index < options.length) {
+    if (index >= 0 && index < options.length && typeof onChange === 'function') {
       onChange(options[index].value);
     }
   };

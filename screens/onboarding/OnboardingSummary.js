@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -7,8 +7,9 @@ import { useOnboarding } from '../../contexts/OnboardingContext';
 import { useAuth } from '../../contexts/AuthContext';
 
 const OnboardingSummary = ({ navigation }) => {
-  const { onboarding, completeOnboarding } = useOnboarding();
+  const { onboarding, completeOnboarding, setGeneratedPlan } = useOnboarding();
   const { completeOnboarding: completeAuthOnboarding } = useAuth();
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const formatValue = (value) => {
     if (typeof value === 'string') {
@@ -133,9 +134,55 @@ const OnboardingSummary = ({ navigation }) => {
   );
 
   const handleGeneratePlan = async () => {
-    // Don't complete onboarding here - wait until after plan preview
-    // await completeAuthOnboarding(); // REMOVED - this was causing the issue
-    navigation.navigate('PlanGeneration');
+    if (isGenerating) {
+      return;
+    }
+
+    try {
+      setIsGenerating(true);
+      
+      // Validate required data
+      if (!onboarding.goal || !onboarding.experienceLevel || !onboarding.equipment || !onboarding.workoutsPerWeek || !onboarding.exerciseLocation) {
+        console.error('Missing required onboarding data');
+        return;
+      }
+
+      // Fix location mismatch - if user has bodyweight equipment but gym location, use home
+      let location = onboarding.exerciseLocation;
+      if (onboarding.equipment.includes('bodyweight') && onboarding.exerciseLocation === 'gym') {
+        location = 'home';
+      }
+
+      const planData = {
+        goal: onboarding.goal,
+        experience: onboarding.experienceLevel,
+        equipment: onboarding.equipment,
+        daysPerWeek: onboarding.workoutsPerWeek,
+        location: location,
+      };
+      
+      const { generatePlan } = await import('../../utils/planGenerator');
+      const plan = await generatePlan(planData);
+      
+      if (plan && plan.weekPlan) {
+        // Save plan to context
+        await setGeneratedPlan(plan);
+        
+        // Navigate directly to PlanPreview
+        if (navigation && typeof navigation.navigate === 'function') {
+          navigation.navigate('PlanPreview', { 
+            plan, 
+            planId: 'generated-' + Date.now().toString() 
+          });
+        }
+      } else {
+        console.error('Failed to generate valid plan');
+      }
+    } catch (error) {
+      console.error('Error generating plan:', error);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -169,10 +216,13 @@ const OnboardingSummary = ({ navigation }) => {
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity
-          style={styles.generateButton}
+          style={[styles.generateButton, isGenerating && styles.generateButtonDisabled]}
           onPress={handleGeneratePlan}
+          disabled={isGenerating}
         >
-          <Text style={styles.generateButtonText}>Generate My Plan</Text>
+          <Text style={styles.generateButtonText}>
+            {isGenerating ? 'Generating...' : 'Generate My Plan'}
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -278,6 +328,9 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '600',
+  },
+  generateButtonDisabled: {
+    backgroundColor: '#CCCCCC',
   },
 });
 

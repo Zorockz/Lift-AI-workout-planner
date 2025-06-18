@@ -30,10 +30,8 @@ const initializeAuthInstance = () => {
       authInstance = initializeAuth(app, {
         persistence: getReactNativePersistence(AsyncStorage)
       });
-      console.log('Firebase Auth initialized successfully with AsyncStorage persistence');
     } catch (error) {
       if (error.code === 'auth/duplicate-instance') {
-        console.log('Auth instance already exists, using existing instance');
         authInstance = getAuth(app);
       } else {
         console.error('Error initializing Firebase Auth:', error);
@@ -46,7 +44,7 @@ const initializeAuthInstance = () => {
 };
 
 // Get auth instance (initialize if needed)
-const getAuthInstance = () => {
+export const getAuthInstance = () => {
   if (!authInstance) {
     return initializeAuthInstance();
   }
@@ -56,4 +54,4 @@ const getAuthInstance = () => {
 // Initialize auth immediately
 initializeAuthInstance();
 
-export { app, db, getAuthInstance, onAuthStateChanged }; 
+export { app, db, onAuthStateChanged }; 

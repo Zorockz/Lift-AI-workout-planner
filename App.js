@@ -19,7 +19,6 @@ import StrengthTrainingHistoryScreen from './screens/onboarding/StrengthTraining
 import EquipmentInputScreen from './screens/onboarding/EquipmentInputScreen';
 import ScheduleInputScreen from './screens/onboarding/ScheduleInputScreen';
 import OnboardingSummary from './screens/onboarding/OnboardingSummary';
-import PlanGenerationScreen from './screens/onboarding/PlanGenerationScreen';
 import PlanPreviewScreen from './screens/onboarding/PlanPreviewScreen';
 import ExerciseLocationScreen from './screens/onboarding/ExerciseLocationScreen';
 import TargetMusclesScreen from './screens/onboarding/TargetMusclesScreen';
@@ -47,7 +46,6 @@ const OnboardingNavigator = () => (
     <Stack.Screen name="EquipmentInput" component={EquipmentInputScreen} />
     <Stack.Screen name="ScheduleInput" component={ScheduleInputScreen} />
     <Stack.Screen name="OnboardingSummary" component={OnboardingSummary} />
-    <Stack.Screen name="PlanGeneration" component={PlanGenerationScreen} />
     <Stack.Screen name="PlanPreview" component={PlanPreviewScreen} />
     <Stack.Screen name="ExerciseLocation" component={ExerciseLocationScreen} />
     <Stack.Screen name="TargetMuscles" component={TargetMusclesScreen} />
@@ -61,7 +59,11 @@ const OnboardingNavigator = () => (
 const MainNavigator = () => (
   <Stack.Navigator>
     <Stack.Screen name="Home" component={HomeScreen} />
-    <Stack.Screen name="Profile" component={ProfileScreen} />
+    <Stack.Screen 
+      name="Profile" 
+      component={ProfileScreen}
+      options={{ headerShown: false }}
+    />
     <Stack.Screen name="FullPlan" component={FullPlanScreen} />
     <Stack.Screen 
       name="WorkoutSession" 
@@ -75,7 +77,6 @@ function AppNavigator() {
   const { isOnboardingComplete, loading, user, isGuest } = useAuth();
 
   if (loading) {
-    console.log('AppNavigator: Loading state, showing spinner');
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" />
@@ -86,17 +87,8 @@ function AppNavigator() {
   // Determine which navigator to show
   const shouldShowOnboarding = !isOnboardingComplete;
   
-  console.log('AppNavigator - Auth state:', {
-    user: user ? 'Signed in' : 'Not signed in',
-    isGuest,
-    isOnboardingComplete,
-    shouldShowOnboarding,
-    loading
-  });
-
   // Additional safeguard: if user is not signed in and not guest, show onboarding
   if (!user && !isGuest && !isOnboardingComplete) {
-    console.log('AppNavigator: User not signed in, showing onboarding');
     return (
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
         <RootStack.Screen 

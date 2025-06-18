@@ -4,23 +4,35 @@ import { View, TouchableOpacity, Text, StyleSheet, Platform } from 'react-native
 const OnboardingButtonRow = ({
   onBack,
   onNext,
-  nextEnabled,
+  nextEnabled = false,
   backLabel = 'Back',
   nextLabel = 'Next',
   style,
 }) => {
+  const handleBack = () => {
+    if (typeof onBack === 'function') {
+      onBack();
+    }
+  };
+
+  const handleNext = () => {
+    if (typeof onNext === 'function') {
+      onNext();
+    }
+  };
+
   return (
     <View style={[styles.row, style]}>
       <TouchableOpacity
         style={styles.backButton}
-        onPress={onBack}
+        onPress={handleBack}
         activeOpacity={0.85}
       >
         <Text style={styles.backButtonText}>{backLabel}</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.nextButton, !nextEnabled && styles.nextButtonDisabled]}
-        onPress={onNext}
+        onPress={handleNext}
         disabled={!nextEnabled}
         activeOpacity={nextEnabled ? 0.85 : 1}
       >

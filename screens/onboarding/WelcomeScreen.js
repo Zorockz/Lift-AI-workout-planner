@@ -35,6 +35,12 @@ const WelcomeScreen = ({ navigation }) => {
     }
   };
 
+  const handleSignUp = () => {
+    if (navigation && typeof navigation.navigate === 'function') {
+      navigation.navigate('GenderSelection');
+    }
+  };
+
   return (
     <ScrollView 
       style={commonStyles.container}
@@ -46,7 +52,7 @@ const WelcomeScreen = ({ navigation }) => {
         <Text style={commonStyles.subtitle}>Your AI Fitness Companion</Text>
         <Button 
           title="Sign Up"
-          onPress={() => navigation.navigate('GenderSelection')}
+          onPress={handleSignUp}
           style={[commonStyles.button, { marginBottom: 16 }]}
         />
         <TouchableOpacity 

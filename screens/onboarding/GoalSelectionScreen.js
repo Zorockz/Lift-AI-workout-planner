@@ -50,16 +50,22 @@ const GoalSelectionScreen = ({ navigation }) => {
   };
 
   const handleNext = () => {
-    if (selected) {
+    if (selected && typeof updateOnboarding === 'function' && typeof incrementStep === 'function') {
       updateOnboarding({ goal: selected });
       incrementStep();
-      navigation.navigate('ExperienceLevel');
+      if (navigation && typeof navigation.navigate === 'function') {
+        navigation.navigate('ExperienceLevel');
+      }
     }
   };
 
   const handleBack = () => {
-    decrementStep();
-    navigation.goBack();
+    if (typeof decrementStep === 'function') {
+      decrementStep();
+    }
+    if (navigation && typeof navigation.goBack === 'function') {
+      navigation.goBack();
+    }
   };
 
   return (

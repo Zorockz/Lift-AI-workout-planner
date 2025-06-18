@@ -1,17 +1,21 @@
 import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
 
-const ProgressBar = ({ currentStep, totalSteps }) => {
+const ProgressBar = ({ currentStep = 1, totalSteps = 1 }) => {
   const progressAnim = useRef(new Animated.Value(0)).current;
 
+  // Validate props
+  const validCurrentStep = Math.max(1, Math.min(currentStep || 1, totalSteps || 1));
+  const validTotalSteps = Math.max(1, totalSteps || 1);
+
   useEffect(() => {
-    const progress = (currentStep / totalSteps) * 100;
+    const progress = (validCurrentStep / validTotalSteps) * 100;
     Animated.timing(progressAnim, {
       toValue: progress,
       duration: 300,
       useNativeDriver: false,
     }).start();
-  }, [currentStep, totalSteps]);
+  }, [validCurrentStep, validTotalSteps]);
 
   return (
     <View style={styles.container}>

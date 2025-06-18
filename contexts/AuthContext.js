@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import * as AuthSession from 'expo-auth-session';
@@ -51,58 +51,12 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const auth = getAuthInstance();
     
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      console.log('Firebase auth state changed:', firebaseUser ? 'User signed in' : 'User signed out');
-      
-      if (firebaseUser) {
-        // User is signed in with Firebase
-        const userData = {
-          id: firebaseUser.uid,
-          email: firebaseUser.email,
-          name: firebaseUser.displayName,
-          picture: firebaseUser.photoURL,
-        };
-        
-        setUser(userData);
-        setIsGuest(false);
-        await AsyncStorage.setItem('user', JSON.stringify(userData));
-        await AsyncStorage.removeItem('isGuest');
-        
-        // Check onboarding status - but don't auto-complete for returning users
-        const storedOnboarding = await AsyncStorage.getItem('isOnboardingComplete');
-        const hasCompletedOnboarding = storedOnboarding === 'true';
-        
-        // Only set onboarding complete if user has actually completed it
-        if (hasCompletedOnboarding) {
-          setIsOnboardingComplete(true);
-        } else {
-          // For new users or users who haven't completed onboarding, stay in onboarding
-          setIsOnboardingComplete(false);
-        }
-      } else {
-        // User is signed out from Firebase
-        setUser(null);
-        setIsGuest(false);
-        await AsyncStorage.removeItem('user');
-        await AsyncStorage.removeItem('isGuest');
-        
-        // Check if there's stored guest data
-        const storedGuest = await AsyncStorage.getItem('isGuest');
-        if (storedGuest === 'true') {
-          setIsGuest(true);
-          setUser({ id: 'guest', name: 'Guest User' });
-        }
-        
-        // Check onboarding status for guest users
-        const storedOnboarding = await AsyncStorage.getItem('isOnboardingComplete');
-        setIsOnboardingComplete(storedOnboarding === 'true');
-      }
-      
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
       setLoading(false);
     });
 
-    // Cleanup subscription
-    return () => unsubscribe();
+    return unsubscribe;
   }, []);
 
   // Use the redirect URI from app.json if available, otherwise generate one
@@ -207,17 +161,14 @@ export const AuthProvider = ({ children }) => {
 
   const clearError = () => setError(null);
 
-  const completeOnboarding = async () => {
+  const completeOnboarding = useCallback(async () => {
     try {
-      console.log('Completing onboarding in AuthContext...');
       setIsOnboardingComplete(true);
       await AsyncStorage.setItem('isOnboardingComplete', 'true');
-      console.log('Onboarding completed successfully in AuthContext');
     } catch (error) {
       console.error('Error completing onboarding:', error);
-      setError('Failed to complete onboarding');
     }
-  };
+  }, []);
 
   return (
     <AuthContext.Provider

@@ -193,7 +193,7 @@ const shuffleArray = (array) => {
  * Filters exercises based on available equipment
  */
 const filterExercisesByEquipment = (exercises, equipment) => {
-  if (!equipment || equipment.length === 0) return exercises;
+  if (!equipment || !Array.isArray(equipment) || equipment.length === 0) return exercises;
   
   return exercises.filter(exercise => {
     // If exercise has no equipment requirement, include it
@@ -221,13 +221,28 @@ const filterExercisesByEquipment = (exercises, equipment) => {
  * Generates exercises for a specific day
  */
 const generateExercisesForDay = ({ experience, goal, equipment, location, dayOfWeek }) => {
-  const locationKey = location === 'gym' ? 'gym' : 'home';
+  let locationKey = location === 'gym' ? 'gym' : 'home';
+  
+  // Check if we have exercises for the current location
   if (!exerciseDatabase[goal] || !exerciseDatabase[goal][locationKey] || !exerciseDatabase[goal][locationKey][experience]) {
     throw new Error(`Invalid goal (${goal}), location (${location}), or experience level (${experience})`);
   }
 
-  const exercisePool = exerciseDatabase[goal][locationKey][experience];
-  const filteredExercises = filterExercisesByEquipment(exercisePool, equipment);
+  let exercisePool = exerciseDatabase[goal][locationKey][experience];
+  let filteredExercises = filterExercisesByEquipment(exercisePool, equipment);
+  
+  // If no exercises found for current location, try the other location
+  if (filteredExercises.length === 0) {
+    console.log(`No exercises found for ${locationKey} location, trying alternative location`);
+    const alternativeLocationKey = locationKey === 'gym' ? 'home' : 'gym';
+    
+    if (exerciseDatabase[goal] && exerciseDatabase[goal][alternativeLocationKey] && exerciseDatabase[goal][alternativeLocationKey][experience]) {
+      exercisePool = exerciseDatabase[goal][alternativeLocationKey][experience];
+      filteredExercises = filterExercisesByEquipment(exercisePool, equipment);
+      locationKey = alternativeLocationKey;
+      console.log(`Found ${filteredExercises.length} exercises for ${alternativeLocationKey} location`);
+    }
+  }
   
   if (filteredExercises.length === 0) {
     throw new Error('No exercises available for the selected equipment');
@@ -248,6 +263,7 @@ export const generatePlan = async (profile) => {
     improve_fitness: 'cardio',
     maintain: 'maintain'
   };
+  
   const { 
     daysPerWeek = 3, 
     experience = 'beginner', 
@@ -258,79 +274,89 @@ export const generatePlan = async (profile) => {
   
   const mappedGoal = goalMap[goal] || goal;
 
-  // Generate dates for the next 7 days
-  const dates = Array.from({ length: 7 }, (_, i) => {
+  // Generate dates for exactly 7 days starting from today
+  const dates = [];
+  for (let i = 0; i < 7; i++) {
     const date = new Date();
     date.setDate(date.getDate() + i);
-    return date.toISOString().split('T')[0];
-  });
+    dates.push(date.toISOString().split('T')[0]);
+  }
 
-  // Distribute workout days evenly across the week
-  const totalDays = 7;
-  const workoutDays = daysPerWeek;
-  
-  // Calculate optimal rest day distribution
-  const restDays = totalDays - workoutDays;
+  // Simple workout day distribution - spread workouts evenly
+  const workoutDays = Math.min(daysPerWeek, 7);
   const workoutDayIndexes = [];
   
-  if (restDays > 0) {
-    // Distribute rest days evenly
-    const restDayGaps = Math.floor(totalDays / (restDays + 1));
-    let currentIndex = restDayGaps;
-    
-    while (workoutDayIndexes.length < workoutDays) {
-      workoutDayIndexes.push(currentIndex);
-      currentIndex += restDayGaps + 1;
-      if (currentIndex >= totalDays) break;
-    }
+  if (workoutDays === 7) {
+    // All days are workout days
+    workoutDayIndexes.push(...Array.from({ length: 7 }, (_, i) => i));
+  } else if (workoutDays === 1) {
+    // One workout day in the middle
+    workoutDayIndexes.push(3);
   } else {
-    // If no rest days, spread workouts evenly
-    workoutDayIndexes.push(...Array.from({ length: workoutDays }, (_, i) =>
-      Math.floor(i * (totalDays - 1) / (workoutDays - 1))
-    ));
+    // Distribute workouts evenly
+    const step = 6 / (workoutDays - 1);
+    for (let i = 0; i < workoutDays; i++) {
+      workoutDayIndexes.push(Math.round(i * step));
+    }
   }
 
   const workoutDaySet = new Set(workoutDayIndexes);
 
-  const plan = {};
-  dates.forEach((date, index) => {
-    const dayKey = `Day ${index + 1}`;
-    const dayOfWeek = new Date(date).getDay();
-    const isWorkoutDay = workoutDaySet.has(index);
+  // Generate the plan for exactly 7 days
+  const weekPlan = {};
+  
+  for (let i = 0; i < 7; i++) {
+    const dayKey = `Day ${i + 1}`;
+    const date = dates[i];
+    const isWorkoutDay = workoutDaySet.has(i);
 
     if (!isWorkoutDay) {
-      plan[dayKey] = {
+      weekPlan[dayKey] = {
         date,
         type: 'rest',
         notes: getRestDayNotes(mappedGoal, experience)
       };
     } else {
-      plan[dayKey] = {
-        date,
-        type: 'workout',
-        exercises: generateExercisesForDay({
+      try {
+        const exercises = generateExercisesForDay({
           experience,
           goal: mappedGoal,
           equipment,
           location,
-          dayOfWeek
-        }),
-        notes: getWorkoutNotes(mappedGoal, experience)
-      };
+          dayOfWeek: i
+        });
+        
+        weekPlan[dayKey] = {
+          date,
+          type: 'workout',
+          exercises,
+          notes: getWorkoutNotes(mappedGoal, experience)
+        };
+      } catch (error) {
+        console.error(`Error generating exercises for day ${i + 1}:`, error);
+        // Fallback to rest day if exercise generation fails
+        weekPlan[dayKey] = {
+          date,
+          type: 'rest',
+          notes: 'Rest day due to exercise generation error'
+        };
+      }
     }
-  });
+  }
 
-  return {
-    weekPlan: plan,
+  const plan = {
+    weekPlan,
     metadata: {
       experience,
       goal: mappedGoal,
-      daysPerWeek,
+      daysPerWeek: workoutDays,
       equipment,
       location,
       generatedAt: new Date().toISOString()
     }
   };
+
+  return plan;
 };
 
 /**

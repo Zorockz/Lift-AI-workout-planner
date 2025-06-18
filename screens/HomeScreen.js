@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image } from 'react
 import { useNavigation } from '@react-navigation/native';
 import { generatePlan } from '../utils/planGenerator';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useOnboarding } from '../contexts/OnboardingContext';
 
 const quickAccess = [
   { label: 'Strength', icon: 'barbell-outline' },
@@ -12,20 +13,67 @@ const quickAccess = [
 
 const HomeScreen = () => {
   const navigation = useNavigation();
+  const { onboarding } = useOnboarding();
   const [plan, setPlan] = useState(null);
   const [stats, setStats] = useState({ activeDays: 0, workouts: 0, time: 0, calories: 0 });
   const [user, setUser] = useState({ name: 'User', streak: 1, avatar: null });
+  const [generatedPlan, setGeneratedPlan] = useState(null);
 
   useEffect(() => {
-    // Simulate fetching user and plan data
-    async function fetchData() {
-      // Replace with real user/profile data as needed
-      setUser({ name: 'JudySmithh', streak: 1, avatar: null });
-      const generated = await generatePlan({ daysPerWeek: 3, experience: 'beginner', goal: 'strength', equipment: [] });
-      setPlan(generated.weekPlan);
-      // Calculate stats from plan (example logic)
+    const generatePlanFromOnboarding = async () => {
+      if (onboarding && Object.keys(onboarding).length > 0) {
+        try {
+          const { generatePlan } = await import('../utils/planGenerator');
+          const generated = await generatePlan({
+            goal: onboarding.goal,
+            experience: onboarding.experienceLevel,
+            equipment: onboarding.equipment,
+            daysPerWeek: onboarding.workoutsPerWeek,
+            location: onboarding.exerciseLocation,
+          });
+          
+          setGeneratedPlan(generated);
+        } catch (error) {
+          console.error('Error generating plan from onboarding data:', error);
+        }
+      } else if (onboarding.generatedPlan) {
+        setGeneratedPlan(onboarding.generatedPlan);
+      } else {
+        // Fallback to a basic plan if no onboarding data
+        const fallbackPlan = {
+          weekPlan: {
+            "Day 1": {
+              date: new Date().toISOString().split('T')[0],
+              type: "workout",
+              exercises: [
+                { name: "Push-ups", sets: 3, reps: 10, restTime: 60, equipment: "bodyweight", notes: "Focus on form" },
+                { name: "Bodyweight Squats", sets: 3, reps: 12, restTime: 60, equipment: "bodyweight", notes: "Keep back straight" },
+                { name: "Plank", sets: 3, reps: 30, restTime: 45, equipment: "bodyweight", notes: "Hold position" }
+              ],
+              notes: "Basic workout to get started"
+            }
+          },
+          metadata: {
+            experience: "beginner",
+            goal: "strength",
+            daysPerWeek: 1,
+            equipment: ["bodyweight"],
+            location: "home",
+            generatedAt: new Date().toISOString()
+          }
+        };
+        setGeneratedPlan(fallbackPlan);
+      }
+    };
+
+    generatePlanFromOnboarding();
+  }, [onboarding]);
+
+  useEffect(() => {
+    if (generatedPlan) {
+      setPlan(generatedPlan.weekPlan);
       let activeDays = 0, workouts = 0, time = 0, calories = 0;
-      Object.values(generated.weekPlan).forEach(day => {
+      Object.values(generatedPlan.weekPlan).forEach(day => {
         if (day.type === 'workout') {
           activeDays++;
           workouts++;
@@ -35,11 +83,22 @@ const HomeScreen = () => {
       });
       setStats({ activeDays, workouts, time, calories });
     }
-    fetchData();
-  }, []);
+  }, [generatedPlan]);
 
   // Find next workout
-  const nextWorkout = plan && Object.values(plan).find(day => day.type === 'workout');
+  const nextWorkout = plan && Object.values(plan).find(day => day && day.type === 'workout');
+
+  const handleNavigation = (screenName, params = {}) => {
+    if (navigation && typeof navigation.navigate === 'function') {
+      navigation.navigate(screenName, params);
+    }
+  };
+
+  const handleSeeFullPlan = () => {
+    if (plan && navigation && typeof navigation.navigate === 'function') {
+      navigation.navigate('FullPlan', { plan: { weekPlan: plan } });
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -88,14 +147,26 @@ const HomeScreen = () => {
 
       {/* Upcoming Workout */}
       <View style={styles.upcomingCard}>
-        <Text style={styles.upcomingTitle}>Upcoming Workout</Text>
+        <View style={styles.upcomingHeader}>
+          <Text style={styles.upcomingTitle}>Upcoming Workout</Text>
+          {plan && (
+            <TouchableOpacity 
+              style={styles.seeFullPlanButton}
+              onPress={handleSeeFullPlan}
+            >
+              <Text style={styles.seeFullPlanText}>See Full Plan</Text>
+            </TouchableOpacity>
+          )}
+        </View>
         {nextWorkout ? (
           <View style={styles.workoutDetails}>
-            <Text style={styles.workoutDate}>{nextWorkout.date}</Text>
-            {nextWorkout.exercises && nextWorkout.exercises.map((ex, i) => (
-              <Text key={i} style={styles.workoutExercise}>{ex.name} - {ex.sets ? `${ex.sets}x${ex.reps}` : ex.duration ? `${ex.duration} min` : ''}</Text>
+            <Text style={styles.workoutDate}>{nextWorkout.date || 'Today'}</Text>
+            {nextWorkout.exercises && Array.isArray(nextWorkout.exercises) && nextWorkout.exercises.map((ex, i) => (
+              <Text key={i} style={styles.workoutExercise}>
+                {ex.name} - {ex.sets ? `${ex.sets}x${ex.reps}` : ex.duration ? `${ex.duration} min` : ''}
+              </Text>
             ))}
-            <Text style={styles.workoutNotes}>{nextWorkout.notes}</Text>
+            <Text style={styles.workoutNotes}>{nextWorkout.notes || 'Focus on form and consistency'}</Text>
           </View>
         ) : (
           <Text style={styles.noWorkout}>No upcoming workout.</Text>
@@ -104,13 +175,13 @@ const HomeScreen = () => {
 
       {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
-        <TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.iconButton}>
+        <TouchableOpacity onPress={() => handleNavigation('Profile')} style={styles.iconButton}>
           <Ionicons name="person-outline" size={28} color="#B0B8C1" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Home')} style={[styles.homeIconWrapper, styles.iconButton]}>
+        <TouchableOpacity onPress={() => handleNavigation('Home')} style={[styles.homeIconWrapper, styles.iconButton]}>
           <Ionicons name="home" size={38} color="#2075FF" style={styles.homeIcon} />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Progress')} style={styles.iconButton}>
+        <TouchableOpacity onPress={() => handleNavigation('Progress')} style={styles.iconButton}>
           <Ionicons name="analytics-outline" size={28} color="#B0B8C1" />
         </TouchableOpacity>
       </View>
@@ -137,7 +208,10 @@ const styles = StyleSheet.create({
   quickAccessTile: { alignItems: 'center', backgroundColor: '#F7F8FA', borderRadius: 12, padding: 16, flex: 1, marginHorizontal: 4 },
   quickAccessLabel: { marginTop: 8, color: '#2075FF', fontWeight: '600' },
   upcomingCard: { backgroundColor: '#F7F8FA', borderRadius: 16, margin: 24, padding: 20, shadowColor: '#2075FF22', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2 },
-  upcomingTitle: { fontSize: 16, color: '#1B365D', fontWeight: 'bold', marginBottom: 8 },
+  upcomingHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  upcomingTitle: { fontSize: 16, color: '#1B365D', fontWeight: 'bold' },
+  seeFullPlanButton: { padding: 8, borderWidth: 1, borderColor: '#2075FF', borderRadius: 8 },
+  seeFullPlanText: { color: '#2075FF', fontWeight: '600' },
   workoutDetails: { marginTop: 4 },
   workoutDate: { color: '#2075FF', fontWeight: '600', marginBottom: 4 },
   workoutExercise: { color: '#1B365D', fontSize: 14, marginBottom: 2 },

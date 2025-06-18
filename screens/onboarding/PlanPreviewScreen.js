@@ -1,367 +1,689 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated } from 'react-native';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, ActivityIndicator } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { BlurView } from 'expo-blur';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useOnboarding } from '../../OnboardingContext';
-import OnboardingHeader from '../../components/OnboardingHeader';
-import { commonStyles, colors, dimensions } from '../../utils/styles';
+import { useOnboarding } from '../../contexts/OnboardingContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 const PlanPreviewScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { plan } = route.params || {};
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(50)).current;
-  const { completeOnboarding } = useOnboarding();
+  const { onboarding, completeOnboarding } = useOnboarding();
+  const { completeOnboarding: completeAuthOnboarding } = useAuth();
+  const [plan, setPlan] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [hasInitialized, setHasInitialized] = useState(false);
+  const fadeAnim = new Animated.Value(0);
 
+  // Track re-renders
+  console.log('PlanPreviewScreen render:', { loading, hasPlan: !!plan, hasInitialized });
+
+  // Memoize the plan data to prevent unnecessary re-renders
+  const routePlan = useMemo(() => route.params?.plan, [route.params?.plan]);
+  const contextPlan = useMemo(() => onboarding.generatedPlan, [onboarding.generatedPlan]);
+
+  // Initialize plan data only once
   useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [fadeAnim, slideAnim]);
+    if (hasInitialized) return; // Prevent re-initialization
 
-  const renderExercise = (exercise, index) => {
-    if (exercise === "Rest Day") {
-      return (
-        <View key={index} style={styles.restDayContainer}>
-          <Text style={styles.restDayText}>Rest Day</Text>
-          <Text style={styles.restDaySubtext}>Recovery is crucial for progress</Text>
-        </View>
-      );
+    console.log('PlanPreviewScreen mounted');
+    console.log('Route params:', route.params);
+    console.log('Onboarding generatedPlan:', onboarding.generatedPlan);
+    console.log('Route plan:', routePlan);
+    console.log('Context plan:', contextPlan);
+    console.log('Current plan state:', plan);
+    console.log('Loading state:', loading);
+    console.log('Has initialized:', hasInitialized);
+    
+    // Get plan from route params first, then from context
+    if (routePlan && routePlan.weekPlan) {
+      console.log('Using plan from route params');
+      console.log('Route plan weekPlan keys:', Object.keys(routePlan.weekPlan));
+      setPlan(routePlan);
+      setLoading(false);
+      setHasInitialized(true);
+    } else if (contextPlan && contextPlan.weekPlan) {
+      console.log('Using plan from onboarding context');
+      console.log('Context plan weekPlan keys:', Object.keys(contextPlan.weekPlan));
+      setPlan(contextPlan);
+      setLoading(false);
+      setHasInitialized(true);
+    } else {
+      console.log('No valid plan found, showing error');
+      console.log('Route plan valid:', !!routePlan);
+      console.log('Context plan valid:', !!contextPlan);
+      console.log('Route plan weekPlan:', !!routePlan?.weekPlan);
+      console.log('Context plan weekPlan:', !!contextPlan?.weekPlan);
+      setLoading(false);
+      setHasInitialized(true);
     }
-    return (
-      <View key={index} style={styles.exerciseContainer}>
-        <View style={styles.exerciseHeader}>
-          <Text style={[
-            styles.exerciseType,
-            exercise.type === "Warm-up" ? styles.warmupType : styles.mainType
-          ]}>
-            {exercise.type}
-          </Text>
-          <Text style={styles.exerciseDuration}>{exercise.duration}</Text>
-        </View>
-        <Text style={styles.exerciseName}>{exercise.name}</Text>
-        {exercise.type === "Main" && (
-          <View style={styles.exerciseDetails}>
-            <Text style={styles.exerciseDetail}>
-              {exercise.sets} sets × {exercise.reps} reps
-            </Text>
-            <Text style={styles.exerciseDetail}>
-              Rest: {exercise.rest} seconds
-            </Text>
-          </View>
-        )}
-      </View>
-    );
-  };
+    
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, [routePlan, contextPlan, hasInitialized]); // Fixed dependencies
 
-  const renderDayCard = (day, dayObj, index) => {
-    const isLocked = index >= 2;
-    if (isLocked) {
-      return (
-        <View key={day} style={styles.lockedCardContainer}>
-          <View style={styles.dayCard}>
-            <BlurView intensity={20} style={StyleSheet.absoluteFillObject} />
-            <View style={styles.dayCardContent}>
-              <Text style={[styles.dayTitle, styles.lockedText]}>{day}</Text>
-              {dayObj.type === 'rest' ? (
-                <View style={styles.lockedExercise}>
-                  <Text style={styles.lockedText}>Rest Day</Text>
-                  <Text style={styles.lockedText}>{dayObj.notes}</Text>
-                </View>
-              ) : (
-                dayObj.exercises.map((exercise, i) => (
-                  <View key={i} style={styles.lockedExercise}>
-                    <Text style={styles.lockedText}>{exercise.name}</Text>
-                  </View>
-                ))
-              )}
-            </View>
-          </View>
-          <View style={styles.lockIconContainer}>
-            <MaterialCommunityIcons name="lock" size={24} color="#1B365D" />
-          </View>
-        </View>
-      );
+  const handleComplete = useCallback(async () => {
+    try {
+      console.log('PlanPreviewScreen: Starting onboarding completion...');
+      
+      // Complete onboarding in both contexts
+      await completeOnboarding();
+      console.log('PlanPreviewScreen: Onboarding context completed');
+      
+      await completeAuthOnboarding();
+      console.log('PlanPreviewScreen: Auth context completed');
+      
+      console.log('PlanPreviewScreen: Onboarding completed successfully');
+      // The navigation will be handled automatically by the AuthContext
+      // when isOnboardingComplete changes to true
+    } catch (error) {
+      console.error('PlanPreviewScreen: Error completing onboarding:', error);
     }
+  }, [completeOnboarding, completeAuthOnboarding]);
 
-    // Unlocked card
+  const getExerciseEmoji = useCallback((type) => {
+    const emojis = {
+      strength: '💪',
+      cardio: '🏃‍♂️',
+      flexibility: '🧘‍♀️',
+      rest: '😴',
+      hiit: '⚡',
+      endurance: '🏃‍♀️',
+      recovery: '💆‍♂️',
+      yoga: '🧘‍♂️',
+      pilates: '🤸‍♀️',
+      swimming: '🏊‍♂️',
+      cycling: '🚴‍♀️',
+      boxing: '🥊',
+      dance: '💃',
+    };
+    return emojis[type] || '💪';
+  }, []);
+
+  const getGoalEmoji = useCallback((goal) => {
+    const emojis = {
+      strength: '💪',
+      cardio: '🏃‍♂️',
+      maintain: '⚖️',
+      hiit: '⚡',
+      endurance: '🏃‍♀️',
+      flexibility: '🧘‍♀️',
+      weight_loss: '🎯',
+      muscle_gain: '💪',
+    };
+    return emojis[goal] || '🎯';
+  }, []);
+
+  const getExperienceEmoji = useCallback((level) => {
+    const emojis = {
+      beginner: '🌱',
+      intermediate: '🌿',
+      advanced: '🌳',
+    };
+    return emojis[level] || '👤';
+  }, []);
+
+  const getLocationEmoji = useCallback((location) => {
+    const emojis = {
+      gym: '🏋️‍♂️',
+      home: '🏠',
+      outdoor: '🌳',
+      studio: '🎯',
+      pool: '🏊‍♂️',
+      track: '🏃‍♂️',
+    };
+    return emojis[location] || '📍';
+  }, []);
+
+  const getEquipmentEmoji = useCallback((equipment) => {
+    const emojis = {
+      full_gym: '🏋️‍♂️',
+      home_gym: '🏠',
+      dumbbells: '💪',
+      bodyweight: '👤',
+      resistance_bands: '🎯',
+      yoga_mat: '🧘‍♀️',
+      kettlebell: '🏋️‍♀️',
+    };
+    return emojis[equipment] || '🏋️‍♂️';
+  }, []);
+
+  const renderDayCard = useCallback((day, index) => {
+    console.log(`renderDayCard called for index ${index}:`, day);
+    const isRestDay = day.type === 'rest';
+    console.log(`Day ${index} is rest day:`, isRestDay);
+    
     return (
-      <View key={day} style={styles.dayCard}>
-        <Text style={styles.dayTitle}>{day}</Text>
-        {dayObj.type === 'rest' ? (
-          <View style={styles.restDayContainer}>
-            <Text style={styles.restDayText}>Rest Day</Text>
-            <Text style={styles.restDaySubtext}>{dayObj.notes}</Text>
+      <Animated.View
+        key={index}
+        style={[
+          styles.dayCard,
+          { opacity: fadeAnim, transform: [{ translateY: fadeAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [50, 0],
+          })}] }
+        ]}
+      >
+        <View style={styles.dayHeader}>
+          <Text style={styles.dayTitle}>Day {index + 1}</Text>
+          <Text style={styles.dayType}>{isRestDay ? 'Rest Day' : 'Workout Day'}</Text>
+        </View>
+        
+        {isRestDay ? (
+          <View style={styles.restDayContent}>
+            <Text style={styles.restDayEmoji}>😴</Text>
+            <Text style={styles.restDayText}>Rest and Recovery</Text>
+            <Text style={styles.restDayNote}>{day.notes}</Text>
           </View>
         ) : (
-          dayObj.exercises.map((exercise, i) => (
-            <View key={i} style={styles.exerciseContainer}>
-              <Text style={styles.exerciseName}>{exercise.name}</Text>
-              {exercise.sets && exercise.reps && (
-                <Text style={styles.exerciseDetail}>{exercise.sets} sets × {exercise.reps} reps</Text>
-              )}
-              {exercise.duration && (
-                <Text style={styles.exerciseDetail}>Duration: {exercise.duration} min</Text>
-              )}
-              {exercise.restTime && (
-                <Text style={styles.exerciseDetail}>Rest: {exercise.restTime} sec</Text>
-              )}
-              {exercise.intensity && (
-                <Text style={styles.exerciseDetail}>Intensity: {exercise.intensity}</Text>
-              )}
-              {exercise.notes && (
-                <Text style={styles.exerciseDetail}>Notes: {exercise.notes}</Text>
-              )}
-            </View>
-          ))
+          <View style={styles.workoutContent}>
+            {day.exercises && day.exercises.map((exercise, exIndex) => {
+              console.log(`Rendering exercise ${exIndex}:`, exercise);
+              return (
+                <View key={exIndex} style={styles.exerciseItem}>
+                  <Text style={styles.exerciseName}>
+                    {getExerciseEmoji(exercise.type)} {exercise.name}
+                  </Text>
+                  <Text style={styles.exerciseDetails}>
+                    {exercise.sets} sets × {exercise.reps || exercise.duration}
+                  </Text>
+                  {exercise.notes && (
+                    <Text style={styles.exerciseNotes}>{exercise.notes}</Text>
+                  )}
+                </View>
+              );
+            })}
+            {day.notes && (
+              <Text style={styles.workoutNotes}>{day.notes}</Text>
+            )}
+          </View>
         )}
-        <Text style={styles.dayNotes}>{dayObj.notes}</Text>
-      </View>
+      </Animated.View>
     );
+  }, [fadeAnim, getExerciseEmoji]);
+
+  // Debug component to track state changes
+  const DebugInfo = () => {
+    if (__DEV__) {
+      return (
+        <View style={{ padding: 10, backgroundColor: '#f0f0f0', margin: 10 }}>
+          <Text style={{ fontSize: 12, color: '#666' }}>
+            Debug: Loading={loading}, HasPlan={!!plan}, HasWeekPlan={!!plan?.weekPlan}, Initialized={hasInitialized}
+          </Text>
+          {plan && (
+            <Text style={{ fontSize: 10, color: '#666', marginTop: 5 }}>
+              Plan Keys: {Object.keys(plan).join(', ')}
+            </Text>
+          )}
+          {plan?.weekPlan && (
+            <Text style={{ fontSize: 10, color: '#666', marginTop: 5 }}>
+              WeekPlan Keys: {Object.keys(plan.weekPlan).join(', ')}
+            </Text>
+          )}
+        </View>
+      );
+    }
+    return null;
   };
 
-  const handleFinish = async () => {
-    try {
-      await completeOnboarding();
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: -50,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start(() => {
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Main' }],
-        });
-      });
-    } catch (error) {
-      console.error('Error completing onboarding:', error);
-    }
-  };
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <DebugInfo />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#2075FF" />
+          <Text style={styles.loadingText}>Loading your plan...</Text>
+        </View>
+      </View>
+    );
+  }
+
+  if (!plan || !plan.weekPlan) {
+    return (
+      <View style={styles.container}>
+        <DebugInfo />
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>No workout plan available.</Text>
+          <Text style={styles.errorSubText}>Please go back and try generating your plan again.</Text>
+          <TouchableOpacity 
+            style={styles.retryButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.retryButtonText}>Go Back</Text>
+          </TouchableOpacity>
+          
+          {/* Test button to show hardcoded plan */}
+          <TouchableOpacity 
+            style={[styles.retryButton, { marginTop: 10, backgroundColor: '#28a745' }]}
+            onPress={() => {
+              console.log('Setting hardcoded test plan');
+              const hardcodedPlan = {
+                weekPlan: {
+                  "Day 1": {
+                    type: "workout",
+                    exercises: [
+                      { name: "Push-ups", sets: 3, reps: 10, type: "strength" },
+                      { name: "Squats", sets: 3, reps: 12, type: "strength" },
+                      { name: "Plank", sets: 3, reps: 30, type: "strength" }
+                    ],
+                    notes: "Focus on form and technique"
+                  },
+                  "Day 2": {
+                    type: "rest",
+                    notes: "Rest and recovery day"
+                  },
+                  "Day 3": {
+                    type: "workout",
+                    exercises: [
+                      { name: "Lunges", sets: 3, reps: 10, type: "strength" },
+                      { name: "Mountain Climbers", sets: 3, reps: 20, type: "cardio" },
+                      { name: "Burpees", sets: 3, reps: 10, type: "cardio" }
+                    ],
+                    notes: "Mix of strength and cardio"
+                  }
+                },
+                metadata: {
+                  goal: "strength",
+                  experience: "beginner",
+                  location: "home",
+                  daysPerWeek: 3,
+                  equipment: ["bodyweight"]
+                }
+              };
+              setPlan(hardcodedPlan);
+            }}
+          >
+            <Text style={styles.retryButtonText}>Show Test Plan</Text>
+          </TouchableOpacity>
+          
+          {/* Debug info for troubleshooting */}
+          {__DEV__ && (
+            <View style={{ marginTop: 20, padding: 10, backgroundColor: '#fff' }}>
+              <Text style={{ fontSize: 12, color: '#666' }}>Debug Info:</Text>
+              <Text style={{ fontSize: 10, color: '#666' }}>Plan: {JSON.stringify(plan, null, 2)}</Text>
+            </View>
+          )}
+        </View>
+      </View>
+    );
+  }
+
+  // Ensure we have valid weekPlan data
+  const weekPlanEntries = Object.entries(plan.weekPlan || {});
+  console.log('WeekPlanEntries:', weekPlanEntries);
+  console.log('WeekPlanEntries length:', weekPlanEntries.length);
+  console.log('Plan.weekPlan:', plan.weekPlan);
+  console.log('Plan.weekPlan keys:', plan.weekPlan ? Object.keys(plan.weekPlan) : 'No weekPlan');
+  
+  if (weekPlanEntries.length === 0) {
+    return (
+      <View style={styles.container}>
+        <DebugInfo />
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Invalid workout plan format.</Text>
+          <Text style={styles.errorSubText}>The plan data is not in the expected format.</Text>
+          <Text style={styles.errorSubText}>WeekPlan entries: {weekPlanEntries.length}</Text>
+          <TouchableOpacity 
+            style={styles.retryButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.retryButtonText}>Go Back</Text>
+          </TouchableOpacity>
+          
+          {/* Debug info for troubleshooting */}
+          {__DEV__ && (
+            <View style={{ marginTop: 20, padding: 10, backgroundColor: '#fff' }}>
+              <Text style={{ fontSize: 12, color: '#666' }}>Debug Info:</Text>
+              <Text style={{ fontSize: 10, color: '#666' }}>Plan: {JSON.stringify(plan, null, 2)}</Text>
+            </View>
+          )}
+        </View>
+      </View>
+    );
+  }
 
   return (
-    <Animated.View 
-      style={[
-        styles.container,
-        {
-          opacity: fadeAnim,
-          transform: [{ translateY: slideAnim }]
-        }
-      ]}
-    >
-      <View style={styles.header}>
-        <Text style={styles.title}>Your Custom Plan</Text>
-      </View>
-      <ScrollView contentContainerStyle={styles.content}>
-        {plan?.weekPlan ? (
-          <>
-            {Object.entries(plan.weekPlan).map(([day, dayObj], index) => 
-              renderDayCard(day, dayObj, index)
-            )}
-          </>
-        ) : (
-          <Text style={styles.planText}>No plan data.</Text>
-        )}
+    <View style={styles.container}>
+      <DebugInfo />
+      <ScrollView style={styles.scrollView}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Your Personalized Plan</Text>
+          <View style={styles.metadata}>
+            <View style={styles.metadataRow}>
+              <View style={styles.metadataItem}>
+                <Text style={styles.metadataLabel}>Goal</Text>
+                <Text style={styles.metadataValue}>
+                  {getGoalEmoji(plan.metadata.goal)} {plan.metadata.goal.replace('_', ' ')}
+                </Text>
+              </View>
+              <View style={styles.metadataItem}>
+                <Text style={styles.metadataLabel}>Level</Text>
+                <Text style={styles.metadataValue}>
+                  {getExperienceEmoji(plan.metadata.experience)} {plan.metadata.experience}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.metadataRow}>
+              <View style={styles.metadataItem}>
+                <Text style={styles.metadataLabel}>Location</Text>
+                <Text style={styles.metadataValue}>
+                  {getLocationEmoji(plan.metadata.location)} {plan.metadata.location.replace('_', ' ')}
+                </Text>
+              </View>
+              <View style={styles.metadataItem}>
+                <Text style={styles.metadataLabel}>Workouts</Text>
+                <Text style={styles.metadataValue}>
+                  📅 {plan.metadata.daysPerWeek}/week
+                </Text>
+              </View>
+            </View>
+            <View style={styles.equipmentContainer}>
+              <Text style={styles.equipmentLabel}>Equipment</Text>
+              <Text style={styles.equipmentValue}>
+                {plan.metadata.equipment.map(eq => `${getEquipmentEmoji(eq)} ${eq.replace('_', ' ')}`).join(' • ')}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.planContainer}>
+          {weekPlanEntries.map(([dayKey, day], index) => {
+            console.log(`Rendering day ${index}:`, dayKey, day);
+            return renderDayCard(day, index);
+          })}
+          
+          {/* Test rendering if no cards are shown */}
+          {weekPlanEntries.length === 0 && (
+            <View style={styles.planContainer}>
+              <Text style={{ fontSize: 16, color: '#666', textAlign: 'center', marginBottom: 20 }}>
+                No workout cards found. Rendering test cards...
+              </Text>
+              {renderDayCard({
+                type: "workout",
+                exercises: [
+                  { name: "Test Push-ups", sets: 3, reps: 10, type: "strength" },
+                  { name: "Test Squats", sets: 3, reps: 12, type: "strength" }
+                ],
+                notes: "Test workout day"
+              }, 0)}
+              {renderDayCard({
+                type: "rest",
+                notes: "Test rest day"
+              }, 1)}
+            </View>
+          )}
+        </View>
       </ScrollView>
-      <TouchableOpacity 
-        style={styles.button} 
-        onPress={handleFinish}
-      >
-        <Text style={styles.buttonText}>Finish</Text>
-      </TouchableOpacity>
-    </Animated.View>
+
+      <View style={styles.footer}>
+        <TouchableOpacity style={styles.button} onPress={handleComplete}>
+          <Text style={styles.buttonText}>Start Your Journey</Text>
+        </TouchableOpacity>
+        
+        {/* Test button for debugging */}
+        {__DEV__ && (
+          <TouchableOpacity 
+            style={[styles.button, { marginTop: 10, backgroundColor: '#FF6B6B' }]}
+            onPress={() => {
+              console.log('Test button pressed');
+              handleComplete();
+            }}
+          >
+            <Text style={styles.buttonText}>Test Complete Onboarding</Text>
+          </TouchableOpacity>
+        )}
+        
+        {/* Direct test plan button */}
+        {__DEV__ && (
+          <TouchableOpacity 
+            style={[styles.button, { marginTop: 10, backgroundColor: '#28a745' }]}
+            onPress={() => {
+              console.log('Setting direct test plan');
+              const directTestPlan = {
+                weekPlan: {
+                  "Day 1": {
+                    type: "workout",
+                    exercises: [
+                      { name: "Push-ups", sets: 3, reps: 10, type: "strength" },
+                      { name: "Squats", sets: 3, reps: 12, type: "strength" },
+                      { name: "Plank", sets: 3, reps: 30, type: "strength" }
+                    ],
+                    notes: "Focus on form and technique"
+                  },
+                  "Day 2": {
+                    type: "rest",
+                    notes: "Rest and recovery day"
+                  },
+                  "Day 3": {
+                    type: "workout",
+                    exercises: [
+                      { name: "Lunges", sets: 3, reps: 10, type: "strength" },
+                      { name: "Mountain Climbers", sets: 3, reps: 20, type: "cardio" },
+                      { name: "Burpees", sets: 3, reps: 10, type: "cardio" }
+                    ],
+                    notes: "Mix of strength and cardio"
+                  }
+                },
+                metadata: {
+                  goal: "strength",
+                  experience: "beginner",
+                  location: "home",
+                  daysPerWeek: 3,
+                  equipment: ["bodyweight"]
+                }
+              };
+              setPlan(directTestPlan);
+              console.log('Direct test plan set:', directTestPlan);
+            }}
+          >
+            <Text style={styles.buttonText}>Set Direct Test Plan</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#fff',
+  },
+  scrollView: {
+    flex: 1,
   },
   header: {
-    height: 64,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E5EA',
-    paddingTop: 24,
+    padding: 12,
+    paddingTop: 10,
+    backgroundColor: '#f8f9fa',
   },
   title: {
-    color: '#1B365D',
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  content: {
-    flexGrow: 1,
-    padding: 24,
-  },
-  planText: {
-    fontSize: 18,
     color: '#1B365D',
-    textAlign: 'center',
+    marginBottom: 10,
   },
-  button: {
-    margin: 24,
-    backgroundColor: '#2075FF',
-    borderRadius: 8,
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#FFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  dayCard: {
-    backgroundColor: '#F7F8FA',
+  metadata: {
+    backgroundColor: '#fff',
     borderRadius: 12,
-    padding: 20,
-    marginBottom: 20,
-    width: '100%',
-    shadowColor: '#2075FF22',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 2,
-    overflow: 'hidden',
-  },
-  dayCardContent: {
-    position: 'relative',
-    zIndex: 1,
-  },
-  dayTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#2075FF',
-    marginBottom: 16,
-  },
-  exerciseContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#E2E5EA',
-  },
-  exerciseHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  exerciseType: {
-    fontSize: 14,
-    fontWeight: '600',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  warmupType: {
-    backgroundColor: '#E3F2FD',
-    color: '#1976D2',
-  },
-  mainType: {
-    backgroundColor: '#E8F5E9',
-    color: '#2E7D32',
-  },
-  exerciseDuration: {
-    fontSize: 14,
-    color: '#6C7580',
-  },
-  exerciseName: {
-    fontSize: 16,
-    color: '#1B365D',
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  exerciseDetails: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  exerciseDetail: {
-    fontSize: 14,
-    color: '#6C7580',
-  },
-  lockedCardContainer: {
-    position: 'relative',
-    marginBottom: 20,
-  },
-  lockIconContainer: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
-    zIndex: 2,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 8,
+    padding: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
-  seeFullPlanButton: {
-    backgroundColor: '#F7F8FA',
-    borderRadius: 8,
-    padding: 16,
-    alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 24,
+  metadataRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
   },
-  seeFullPlanText: {
-    color: '#2075FF',
+  metadataItem: {
+    flex: 1,
+    marginHorizontal: 4,
+  },
+  metadataLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 2,
+  },
+  metadataValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1B365D',
+  },
+  equipmentContainer: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+  },
+  equipmentLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 2,
+  },
+  equipmentValue: {
+    fontSize: 14,
+    color: '#1B365D',
+    lineHeight: 20,
+  },
+  planContainer: {
+    padding: 12,
+  },
+  dayCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  dayHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  dayTitle: {
     fontSize: 16,
     fontWeight: '600',
+    color: '#1B365D',
   },
-  restDayContainer: {
-    backgroundColor: '#F7F8FA',
-    borderRadius: 8,
-    padding: 16,
+  dayType: {
+    fontSize: 12,
+    color: '#666',
+  },
+  restDayContent: {
     alignItems: 'center',
+    padding: 8,
+  },
+  restDayEmoji: {
+    fontSize: 24,
+    marginBottom: 4,
   },
   restDayText: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '600',
     color: '#1B365D',
     marginBottom: 4,
   },
-  restDaySubtext: {
-    fontSize: 14,
-    color: '#6C7580',
+  restDayNote: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
   },
-  lockedText: {
-    color: '#1B365D',
-    opacity: 0.7,
+  workoutContent: {
+    gap: 8,
   },
-  lockedExercise: {
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+  exerciseItem: {
+    backgroundColor: '#f8f9fa',
     borderRadius: 8,
-    padding: 16,
-    marginBottom: 12,
+    padding: 8,
   },
-  dayNotes: {
+  exerciseName: {
     fontSize: 14,
-    color: '#6C7580',
-    marginTop: 16,
+    fontWeight: '600',
+    color: '#1B365D',
+    marginBottom: 2,
+  },
+  exerciseDetails: {
+    fontSize: 12,
+    color: '#666',
+  },
+  exerciseNotes: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 2,
+    fontStyle: 'italic',
+  },
+  workoutNotes: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+  footer: {
+    padding: 16,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+  },
+  button: {
+    backgroundColor: '#2075FF',
+    borderRadius: 12,
+    padding: 14,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#FF3B30',
+    textAlign: 'center',
+    marginHorizontal: 20,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorSubText: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: '#2075FF',
+    borderRadius: 12,
+    padding: 14,
+    alignItems: 'center',
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 10,
   },
 });
 

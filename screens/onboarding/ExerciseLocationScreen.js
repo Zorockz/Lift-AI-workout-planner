@@ -4,7 +4,7 @@ import OnboardingOptionCard from '../../components/OnboardingOptionCard';
 import OnboardingHeader from '../../components/OnboardingHeader';
 import OnboardingButtonRow from '../../components/OnboardingButtonRow';
 import ProgressBar from '../../components/ProgressBar';
-import { useOnboarding } from '../../OnboardingContext';
+import { useOnboarding } from '../../contexts/OnboardingContext';
 
 const ExerciseLocationScreen = ({ navigation }) => {
   const { updateOnboarding, incrementStep, decrementStep } = useOnboarding();

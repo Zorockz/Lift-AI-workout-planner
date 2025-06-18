@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow read/write access to publicPlans collection
+    match /publicPlans/{document=**} {
+      allow read, write: if true;
+    }
+    
+    // Allow read/write access to plans collection
+    match /plans/{document=**} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    // Allow authenticated users to read/write their own user data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Allow authenticated users to read/write their own profile data
+    match /users/{userId}/profile/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Allow public read access to user profiles (for sharing)
+    match /users/{userId}/profile/data {
+      allow read: if true;
+    }
+  }
+} 

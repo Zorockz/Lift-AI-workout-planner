@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useOnboarding } from '../OnboardingContext';
+import { useOnboarding } from '../contexts/OnboardingContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -138,7 +138,6 @@ const ProfileScreen = () => {
           onPress={handleSignOut}
           disabled={loading}
         >
-          <MaterialCommunityIcons name="logout" size={24} color="#FF3B30" />
           <Text style={styles.logoutText}>
             {loading ? 'Signing out...' : 'Log Out'}
           </Text>
@@ -248,19 +247,18 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   logoutButton: {
-    flexDirection: 'row',
+    height: 48,
+    marginHorizontal: 16,
+    marginVertical: 24,
+    backgroundColor: '#2075FF',
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    margin: 24,
-    padding: 16,
-    backgroundColor: '#FFF3F3',
-    borderRadius: 8,
   },
   logoutText: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '500',
-    color: '#FF3B30',
-    marginLeft: 8,
+    color: '#FFFFFF',
   },
   disabledButton: {
     opacity: 0.7,

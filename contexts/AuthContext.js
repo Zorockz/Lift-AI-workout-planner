@@ -1,22 +1,29 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import * as AuthSession from 'expo-auth-session';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
-import { GoogleAuthProvider } from 'firebase/compat/auth';
-import { auth } from '../config/firebase';
+import { GoogleAuthProvider, signInWithCredential, onAuthStateChanged } from 'firebase/auth';
+import { getAuthInstance } from '../config/firebase';
 import { Platform } from 'react-native';
+
+// Development flag - set to true during development
+const IS_DEVELOPMENT = true;
 
 WebBrowser.maybeCompleteAuthSession();
 
 const defaultContext = {
   user: null,
+  isGuest: false,
   loading: true,
   error: null,
+  isOnboardingComplete: false,
   signIn: () => {},
   signOut: () => {},
-  clearError: () => {}
+  continueAsGuest: () => {},
+  clearError: () => {},
+  completeOnboarding: () => {}
 };
 
 const AuthContext = createContext(defaultContext);
@@ -31,47 +38,71 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [isGuest, setIsGuest] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
 
   // Get the Google Client ID from app.json
   const clientId = Constants.expoConfig?.extra?.googleClientId;
   const authSession = Constants.expoConfig?.extra?.authSession;
 
-  // Initialize auth state listener
+  // Initialize Firebase Auth state listener
   useEffect(() => {
-    let unsubscribe;
+    const auth = getAuthInstance();
     
-    const initializeAuth = async () => {
-      try {
-        // Wait for auth to be ready
-        await new Promise(resolve => setTimeout(resolve, 100));
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log('Firebase auth state changed:', firebaseUser ? 'User signed in' : 'User signed out');
+      
+      if (firebaseUser) {
+        // User is signed in with Firebase
+        const userData = {
+          id: firebaseUser.uid,
+          email: firebaseUser.email,
+          name: firebaseUser.displayName,
+          picture: firebaseUser.photoURL,
+        };
         
-        unsubscribe = auth.onAuthStateChanged(
-          (user) => {
-            setUser(user);
-            setLoading(false);
-            setError(null);
-          },
-          (error) => {
-            console.error('Auth state change error:', error);
-            setError('Authentication error. Please try again.');
-            setLoading(false);
-          }
-        );
-      } catch (error) {
-        console.error('Error initializing auth:', error);
-        setError('Failed to initialize authentication');
-        setLoading(false);
+        setUser(userData);
+        setIsGuest(false);
+        await AsyncStorage.setItem('user', JSON.stringify(userData));
+        await AsyncStorage.removeItem('isGuest');
+        
+        // Check onboarding status - but don't auto-complete for returning users
+        const storedOnboarding = await AsyncStorage.getItem('isOnboardingComplete');
+        const hasCompletedOnboarding = storedOnboarding === 'true';
+        
+        // Only set onboarding complete if user has actually completed it
+        if (hasCompletedOnboarding) {
+          setIsOnboardingComplete(true);
+        } else {
+          // For new users or users who haven't completed onboarding, stay in onboarding
+          setIsOnboardingComplete(false);
+        }
+      } else {
+        // User is signed out from Firebase
+        setUser(null);
+        setIsGuest(false);
+        await AsyncStorage.removeItem('user');
+        await AsyncStorage.removeItem('isGuest');
+        
+        // Check if there's stored guest data
+        const storedGuest = await AsyncStorage.getItem('isGuest');
+        if (storedGuest === 'true') {
+          setIsGuest(true);
+          setUser({ id: 'guest', name: 'Guest User' });
+        }
+        
+        // Check onboarding status for guest users
+        const storedOnboarding = await AsyncStorage.getItem('isOnboardingComplete');
+        setIsOnboardingComplete(storedOnboarding === 'true');
       }
-    };
+      
+      setLoading(false);
+    });
 
-    initializeAuth();
-    return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
-    };
+    // Cleanup subscription
+    return () => unsubscribe();
   }, []);
 
   // Use the redirect URI from app.json if available, otherwise generate one
@@ -104,24 +135,36 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       setError(null);
       
+      console.log('Signing in with Google token...');
+      const auth = getAuthInstance();
+      
       // Create a Google credential with the token
       const credential = GoogleAuthProvider.credential(idToken);
       
       // Sign in with Firebase using the credential
-      await auth.signInWithCredential(credential);
+      await signInWithCredential(auth, credential);
       
-      // Store user data in AsyncStorage
-      const userData = {
-        id: auth.currentUser.uid,
-        email: auth.currentUser.email,
-        name: auth.currentUser.displayName,
-        picture: auth.currentUser.photoURL,
-      };
-      
-      await AsyncStorage.setItem('user', JSON.stringify(userData));
+      console.log('Sign-in successful');
     } catch (error) {
       console.error('Error signing in:', error);
       setError('Failed to sign in. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const continueAsGuest = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      setIsGuest(true);
+      setUser({ id: 'guest', name: 'Guest User' });
+      await AsyncStorage.setItem('isGuest', 'true');
+      await AsyncStorage.removeItem('user');
+    } catch (error) {
+      console.error('Error setting guest mode:', error);
+      setError('Failed to continue as guest');
+    } finally {
       setLoading(false);
     }
   };
@@ -130,9 +173,30 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      await auth.signOut();
-      await AsyncStorage.removeItem('user');
+      
+      if (!isGuest) {
+        // Sign out from Firebase
+        const auth = getAuthInstance();
+        await auth.signOut();
+      }
+      
+      // Clear all stored data
       setUser(null);
+      setIsGuest(false);
+      setIsOnboardingComplete(false);
+      
+      await AsyncStorage.multiRemove([
+        'user',
+        'isGuest',
+        'isOnboardingComplete',
+        'onboardingComplete',
+        'onboardingData',
+        'onboardingInProgress',
+        'workoutPlan',
+        'completedExercises'
+      ]);
+      
+      console.log('Sign out successful');
     } catch (error) {
       console.error('Error signing out:', error);
       setError('Failed to sign out. Please try again.');
@@ -143,18 +207,34 @@ export const AuthProvider = ({ children }) => {
 
   const clearError = () => setError(null);
 
+  const completeOnboarding = async () => {
+    try {
+      console.log('Completing onboarding in AuthContext...');
+      setIsOnboardingComplete(true);
+      await AsyncStorage.setItem('isOnboardingComplete', 'true');
+      console.log('Onboarding completed successfully in AuthContext');
+    } catch (error) {
+      console.error('Error completing onboarding:', error);
+      setError('Failed to complete onboarding');
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
         user,
+        isGuest,
         loading,
         error,
+        isOnboardingComplete,
         signIn: () => {
           setError(null);
           promptAsync();
         },
         signOut,
+        continueAsGuest,
         clearError,
+        completeOnboarding,
       }}
     >
       {children}

@@ -2,11 +2,13 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { OnboardingProvider } from './OnboardingContext';
+import { OnboardingProvider } from './contexts/OnboardingContext';
 import { WorkoutProvider } from './contexts/WorkoutContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { View, ActivityIndicator } from 'react-native';
+import { testFirebaseAuth } from './utils/testAuth';
+import React from 'react';
 
 // Onboarding Screens
 import WelcomeScreen from './screens/onboarding/WelcomeScreen';
@@ -29,16 +31,10 @@ import GoalWeightInputScreen from './screens/onboarding/GoalWeightInputScreen';
 import HomeScreen from './screens/HomeScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import FullPlanScreen from './screens/FullPlanScreen';
+import WorkoutSessionScreen from './screens/WorkoutSessionScreen';
 
 const Stack = createNativeStackNavigator();
 const RootStack = createNativeStackNavigator();
-
-// Loading screen component
-const LoadingScreen = () => (
-  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-    <ActivityIndicator size="large" color="#2075FF" />
-  </View>
-);
 
 // Onboarding navigator
 const OnboardingNavigator = () => (
@@ -67,32 +63,76 @@ const MainNavigator = () => (
     <Stack.Screen name="Home" component={HomeScreen} />
     <Stack.Screen name="Profile" component={ProfileScreen} />
     <Stack.Screen name="FullPlan" component={FullPlanScreen} />
+    <Stack.Screen 
+      name="WorkoutSession" 
+      component={WorkoutSessionScreen}
+      options={{ headerShown: false }}
+    />
   </Stack.Navigator>
 );
 
 function AppNavigator() {
-  const { user, loading } = useAuth();
+  const { isOnboardingComplete, loading, user, isGuest } = useAuth();
 
   if (loading) {
+    console.log('AppNavigator: Loading state, showing spinner');
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  // Determine which navigator to show
+  const shouldShowOnboarding = !isOnboardingComplete;
+  
+  console.log('AppNavigator - Auth state:', {
+    user: user ? 'Signed in' : 'Not signed in',
+    isGuest,
+    isOnboardingComplete,
+    shouldShowOnboarding,
+    loading
+  });
+
+  // Additional safeguard: if user is not signed in and not guest, show onboarding
+  if (!user && !isGuest && !isOnboardingComplete) {
+    console.log('AppNavigator: User not signed in, showing onboarding');
     return (
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
-        <RootStack.Screen name="Loading" component={LoadingScreen} />
+        <RootStack.Screen 
+          name="Onboarding" 
+          component={OnboardingNavigator}
+          options={{ gestureEnabled: false }}
+        />
       </RootStack.Navigator>
     );
   }
 
   return (
     <RootStack.Navigator screenOptions={{ headerShown: false }}>
-      {user ? (
-        <RootStack.Screen name="Main" component={MainNavigator} />
+      {shouldShowOnboarding ? (
+        <RootStack.Screen 
+          name="Onboarding" 
+          component={OnboardingNavigator}
+          options={{ gestureEnabled: false }}
+        />
       ) : (
-        <RootStack.Screen name="Onboarding" component={OnboardingNavigator} />
+        <RootStack.Screen 
+          name="Main" 
+          component={MainNavigator}
+          options={{ gestureEnabled: false }}
+        />
       )}
     </RootStack.Navigator>
   );
 }
 
 export default function App() {
+  // Test Firebase auth initialization
+  React.useEffect(() => {
+    testFirebaseAuth();
+  }, []);
+
   return (
     <ErrorBoundary>
       <SafeAreaProvider>

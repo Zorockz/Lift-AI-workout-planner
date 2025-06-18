@@ -22,8 +22,11 @@ export const OnboardingProvider = ({ children }) => {
     goalWeight: null,
     experienceLevel: null,
     strengthTrainingHistory: null,
-    equipment: null,
+    equipment: [],
     schedule: null,
+    location: null,
+    targetMuscles: [],
+    generatedPlan: null,
   });
 
   useEffect(() => {
@@ -67,12 +70,22 @@ export const OnboardingProvider = ({ children }) => {
     updateOnboarding({ currentStep: 1 });
   };
 
+  const setGeneratedPlan = async (plan) => {
+    await updateOnboarding({ generatedPlan: plan });
+  };
+
   const completeOnboarding = async () => {
     try {
+      // Mark onboarding as complete
       await AsyncStorage.setItem('onboardingComplete', 'true');
+      // Save the final onboarding data including the generated plan
       await AsyncStorage.setItem('onboardingData', JSON.stringify(onboarding));
+      // Clear any temporary onboarding state
+      await AsyncStorage.removeItem('onboardingInProgress');
+      return true;
     } catch (error) {
       console.error('Error completing onboarding:', error);
+      return false;
     }
   };
 
@@ -83,6 +96,7 @@ export const OnboardingProvider = ({ children }) => {
     decrementStep,
     resetSteps,
     completeOnboarding,
+    setGeneratedPlan,
   };
 
   return (

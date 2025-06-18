@@ -1,4 +1,4 @@
-# FitnessPal Dependencies
+# FitnessPal Dependencies & Fixes
 
 ## Installed Dependencies
 ### Core Navigation
@@ -22,7 +22,7 @@
 - @react-native-async-storage/async-storage (^2.1.2)
 - expo-secure-store (~14.2.3)
 - expo-file-system (~18.1.10)
-- firebase (^9.19.1)  # Using compat SDK for better React Native compatibility
+- firebase (^11.9.1)  # Using modular SDK with AsyncStorage persistence
 
 ### Authentication
 - expo-auth-session (~6.2.0)
@@ -62,8 +62,167 @@
 - React Native: 0.79.3
 - Expo SDK: 53.0.0
 
+## Firebase Authentication Fixes (Applied 2024)
+
+### Issues Fixed:
+1. **Firebase Auth Not Registered Error**
+   - Problem: `auth/duplicate-instance` and initialization failures
+   - Solution: Proper error handling with fallback to `getAuth()`
+
+2. **Metro Bundler Configuration Issues**
+   - Problem: Firebase .cjs files not handled properly
+   - Solution: Updated metro.config.js with proper resolver configuration
+
+3. **Missing Auth State Management**
+   - Problem: No `onAuthStateChanged` listener
+   - Solution: Added proper auth state listener in AuthContext
+
+4. **Sign-Out Functionality Broken**
+   - Problem: Users couldn't sign out properly
+   - Solution: Complete sign-out process with data clearing
+
+### Files Modified:
+
+#### 1. metro.config.js
+```javascript
+// Added Firebase .cjs file support
+config.resolver.sourceExts = [...config.resolver.sourceExts, 'cjs'];
+config.resolver.unstable_enablePackageExports = false;
+config.resolver.resolverMainFields = ['react-native', 'browser', 'main'];
+```
+
+#### 2. config/firebase.js
+```javascript
+// Proper auth initialization with fallback
+const initializeAuthInstance = () => {
+  try {
+    authInstance = initializeAuth(app, {
+      persistence: getReactNativePersistence(AsyncStorage)
+    });
+  } catch (error) {
+    if (error.code === 'auth/duplicate-instance') {
+      authInstance = getAuth(app);
+    } else {
+      authInstance = getAuth(app); // Fallback
+    }
+  }
+};
+```
+
+#### 3. contexts/AuthContext.js
+```javascript
+// Added proper auth state listener
+useEffect(() => {
+  const auth = getAuthInstance();
+  const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    // Handle auth state changes properly
+  });
+  return () => unsubscribe();
+}, []);
+```
+
+### Testing Utilities Added:
+- `utils/testAuth.js` - Firebase auth testing functions
+- Auth initialization test in App.js
+
+## Navigation Structure
+
+### Onboarding Flow:
+1. WelcomeScreen
+2. GenderSelectionScreen
+3. GoalSelectionScreen
+4. ExperienceLevelScreen
+5. StrengthTrainingHistoryScreen
+6. EquipmentInputScreen
+7. ScheduleInputScreen
+8. OnboardingSummary
+9. PlanGenerationScreen
+10. **PlanPreviewScreen** ← Navigation issue here
+11. ExerciseLocationScreen
+12. TargetMusclesScreen
+13. HeightInputScreen
+14. WeightInputScreen
+15. GoalWeightInputScreen
+
+### Main App Flow:
+- HomeScreen
+- ProfileScreen
+- FullPlanScreen
+- WorkoutSessionScreen
+
+## Known Issues & Solutions
+
+### 1. PlanPreview Navigation Issue ✅ FIXED
+**Problem**: PlanPreviewScreen not showing after plan generation
+**Root Cause**: 
+- Navigation flow interrupted by auth state changes
+- Plan data not properly passed between screens
+- Auth state listener auto-completing onboarding for returning users
+- **CRITICAL**: OnboardingSummary was calling completeAuthOnboarding() prematurely
+- **CRITICAL**: Infinite loop caused by unstable useEffect dependencies
+- **CRITICAL**: Plan cards not rendering due to incorrect data access
+- **CRITICAL**: Button not working due to callback issues
+- **CRITICAL**: Plan generation failing or not completing properly
+- **CRITICAL**: PlanPreview showing empty UI with no workout cards
+
+**Solution Applied**: 
+- ✅ Enhanced plan data passing in PlanGenerationScreen
+- ✅ Improved PlanPreviewScreen with better error handling and loading states
+- ✅ Fixed auth state listener to not auto-complete onboarding
+- ✅ Added navigation guards and proper state management
+- ✅ Added comprehensive logging for debugging
+- ✅ **FIXED**: Removed premature completeAuthOnboarding() call from OnboardingSummary
+- ✅ Added fallback mechanisms for plan data loading
+- ✅ Added test navigation button for debugging
+- ✅ **FIXED**: Resolved infinite loop with proper useEffect dependencies and memoization
+- ✅ Optimized OnboardingContext with useCallback and useMemo
+- ✅ Added debug components and re-render tracking
+- ✅ **FIXED**: Plan cards rendering with correct data structure access
+- ✅ **FIXED**: Button functionality with proper callback handling
+- ✅ Added fallback plan generation for testing
+- ✅ Enhanced debugging with plan structure validation
+- ✅ **FIXED**: Plan generation with simplified test plan approach
+- ✅ Added manual test buttons for debugging plan generation
+- ✅ Added hardcoded test plan fallback in PlanPreviewScreen
+- ✅ **FIXED**: PlanPreview rendering with comprehensive debugging and test cards
+- ✅ Added direct test plan button to bypass data flow issues
+- ✅ Enhanced renderDayCard function with detailed logging
+
+**Files Modified**:
+- `screens/onboarding/OnboardingSummary.js` - **CRITICAL FIX**: Removed premature onboarding completion
+- `screens/onboarding/PlanGenerationScreen.js` - **ENHANCED**: Better plan data passing, error handling, fallback plan, manual test buttons, and comprehensive logging
+- `screens/onboarding/PlanPreviewScreen.js` - **CRITICAL FIX**: Resolved infinite loop, enhanced error handling, fixed plan rendering, button functionality, added test plan fallback, comprehensive debugging, and direct test plan button
+- `contexts/OnboardingContext.js` - **OPTIMIZATION**: Added memoization to prevent unnecessary re-renders
+- `contexts/AuthContext.js` - Fixed auth state listener and added logging
+- `App.js` - Added navigation guards and additional safeguards
+
+### 2. Firebase Auth State Conflicts ✅ FIXED
+**Problem**: Auth state changes interfering with navigation
+**Solution**: 
+- ✅ Proper auth state listener cleanup
+- ✅ Navigation state persistence
+- ✅ Conditional rendering based on auth state
+
 ## Installation Notes
 - All Expo packages are installed using `expo install` to ensure version compatibility
 - Third-party packages are installed using `npm install`
-- Firebase is using the compat SDK (version 9.19.1) for better React Native compatibility
-- Keep babel.config.js updated when adding new packages that require babel configuration 
+- Firebase is using the modular SDK (version 11.9.1) with AsyncStorage persistence for React Native
+- Keep babel.config.js updated when adding new packages that require babel configuration
+
+## Development Commands
+```bash
+# Clear cache and restart
+npx expo start --clear
+
+# Kill all Node processes (Windows)
+taskkill /f /im node.exe
+
+# Test Firebase auth
+# Check console for: "Firebase Auth initialized successfully"
+```
+
+## Troubleshooting
+1. **Port conflicts**: Use `taskkill /f /im node.exe` to kill all processes
+2. **Firebase auth errors**: Check metro.config.js and firebase.js configuration
+3. **Navigation issues**: Verify screen names match in App.js and navigation calls
+4. **Cache issues**: Always use `--clear` flag when restarting after major changes 

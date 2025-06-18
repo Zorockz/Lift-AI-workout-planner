@@ -4,7 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import OnboardingHeader from '../../components/OnboardingHeader';
 import OnboardingButtonRow from '../../components/OnboardingButtonRow';
 import ProgressBar from '../../components/ProgressBar';
-import { useOnboarding } from '../../OnboardingContext';
+import { useOnboarding } from '../../contexts/OnboardingContext';
 
 const FITNESS_GOALS = [
   {

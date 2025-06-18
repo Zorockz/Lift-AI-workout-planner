@@ -3,10 +3,12 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import ProgressBar from '../../components/ProgressBar';
-import { useOnboarding } from '../../OnboardingContext';
+import { useOnboarding } from '../../contexts/OnboardingContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 const OnboardingSummary = ({ navigation }) => {
-  const { onboarding } = useOnboarding();
+  const { onboarding, completeOnboarding } = useOnboarding();
+  const { completeOnboarding: completeAuthOnboarding } = useAuth();
 
   const formatValue = (value) => {
     if (typeof value === 'string') {
@@ -101,7 +103,7 @@ const OnboardingSummary = ({ navigation }) => {
     {
       icon: 'history',
       label: 'Strength History',
-      value: formatValue(onboarding.strengthHistory)
+      value: formatValue(onboarding.strengthTrainingHistory)
     },
     {
       icon: 'dumbbell',
@@ -111,7 +113,7 @@ const OnboardingSummary = ({ navigation }) => {
     {
       icon: 'calendar',
       label: 'Training Frequency',
-      value: `${onboarding.frequency} Days Per Week`
+      value: `${onboarding.workoutsPerWeek} Days Per Week`
     }
   ];
 
@@ -129,6 +131,12 @@ const OnboardingSummary = ({ navigation }) => {
       ))}
     </View>
   );
+
+  const handleGeneratePlan = async () => {
+    // Don't complete onboarding here - wait until after plan preview
+    // await completeAuthOnboarding(); // REMOVED - this was causing the issue
+    navigation.navigate('PlanGeneration');
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -162,7 +170,7 @@ const OnboardingSummary = ({ navigation }) => {
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.generateButton}
-          onPress={() => navigation.navigate('PlanGeneration')}
+          onPress={handleGeneratePlan}
         >
           <Text style={styles.generateButtonText}>Generate My Plan</Text>
         </TouchableOpacity>

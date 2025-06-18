@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import { initializeAuth, getReactNativePersistence, getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -14,15 +14,46 @@ const firebaseConfig = {
   databaseURL: "https://fitpal-d4b78-default-rtdb.firebaseio.com"
 };
 
-// Initialize Firebase
+// Initialize Firebase app
 const app = initializeApp(firebaseConfig);
-
-// Initialize Auth with AsyncStorage persistence
-const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage)
-});
 
 // Initialize Firestore
 const db = getFirestore(app);
 
-export { auth, db }; 
+// Initialize Auth with proper error handling
+let authInstance = null;
+
+const initializeAuthInstance = () => {
+  if (!authInstance) {
+    try {
+      // Try to initialize auth with AsyncStorage persistence
+      authInstance = initializeAuth(app, {
+        persistence: getReactNativePersistence(AsyncStorage)
+      });
+      console.log('Firebase Auth initialized successfully with AsyncStorage persistence');
+    } catch (error) {
+      if (error.code === 'auth/duplicate-instance') {
+        console.log('Auth instance already exists, using existing instance');
+        authInstance = getAuth(app);
+      } else {
+        console.error('Error initializing Firebase Auth:', error);
+        // Fallback to getAuth if initialization fails
+        authInstance = getAuth(app);
+      }
+    }
+  }
+  return authInstance;
+};
+
+// Get auth instance (initialize if needed)
+const getAuthInstance = () => {
+  if (!authInstance) {
+    return initializeAuthInstance();
+  }
+  return authInstance;
+};
+
+// Initialize auth immediately
+initializeAuthInstance();
+
+export { app, db, getAuthInstance, onAuthStateChanged }; 

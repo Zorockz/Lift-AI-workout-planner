@@ -1,5 +1,5 @@
 import { doc, setDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { db, auth } from '../config/firebase';
+import { db, getAuthInstance } from '../config/firebase';
 import { generateAndSavePlan as generatePlan } from '../utils/planGenerator';
 
 /**
@@ -7,6 +7,8 @@ import { generateAndSavePlan as generatePlan } from '../utils/planGenerator';
  * @returns {Promise<string>} The user ID or default path
  */
 const getUserPath = async () => {
+  // Only initialize Firebase Auth when actually needed
+  const auth = getAuthInstance();
   const user = auth.currentUser;
   if (user) {
     return user.uid;
@@ -44,6 +46,8 @@ export const saveUserProfile = async (profile) => {
  */
 export const saveUserPlan = async (plan) => {
   try {
+    // Only initialize Firebase Auth when actually saving
+    const auth = getAuthInstance();
     const planId = Date.now().toString();
     const plansRef = collection(db, 'plans');
     const planDoc = doc(plansRef, planId);

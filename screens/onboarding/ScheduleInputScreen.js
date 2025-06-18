@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import OnboardingHeader from '../../components/OnboardingHeader';
 import OnboardingButtonRow from '../../components/OnboardingButtonRow';
 import ProgressBar from '../../components/ProgressBar';
-import { useOnboarding } from '../../OnboardingContext';
+import { useOnboarding } from '../../contexts/OnboardingContext';
 
 const ScheduleInputScreen = ({ navigation }) => {
   const [daysPerWeek, setDaysPerWeek] = useState(3);

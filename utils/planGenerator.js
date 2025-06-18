@@ -1,72 +1,129 @@
 import { doc, setDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { db, auth } from '../config/firebase';
+import { db, getAuthInstance } from '../config/firebase';
 
 /**
- * Exercise database with variations based on experience level
+ * Exercise database with variations based on experience level and location
  */
 const exerciseDatabase = {
   strength: {
-    beginner: [
-      { name: 'Push-ups', sets: 3, reps: 10, restTime: 60, notes: 'Focus on form' },
-      { name: 'Bodyweight Squats', sets: 3, reps: 12, restTime: 60, notes: 'Keep back straight' },
-      { name: 'Plank', sets: 3, reps: 30, restTime: 45, notes: 'Hold position' },
-      { name: 'Lunges', sets: 3, reps: 10, restTime: 60, notes: 'Alternate legs' },
-      { name: 'Mountain Climbers', sets: 3, reps: 20, restTime: 45, notes: 'Keep core tight' }
-    ],
-    intermediate: [
-      { name: 'Diamond Push-ups', sets: 4, reps: 12, restTime: 60, notes: 'Focus on triceps' },
-      { name: 'Jump Squats', sets: 4, reps: 15, restTime: 60, notes: 'Land softly' },
-      { name: 'Side Plank', sets: 3, reps: 45, restTime: 45, notes: 'Alternate sides' },
-      { name: 'Bulgarian Split Squats', sets: 3, reps: 12, restTime: 60, notes: 'Keep front knee stable' },
-      { name: 'Burpees', sets: 3, reps: 10, restTime: 60, notes: 'Full range of motion' }
-    ],
-    advanced: [
-      { name: 'Pike Push-ups', sets: 4, reps: 12, restTime: 60, notes: 'Focus on shoulders' },
-      { name: 'Pistol Squats', sets: 3, reps: 8, restTime: 90, notes: 'Progress gradually' },
-      { name: 'Hollow Hold', sets: 3, reps: 45, restTime: 60, notes: 'Keep lower back pressed' },
-      { name: 'Box Jumps', sets: 4, reps: 10, restTime: 90, notes: 'Land quietly' },
-      { name: 'Pull-ups', sets: 4, reps: 8, restTime: 90, notes: 'Full range of motion' }
-    ]
+    gym: {
+      beginner: [
+        { name: 'Machine Chest Press', sets: 3, reps: 12, restTime: 60, equipment: 'full_gym', notes: 'Focus on form and controlled movement' },
+        { name: 'Leg Press', sets: 3, reps: 12, restTime: 60, equipment: 'full_gym', notes: 'Keep back flat against pad' },
+        { name: 'Lat Pulldown', sets: 3, reps: 12, restTime: 60, equipment: 'full_gym', notes: 'Pull bar to upper chest' },
+        { name: 'Machine Shoulder Press', sets: 3, reps: 12, restTime: 60, equipment: 'full_gym', notes: 'Keep core tight' },
+        { name: 'Machine Leg Extension', sets: 3, reps: 15, restTime: 45, equipment: 'full_gym', notes: 'Full range of motion' }
+      ],
+      intermediate: [
+        { name: 'Barbell Bench Press', sets: 4, reps: 10, restTime: 90, equipment: 'full_gym', notes: 'Focus on chest contraction' },
+        { name: 'Barbell Squats', sets: 4, reps: 8, restTime: 90, equipment: 'full_gym', notes: 'Keep chest up' },
+        { name: 'Bent Over Rows', sets: 4, reps: 10, restTime: 90, equipment: 'full_gym', notes: 'Squeeze shoulder blades' },
+        { name: 'Overhead Press', sets: 4, reps: 8, restTime: 90, equipment: 'full_gym', notes: 'Full lockout at top' },
+        { name: 'Romanian Deadlifts', sets: 4, reps: 10, restTime: 90, equipment: 'full_gym', notes: 'Keep back straight' }
+      ],
+      advanced: [
+        { name: 'Deadlifts', sets: 5, reps: 5, restTime: 120, equipment: 'full_gym', notes: 'Focus on hip hinge' },
+        { name: 'Front Squats', sets: 4, reps: 6, restTime: 120, equipment: 'full_gym', notes: 'Keep elbows high' },
+        { name: 'Pull-ups', sets: 4, reps: 8, restTime: 90, equipment: 'full_gym', notes: 'Full range of motion' },
+        { name: 'Incline Bench Press', sets: 4, reps: 8, restTime: 90, equipment: 'full_gym', notes: 'Focus on upper chest' },
+        { name: 'Barbell Rows', sets: 4, reps: 8, restTime: 90, equipment: 'full_gym', notes: 'Squeeze at top' }
+      ]
+    },
+    home: {
+      beginner: [
+        { name: 'Push-ups', sets: 3, reps: 10, restTime: 60, equipment: 'bodyweight', notes: 'Focus on form' },
+        { name: 'Bodyweight Squats', sets: 3, reps: 12, restTime: 60, equipment: 'bodyweight', notes: 'Keep back straight' },
+        { name: 'Plank', sets: 3, reps: 30, restTime: 45, equipment: 'bodyweight', notes: 'Hold position' },
+        { name: 'Lunges', sets: 3, reps: 10, restTime: 60, equipment: 'bodyweight', notes: 'Alternate legs' },
+        { name: 'Mountain Climbers', sets: 3, reps: 20, restTime: 45, equipment: 'bodyweight', notes: 'Keep core tight' }
+      ],
+      intermediate: [
+        { name: 'Diamond Push-ups', sets: 4, reps: 12, restTime: 60, equipment: 'bodyweight', notes: 'Focus on triceps' },
+        { name: 'Jump Squats', sets: 4, reps: 15, restTime: 60, equipment: 'bodyweight', notes: 'Land softly' },
+        { name: 'Side Plank', sets: 3, reps: 45, restTime: 45, equipment: 'bodyweight', notes: 'Alternate sides' },
+        { name: 'Bulgarian Split Squats', sets: 3, reps: 12, restTime: 60, equipment: 'bodyweight', notes: 'Keep front knee stable' },
+        { name: 'Burpees', sets: 3, reps: 10, restTime: 60, equipment: 'bodyweight', notes: 'Full range of motion' }
+      ],
+      advanced: [
+        { name: 'Pike Push-ups', sets: 4, reps: 12, restTime: 60, equipment: 'bodyweight', notes: 'Focus on shoulders' },
+        { name: 'Pistol Squats', sets: 3, reps: 8, restTime: 90, equipment: 'bodyweight', notes: 'Progress gradually' },
+        { name: 'Hollow Hold', sets: 3, reps: 45, restTime: 60, equipment: 'bodyweight', notes: 'Keep lower back pressed' },
+        { name: 'Box Jumps', sets: 4, reps: 10, restTime: 90, equipment: 'bodyweight', notes: 'Land quietly' },
+        { name: 'Pull-ups', sets: 4, reps: 8, restTime: 90, equipment: 'bodyweight', notes: 'Full range of motion' }
+      ]
+    }
   },
   cardio: {
-    beginner: [
-      { name: 'Brisk Walking', duration: 20, intensity: 'low', notes: 'Maintain steady pace' },
-      { name: 'Light Jogging', duration: 15, intensity: 'medium', notes: 'Alternate with walking' },
-      { name: 'Jumping Jacks', sets: 3, reps: 30, restTime: 30, notes: 'Land softly' }
-    ],
-    intermediate: [
-      { name: 'Running', duration: 25, intensity: 'medium', notes: 'Maintain conversation pace' },
-      { name: 'High Knees', sets: 4, reps: 40, restTime: 30, notes: 'Keep core engaged' },
-      { name: 'Mountain Climbers', sets: 4, reps: 30, restTime: 30, notes: 'Alternate quickly' }
-    ],
-    advanced: [
-      { name: 'HIIT Sprints', duration: 20, intensity: 'high', notes: '30s sprint, 30s rest' },
-      { name: 'Burpees', sets: 5, reps: 15, restTime: 45, notes: 'Full range of motion' },
-      { name: 'Jump Rope', duration: 15, intensity: 'high', notes: 'Alternate techniques' }
-    ]
+    gym: {
+      beginner: [
+        { name: 'Treadmill Walking', duration: 20, intensity: 'low', equipment: 'full_gym', notes: 'Maintain steady pace' },
+        { name: 'Stationary Bike', duration: 15, intensity: 'medium', equipment: 'full_gym', notes: 'Adjust resistance' },
+        { name: 'Elliptical', duration: 15, intensity: 'medium', equipment: 'full_gym', notes: 'Full range of motion' }
+      ],
+      intermediate: [
+        { name: 'Treadmill Running', duration: 25, intensity: 'medium', equipment: 'full_gym', notes: 'Maintain conversation pace' },
+        { name: 'Rowing Machine', duration: 20, intensity: 'medium', equipment: 'full_gym', notes: 'Focus on form' },
+        { name: 'Stair Master', duration: 20, intensity: 'medium', equipment: 'full_gym', notes: 'Keep good posture' }
+      ],
+      advanced: [
+        { name: 'HIIT Treadmill', duration: 20, intensity: 'high', equipment: 'full_gym', notes: '30s sprint, 30s rest' },
+        { name: 'Rowing Intervals', duration: 25, intensity: 'high', equipment: 'full_gym', notes: 'Alternate intensity' },
+        { name: 'Stair Master HIIT', duration: 20, intensity: 'high', equipment: 'full_gym', notes: 'Vary speed and resistance' }
+      ]
+    },
+    home: {
+      beginner: [
+        { name: 'Brisk Walking', duration: 20, intensity: 'low', equipment: 'bodyweight', notes: 'Maintain steady pace' },
+        { name: 'Light Jogging', duration: 15, intensity: 'medium', equipment: 'bodyweight', notes: 'Alternate with walking' },
+        { name: 'Jumping Jacks', sets: 3, reps: 30, restTime: 30, equipment: 'bodyweight', notes: 'Land softly' }
+      ],
+      intermediate: [
+        { name: 'Running', duration: 25, intensity: 'medium', equipment: 'bodyweight', notes: 'Maintain conversation pace' },
+        { name: 'High Knees', sets: 4, reps: 40, restTime: 30, equipment: 'bodyweight', notes: 'Keep core engaged' },
+        { name: 'Mountain Climbers', sets: 4, reps: 30, restTime: 30, equipment: 'bodyweight', notes: 'Alternate quickly' }
+      ],
+      advanced: [
+        { name: 'HIIT Sprints', duration: 20, intensity: 'high', equipment: 'bodyweight', notes: '30s sprint, 30s rest' },
+        { name: 'Burpees', sets: 5, reps: 15, restTime: 45, equipment: 'bodyweight', notes: 'Full range of motion' },
+        { name: 'Jump Rope', duration: 15, intensity: 'high', equipment: 'bodyweight', notes: 'Alternate techniques' }
+      ]
+    }
   },
   maintain: {
-    beginner: [
-      { name: 'Bodyweight Squats', sets: 3, reps: 12, restTime: 60, notes: 'Focus on form' },
-      { name: 'Push-ups', sets: 3, reps: 10, restTime: 60, notes: 'Modify if needed' },
-      { name: 'Plank', sets: 3, reps: 30, restTime: 45, notes: 'Hold position' },
-      { name: 'Walking Lunges', sets: 3, reps: 10, restTime: 60, notes: 'Keep good posture' },
-      { name: 'Brisk Walking', duration: 20, intensity: 'low', notes: 'Maintain steady pace' }
-    ],
-    intermediate: [
-      { name: 'Push-ups', sets: 3, reps: 12, restTime: 60, notes: 'Focus on form' },
-      { name: 'Squats', sets: 3, reps: 15, restTime: 60, notes: 'Keep back straight' },
-      { name: 'Plank', sets: 3, reps: 45, restTime: 45, notes: 'Hold position' },
-      { name: 'Lunges', sets: 3, reps: 12, restTime: 60, notes: 'Alternate legs' },
-      { name: 'Light Jogging', duration: 20, intensity: 'medium', notes: 'Comfortable pace' }
-    ],
-    advanced: [
-      { name: 'Push-ups', sets: 4, reps: 15, restTime: 60, notes: 'Focus on form' },
-      { name: 'Squats', sets: 4, reps: 15, restTime: 60, notes: 'Keep back straight' },
-      { name: 'Plank', sets: 3, reps: 60, restTime: 45, notes: 'Hold position' },
-      { name: 'Lunges', sets: 3, reps: 15, restTime: 60, notes: 'Alternate legs' },
-      { name: 'Running', duration: 25, intensity: 'medium', notes: 'Maintain pace' }
-    ]
+    gym: {
+      beginner: [
+        { name: 'Machine Chest Press', sets: 3, reps: 12, restTime: 60, equipment: 'full_gym', notes: 'Focus on form' },
+        { name: 'Leg Press', sets: 3, reps: 12, restTime: 60, equipment: 'full_gym', notes: 'Keep back flat' },
+        { name: 'Treadmill Walking', duration: 20, intensity: 'low', equipment: 'full_gym', notes: 'Comfortable pace' }
+      ],
+      intermediate: [
+        { name: 'Barbell Squats', sets: 3, reps: 10, restTime: 90, equipment: 'full_gym', notes: 'Keep form' },
+        { name: 'Lat Pulldown', sets: 3, reps: 12, restTime: 60, equipment: 'full_gym', notes: 'Full range' },
+        { name: 'Elliptical', duration: 20, intensity: 'medium', equipment: 'full_gym', notes: 'Steady pace' }
+      ],
+      advanced: [
+        { name: 'Deadlifts', sets: 3, reps: 8, restTime: 90, equipment: 'full_gym', notes: 'Focus on form' },
+        { name: 'Pull-ups', sets: 3, reps: 8, restTime: 90, equipment: 'full_gym', notes: 'Full range' },
+        { name: 'Rowing Machine', duration: 20, intensity: 'medium', equipment: 'full_gym', notes: 'Maintain pace' }
+      ]
+    },
+    home: {
+      beginner: [
+        { name: 'Push-ups', sets: 3, reps: 10, restTime: 60, equipment: 'bodyweight', notes: 'Focus on form' },
+        { name: 'Bodyweight Squats', sets: 3, reps: 12, restTime: 60, equipment: 'bodyweight', notes: 'Keep back straight' },
+        { name: 'Brisk Walking', duration: 20, intensity: 'low', equipment: 'bodyweight', notes: 'Comfortable pace' }
+      ],
+      intermediate: [
+        { name: 'Diamond Push-ups', sets: 3, reps: 12, restTime: 60, equipment: 'bodyweight', notes: 'Focus on form' },
+        { name: 'Jump Squats', sets: 3, reps: 15, restTime: 60, equipment: 'bodyweight', notes: 'Land softly' },
+        { name: 'Light Jogging', duration: 20, intensity: 'medium', equipment: 'bodyweight', notes: 'Steady pace' }
+      ],
+      advanced: [
+        { name: 'Pull-ups', sets: 3, reps: 8, restTime: 90, equipment: 'bodyweight', notes: 'Full range' },
+        { name: 'Pistol Squats', sets: 3, reps: 8, restTime: 90, equipment: 'bodyweight', notes: 'Keep balance' },
+        { name: 'Running', duration: 25, intensity: 'medium', equipment: 'bodyweight', notes: 'Maintain pace' }
+      ]
+    }
   }
 };
 
@@ -96,6 +153,31 @@ const getWorkoutNotes = (goal, experience) => {
 };
 
 /**
+ * Gets rest day notes based on goal and experience
+ */
+const getRestDayNotes = (goal, experience) => {
+  const notes = {
+    strength: {
+      beginner: 'Focus on light stretching and mobility work.',
+      intermediate: 'Active recovery - light cardio or mobility work.',
+      advanced: 'Active recovery - mobility work and foam rolling.'
+    },
+    cardio: {
+      beginner: 'Complete rest day. Focus on hydration.',
+      intermediate: 'Light stretching and mobility work.',
+      advanced: 'Active recovery - light cardio or mobility work.'
+    },
+    maintain: {
+      beginner: 'Light stretching and mobility work.',
+      intermediate: 'Active recovery - light cardio or mobility work.',
+      advanced: 'Active recovery - mobility work and foam rolling.'
+    }
+  };
+  
+  return notes[goal][experience];
+};
+
+/**
  * Shuffles an array using Fisher-Yates algorithm
  */
 const shuffleArray = (array) => {
@@ -108,16 +190,51 @@ const shuffleArray = (array) => {
 };
 
 /**
+ * Filters exercises based on available equipment
+ */
+const filterExercisesByEquipment = (exercises, equipment) => {
+  if (!equipment || equipment.length === 0) return exercises;
+  
+  return exercises.filter(exercise => {
+    // If exercise has no equipment requirement, include it
+    if (!exercise.equipment) return true;
+    
+    // Check if user has the required equipment
+    return equipment.some(userEquipment => {
+      switch (userEquipment) {
+        case 'full_gym':
+          return true; // Full gym has all equipment
+        case 'home_gym':
+          return ['bodyweight', 'dumbbells', 'home_gym'].includes(exercise.equipment);
+        case 'dumbbells':
+          return ['bodyweight', 'dumbbells'].includes(exercise.equipment);
+        case 'bodyweight':
+          return exercise.equipment === 'bodyweight';
+        default:
+          return false;
+      }
+    });
+  });
+};
+
+/**
  * Generates exercises for a specific day
  */
-const generateExercisesForDay = ({ experience, goal, equipment, dayOfWeek }) => {
-  if (!exerciseDatabase[goal] || !exerciseDatabase[goal][experience]) {
-    throw new Error(`Invalid goal (${goal}) or experience level (${experience})`);
+const generateExercisesForDay = ({ experience, goal, equipment, location, dayOfWeek }) => {
+  const locationKey = location === 'gym' ? 'gym' : 'home';
+  if (!exerciseDatabase[goal] || !exerciseDatabase[goal][locationKey] || !exerciseDatabase[goal][locationKey][experience]) {
+    throw new Error(`Invalid goal (${goal}), location (${location}), or experience level (${experience})`);
   }
 
-  const exercisePool = exerciseDatabase[goal][experience];
-  const numExercises = Math.min(6, Math.max(4, exercisePool.length));
-  return shuffleArray(exercisePool).slice(0, numExercises);
+  const exercisePool = exerciseDatabase[goal][locationKey][experience];
+  const filteredExercises = filterExercisesByEquipment(exercisePool, equipment);
+  
+  if (filteredExercises.length === 0) {
+    throw new Error('No exercises available for the selected equipment');
+  }
+
+  const numExercises = Math.min(6, Math.max(4, filteredExercises.length));
+  return shuffleArray(filteredExercises).slice(0, numExercises);
 };
 
 /**
@@ -131,7 +248,14 @@ export const generatePlan = async (profile) => {
     improve_fitness: 'cardio',
     maintain: 'maintain'
   };
-  const { daysPerWeek = 3, experience = 'beginner', goal = 'strength', equipment = [] } = profile;
+  const { 
+    daysPerWeek = 3, 
+    experience = 'beginner', 
+    goal = 'strength', 
+    equipment = [],
+    location = 'home'
+  } = profile;
+  
   const mappedGoal = goalMap[goal] || goal;
 
   // Generate dates for the next 7 days
@@ -142,13 +266,30 @@ export const generatePlan = async (profile) => {
   });
 
   // Distribute workout days evenly across the week
-  // E.g., if daysPerWeek=3, pick 3 workout days spread out
   const totalDays = 7;
   const workoutDays = daysPerWeek;
-  // Calculate which days should be workout days (spread as evenly as possible)
-  const workoutDayIndexes = Array.from({ length: workoutDays }, (_, i) =>
-    Math.round(i * (totalDays - 1) / (workoutDays - 1 || 1))
-  );
+  
+  // Calculate optimal rest day distribution
+  const restDays = totalDays - workoutDays;
+  const workoutDayIndexes = [];
+  
+  if (restDays > 0) {
+    // Distribute rest days evenly
+    const restDayGaps = Math.floor(totalDays / (restDays + 1));
+    let currentIndex = restDayGaps;
+    
+    while (workoutDayIndexes.length < workoutDays) {
+      workoutDayIndexes.push(currentIndex);
+      currentIndex += restDayGaps + 1;
+      if (currentIndex >= totalDays) break;
+    }
+  } else {
+    // If no rest days, spread workouts evenly
+    workoutDayIndexes.push(...Array.from({ length: workoutDays }, (_, i) =>
+      Math.floor(i * (totalDays - 1) / (workoutDays - 1))
+    ));
+  }
+
   const workoutDaySet = new Set(workoutDayIndexes);
 
   const plan = {};
@@ -161,7 +302,7 @@ export const generatePlan = async (profile) => {
       plan[dayKey] = {
         date,
         type: 'rest',
-        notes: 'Recovery day - focus on stretching and mobility'
+        notes: getRestDayNotes(mappedGoal, experience)
       };
     } else {
       plan[dayKey] = {
@@ -171,6 +312,7 @@ export const generatePlan = async (profile) => {
           experience,
           goal: mappedGoal,
           equipment,
+          location,
           dayOfWeek
         }),
         notes: getWorkoutNotes(mappedGoal, experience)
@@ -185,6 +327,7 @@ export const generatePlan = async (profile) => {
       goal: mappedGoal,
       daysPerWeek,
       equipment,
+      location,
       generatedAt: new Date().toISOString()
     }
   };
@@ -195,6 +338,8 @@ export const generatePlan = async (profile) => {
  */
 const savePlan = async (plan) => {
   try {
+    // Only initialize Firebase Auth when actually saving
+    const auth = getAuthInstance();
     const planId = Date.now().toString();
     const plansRef = collection(db, 'plans');
     const planDoc = doc(plansRef, planId);
@@ -242,6 +387,7 @@ export const generateAndSavePlan = async (preferences = {}) => {
       experience: preferences.experience || 'beginner',
       goal: preferences.goal || 'strength',
       equipment: preferences.equipment || [],
+      location: preferences.location || 'home',
     };
 
     // Generate the plan
@@ -251,7 +397,7 @@ export const generateAndSavePlan = async (preferences = {}) => {
       throw new Error('Failed to generate workout plan');
     }
 
-    // Save the plan
+    // Save the plan (Firebase Auth will be initialized here if needed)
     const planId = await savePlan(plan);
     return planId;
   } catch (error) {

@@ -8,4 +8,13 @@ config.resolver.extraNodeModules = {
   '@react-native/normalize-colors': path.resolve(__dirname, 'node_modules/react-native/Libraries/StyleSheet/normalizeColor.js'),
 };
 
+// Handle Firebase .cjs files properly
+config.resolver.sourceExts = [...config.resolver.sourceExts, 'cjs'];
+
+// Configure resolver to handle Firebase modules
+config.resolver.resolverMainFields = ['react-native', 'browser', 'main'];
+
+// Disable package exports for better Firebase compatibility
+config.resolver.unstable_enablePackageExports = false;
+
 module.exports = config; 

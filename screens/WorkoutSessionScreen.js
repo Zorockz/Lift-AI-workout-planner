@@ -1,19 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, Dimensions } from 'react-native';
+import { 
+  View, 
+  Text, 
+  TouchableOpacity, 
+  StyleSheet, 
+  ScrollView, 
+  SafeAreaView, 
+  Dimensions,
+  Alert,
+  ActivityIndicator
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../contexts/AuthContext';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../config/firebase';
 
 const { width } = Dimensions.get('window');
 
 const WorkoutSessionScreen = ({ route }) => {
-  const { exercises } = route.params;
+  const navigation = useNavigation();
+  const { user } = useAuth();
+  const { exercises, dayKey } = route.params;
   
-  // State for tracking completed sets per exercise
-  const [setsDoneCount, setSetsDoneCount] = useState({});
+  // State for tracking completed exercises
+  const [completedExercises, setCompletedExercises] = useState({});
   
   // State for rest timer
   const [restTime, setRestTime] = useState(0);
   const [isResting, setIsResting] = useState(false);
+  
+  // State for workout session
+  const [sessionStartTime] = useState(new Date());
+  const [isSaving, setIsSaving] = useState(false);
 
   // Effect for rest timer countdown
   useEffect(() => {
@@ -31,18 +51,87 @@ const WorkoutSessionScreen = ({ route }) => {
   // Handler for completing a set
   const handleCompleteSet = (exerciseIndex) => {
     const exercise = exercises[exerciseIndex];
-    const currentSets = setsDoneCount[exerciseIndex] || 0;
+    const currentSets = completedExercises[exerciseIndex] || 0;
     
-    setSetsDoneCount(prev => ({
+    setCompletedExercises(prev => ({
       ...prev,
       [exerciseIndex]: currentSets + 1
     }));
 
     if (currentSets + 1 < exercise.sets) {
-      setRestTime(60);
+      setRestTime(exercise.restTime || 60);
       setIsResting(true);
     }
   };
+
+  // Handler for finishing the workout
+  const handleFinishWorkout = async () => {
+    if (!user?.uid) {
+      Alert.alert('Error', 'User not authenticated. Please sign in to save your workout.');
+      return;
+    }
+
+    setIsSaving(true);
+    
+    try {
+      // Calculate session duration
+      const sessionEndTime = new Date();
+      const duration = Math.round((sessionEndTime - sessionStartTime) / 1000 / 60); // in minutes
+      
+      // Prepare workout log data
+      const workoutLog = {
+        date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
+        exercises: exercises.map((exercise, index) => ({
+          name: exercise.name,
+          sets: exercise.sets,
+          reps: exercise.reps,
+          weight: exercise.weight || 0, // Default to 0 if no weight specified
+          completed: (completedExercises[index] || 0) === exercise.sets,
+          setsCompleted: completedExercises[index] || 0,
+          restTime: exercise.restTime || 60,
+          notes: exercise.notes || ''
+        })),
+        duration: duration,
+        dayKey: dayKey || 'Unknown',
+        completedAt: serverTimestamp(),
+        userId: user.uid
+      };
+
+      // Save to Firestore
+      const logsRef = collection(db, 'users', user.uid, 'logs');
+      await addDoc(logsRef, workoutLog);
+      
+      Alert.alert(
+        'Workout Complete! 🎉',
+        `Great job! Your workout has been saved. Duration: ${duration} minutes`,
+        [
+          {
+            text: 'OK',
+            onPress: () => navigation.navigate('Home')
+          }
+        ]
+      );
+      
+    } catch (error) {
+      console.error('Error saving workout log:', error);
+      Alert.alert(
+        'Error',
+        'Failed to save your workout. Please try again.',
+        [
+          {
+            text: 'OK',
+            onPress: () => setIsSaving(false)
+          }
+        ]
+      );
+    }
+  };
+
+  // Calculate overall workout progress
+  const totalSets = exercises.reduce((acc, exercise) => acc + exercise.sets, 0);
+  const completedSets = Object.values(completedExercises).reduce((acc, sets) => acc + sets, 0);
+  const overallProgress = totalSets > 0 ? (completedSets / totalSets) * 100 : 0;
+  const isWorkoutComplete = completedSets === totalSets;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -50,31 +139,65 @@ const WorkoutSessionScreen = ({ route }) => {
         colors={['#2C3E50', '#3498DB']}
         style={styles.container}
       >
+        {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Today's Workout</Text>
-          <Text style={styles.headerSubtitle}>Let's crush it! 💪</Text>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+          </TouchableOpacity>
+          <View style={styles.headerContent}>
+            <Text style={styles.headerTitle}>Workout Session</Text>
+            <Text style={styles.headerSubtitle}>
+              {dayKey || 'Today\'s Workout'} • {Math.round(overallProgress)}% Complete
+            </Text>
+          </View>
         </View>
 
+        {/* Overall Progress Bar */}
+        <View style={styles.overallProgressContainer}>
+          <View style={styles.overallProgressBar}>
+            <View 
+              style={[
+                styles.overallProgressFill, 
+                { width: `${overallProgress}%` }
+              ]} 
+            />
+          </View>
+          <Text style={styles.overallProgressText}>
+            {completedSets}/{totalSets} sets completed
+          </Text>
+        </View>
+
+        {/* Exercises List */}
         <ScrollView 
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
         >
           {exercises.map((exercise, index) => {
-            const setsCompleted = setsDoneCount[index] || 0;
+            const setsCompleted = completedExercises[index] || 0;
             const isComplete = setsCompleted === exercise.sets;
-            const progress = (setsCompleted / exercise.sets) * 100;
+            const progress = exercise.sets > 0 ? (setsCompleted / exercise.sets) * 100 : 0;
 
             return (
               <View key={index} style={styles.exerciseCard}>
                 <View style={styles.exerciseHeader}>
                   <View style={styles.exerciseIcon}>
-                    <Ionicons name="barbell-outline" size={28} color="#fff" />
+                    <Ionicons 
+                      name={isComplete ? "checkmark-circle" : "barbell-outline"} 
+                      size={28} 
+                      color={isComplete ? "#2ECC71" : "#fff"} 
+                    />
                   </View>
                   <View style={styles.exerciseInfo}>
                     <Text style={styles.exerciseName}>{exercise.name}</Text>
                     <Text style={styles.exerciseDetails}>
                       {exercise.sets} sets × {exercise.reps} reps
                     </Text>
+                    {exercise.notes && (
+                      <Text style={styles.exerciseNotes}>{exercise.notes}</Text>
+                    )}
                   </View>
                 </View>
 
@@ -96,7 +219,7 @@ const WorkoutSessionScreen = ({ route }) => {
                   </Text>
                 </TouchableOpacity>
 
-                {isResting && index === Object.keys(setsDoneCount).length - 1 && (
+                {isResting && index === Object.keys(completedExercises).length - 1 && (
                   <View style={styles.restTimerContainer}>
                     <Ionicons name="timer-outline" size={24} color="#E74C3C" />
                     <Text style={styles.restTimer}>
@@ -108,6 +231,29 @@ const WorkoutSessionScreen = ({ route }) => {
             );
           })}
         </ScrollView>
+
+        {/* Finish Workout Button */}
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={[
+              styles.finishButton,
+              (!isWorkoutComplete || isSaving) && styles.finishButtonDisabled
+            ]}
+            onPress={handleFinishWorkout}
+            disabled={!isWorkoutComplete || isSaving}
+          >
+            {isSaving ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <>
+                <Ionicons name="checkmark-circle" size={24} color="#fff" />
+                <Text style={styles.finishButtonText}>
+                  {isWorkoutComplete ? 'Finish Workout' : `Complete ${totalSets - completedSets} more sets`}
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
       </LinearGradient>
     </SafeAreaView>
   );
@@ -122,19 +268,50 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 20,
     paddingTop: 10,
   },
+  backButton: {
+    marginRight: 15,
+    padding: 5,
+  },
+  headerContent: {
+    flex: 1,
+  },
   headerTitle: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#fff',
     marginBottom: 5,
   },
   headerSubtitle: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#ECF0F1',
     opacity: 0.8,
+  },
+  overallProgressContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 10,
+  },
+  overallProgressBar: {
+    height: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  overallProgressFill: {
+    height: '100%',
+    backgroundColor: '#2ECC71',
+    borderRadius: 4,
+  },
+  overallProgressText: {
+    color: '#fff',
+    fontSize: 14,
+    textAlign: 'center',
+    opacity: 0.9,
   },
   scrollView: {
     flex: 1,
@@ -179,6 +356,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#ECF0F1',
     opacity: 0.8,
+    marginBottom: 4,
+  },
+  exerciseNotes: {
+    fontSize: 14,
+    color: '#ECF0F1',
+    opacity: 0.6,
+    fontStyle: 'italic',
   },
   progressContainer: {
     height: 6,
@@ -232,6 +416,33 @@ const styles = StyleSheet.create({
   },
   restTimer: {
     color: '#E74C3C',
+    fontSize: 18,
+    fontWeight: '600',
+    marginLeft: 10,
+  },
+  footer: {
+    padding: 20,
+    paddingBottom: 30,
+  },
+  finishButton: {
+    backgroundColor: '#2ECC71',
+    padding: 18,
+    borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#2ECC71',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  finishButtonDisabled: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    shadowOpacity: 0,
+  },
+  finishButtonText: {
+    color: '#fff',
     fontSize: 18,
     fontWeight: '600',
     marginLeft: 10,

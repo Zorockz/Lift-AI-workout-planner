@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 
 const FullPlanScreen = () => {
   const navigation = useNavigation();
@@ -9,38 +9,27 @@ const FullPlanScreen = () => {
   const { plan } = route.params || {};
 
   const renderExercise = (exercise, index) => {
-    if (exercise === "Rest Day") {
-      return (
-        <View key={index} style={styles.restDayContainer}>
-          <Text style={styles.restDayText}>Rest Day</Text>
-          <Text style={styles.restDaySubtext}>Recovery is crucial for progress</Text>
-        </View>
-      );
-    }
     return (
       <View key={index} style={styles.exerciseContainer}>
         <View style={styles.exerciseHeader}>
-          <Text style={[
-            styles.exerciseType,
-            exercise.type === "Warm-up" ? styles.warmupType : styles.mainType
-          ]}>
-            {exercise.type}
+          <Text style={styles.exerciseName}>{exercise.name}</Text>
+          <Text style={styles.exerciseSets}>
+            {exercise.sets} sets × {exercise.reps} reps
           </Text>
-          <Text style={styles.exerciseDuration}>{exercise.duration}</Text>
         </View>
-        <Text style={styles.exerciseName}>{exercise.name}</Text>
-        {exercise.type === "Main" && (
-          <View style={styles.exerciseDetails}>
-            <Text style={styles.exerciseDetail}>
-              {exercise.sets} sets × {exercise.reps} reps
-            </Text>
-            <Text style={styles.exerciseDetail}>
-              Rest: {exercise.rest} seconds
-            </Text>
-          </View>
+        {exercise.notes && (
+          <Text style={styles.exerciseNotes}>{exercise.notes}</Text>
         )}
+        <Text style={styles.exerciseRest}>Rest: {exercise.restTime || 60}s</Text>
       </View>
     );
+  };
+
+  const handleStartWorkout = (dayKey, exercises) => {
+    navigation.navigate('WorkoutSession', {
+      exercises: exercises,
+      dayKey: dayKey
+    });
   };
 
   return (
@@ -57,13 +46,43 @@ const FullPlanScreen = () => {
       </View>
       <ScrollView contentContainerStyle={styles.content}>
         {plan?.weekPlan ? (
-          Object.entries(plan.weekPlan).map(([day, exercises]) => (
-            <View key={day} style={styles.dayCard}>
-              <Text style={styles.dayTitle}>{day}</Text>
-              {Array.isArray(exercises)
-                ? exercises.map((exercise, index) => renderExercise(exercise, index))
-                : renderExercise(exercises, 0)
-              }
+          Object.entries(plan.weekPlan).map(([dayKey, dayData]) => (
+            <View key={dayKey} style={styles.dayCard}>
+              <View style={styles.dayHeader}>
+                <Text style={styles.dayTitle}>{dayKey}</Text>
+                <Text style={styles.dayDate}>{dayData.date}</Text>
+              </View>
+              
+              {dayData.type === 'rest' ? (
+                <View style={styles.restDayContainer}>
+                  <Ionicons name="bed-outline" size={32} color="#E65100" />
+                  <Text style={styles.restDayText}>Rest Day</Text>
+                  <Text style={styles.restDaySubtext}>{dayData.notes}</Text>
+                </View>
+              ) : (
+                <>
+                  <View style={styles.workoutHeader}>
+                    <Ionicons name="barbell-outline" size={24} color="#2075FF" />
+                    <Text style={styles.workoutTitle}>Workout</Text>
+                  </View>
+                  
+                  {dayData.exercises && dayData.exercises.map((exercise, index) => 
+                    renderExercise(exercise, index)
+                  )}
+                  
+                  {dayData.notes && (
+                    <Text style={styles.workoutNotes}>{dayData.notes}</Text>
+                  )}
+                  
+                  <TouchableOpacity 
+                    style={styles.startWorkoutButton}
+                    onPress={() => handleStartWorkout(dayKey, dayData.exercises)}
+                  >
+                    <Ionicons name="play" size={20} color="#fff" />
+                    <Text style={styles.startWorkoutText}>Start Workout</Text>
+                  </TouchableOpacity>
+                </>
+              )}
             </View>
           ))
         ) : (
@@ -121,11 +140,31 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
+  dayHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   dayTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#2075FF',
+  },
+  dayDate: {
+    fontSize: 14,
+    color: '#6C7580',
+  },
+  workoutHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 16,
+  },
+  workoutTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1B365D',
+    marginLeft: 8,
   },
   exerciseContainer: {
     backgroundColor: '#FFFFFF',
@@ -136,60 +175,76 @@ const styles = StyleSheet.create({
     borderColor: '#E2E5EA',
   },
   exerciseHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: 8,
-  },
-  exerciseType: {
-    fontSize: 14,
-    fontWeight: '600',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  warmupType: {
-    backgroundColor: '#E3F2FD',
-    color: '#1976D2',
-  },
-  mainType: {
-    backgroundColor: '#E8F5E9',
-    color: '#2E7D32',
-  },
-  exerciseDuration: {
-    fontSize: 14,
-    color: '#6C7580',
   },
   exerciseName: {
     fontSize: 16,
     color: '#1B365D',
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 4,
   },
-  exerciseDetails: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  exerciseSets: {
+    fontSize: 14,
+    color: '#2075FF',
+    fontWeight: '500',
   },
-  exerciseDetail: {
+  exerciseNotes: {
     fontSize: 14,
     color: '#6C7580',
+    fontStyle: 'italic',
+    marginBottom: 8,
+  },
+  exerciseRest: {
+    fontSize: 12,
+    color: '#6C7580',
+  },
+  workoutNotes: {
+    fontSize: 14,
+    color: '#6C7580',
+    fontStyle: 'italic',
+    marginTop: 12,
+    marginBottom: 16,
+    padding: 12,
+    backgroundColor: '#E3F2FD',
+    borderRadius: 8,
+  },
+  startWorkoutButton: {
+    backgroundColor: '#2075FF',
+    padding: 12,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+    shadowColor: '#2075FF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  startWorkoutText: {
+    color: '#fff',
+    fontWeight: '600',
+    marginLeft: 8,
+    fontSize: 16,
   },
   restDayContainer: {
     backgroundColor: '#FFF3E0',
     borderRadius: 8,
-    padding: 16,
-    marginBottom: 12,
+    padding: 20,
     alignItems: 'center',
   },
   restDayText: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#E65100',
+    marginTop: 8,
     marginBottom: 4,
   },
   restDaySubtext: {
     fontSize: 14,
     color: '#6C7580',
+    textAlign: 'center',
   },
 });
 

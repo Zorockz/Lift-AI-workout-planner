@@ -167,6 +167,22 @@ const HomeScreen = () => {
               </Text>
             ))}
             <Text style={styles.workoutNotes}>{nextWorkout.notes || 'Focus on form and consistency'}</Text>
+            
+            {/* Start Workout Button */}
+            <TouchableOpacity 
+              style={styles.startWorkoutButton}
+              onPress={() => {
+                // Find the day key for this workout
+                const dayKey = Object.keys(plan).find(key => plan[key] === nextWorkout) || 'Day 1';
+                handleNavigation('WorkoutSession', {
+                  exercises: nextWorkout.exercises,
+                  dayKey: dayKey
+                });
+              }}
+            >
+              <Ionicons name="play" size={20} color="#fff" />
+              <Text style={styles.startWorkoutText}>Start Workout</Text>
+            </TouchableOpacity>
           </View>
         ) : (
           <Text style={styles.noWorkout}>No upcoming workout.</Text>
@@ -221,6 +237,26 @@ const styles = StyleSheet.create({
   homeIconWrapper: { marginHorizontal: 12 },
   homeIcon: { width: 38, height: 38 },
   iconButton: { alignItems: 'center', justifyContent: 'flex-end', flex: 1, paddingBottom: 8 },
+  startWorkoutButton: { 
+    backgroundColor: '#2075FF',
+    padding: 12, 
+    borderRadius: 12, 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'center',
+    marginTop: 16,
+    shadowColor: '#2075FF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  startWorkoutText: { 
+    color: '#fff', 
+    fontWeight: '600', 
+    marginLeft: 8,
+    fontSize: 16,
+  },
 });
 
 export default HomeScreen; 

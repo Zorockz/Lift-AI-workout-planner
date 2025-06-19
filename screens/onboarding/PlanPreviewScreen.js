@@ -342,7 +342,7 @@ const PlanPreviewScreen = () => {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.button} onPress={handleComplete}>
+        <TouchableOpacity style={styles.fullWidthButton} onPress={handleComplete}>
           <Text style={styles.buttonText}>See Full Plan</Text>
         </TouchableOpacity>
       </View>
@@ -573,20 +573,23 @@ const styles = StyleSheet.create({
   },
   footer: {
     padding: 16,
-    paddingBottom: 5,
-    marginBottom: 5,
     backgroundColor: '#fff',
     borderTopWidth: 1,
     borderTopColor: '#eee',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
   },
-  button: {
+  fullWidthButton: {
     backgroundColor: '#2075FF',
     borderRadius: 12,
-    padding: 14,
+    paddingVertical: 15,
     alignItems: 'center',
-    alignSelf: 'center',
-    maxWidth: screenWidth * 0.7,
     minWidth: 120,
+    maxWidth: 340,
+    width: '90%',
+    alignSelf: 'center',
+    marginTop: 0,
   },
   buttonText: {
     color: '#fff',

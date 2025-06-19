@@ -1,4 +1,4 @@
-import { doc, setDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db, getAuthInstance } from '../config/firebase';
 import { generateAndSavePlan as generatePlan } from '../utils/planGenerator';
 
@@ -24,14 +24,10 @@ const getUserPath = async () => {
  */
 export const saveUserProfile = async (profile) => {
   try {
-    const userId = await getUserPath();
-    
-    const userProfileRef = doc(db, 'users', userId, 'profile', 'data');
-    await setDoc(userProfileRef, {
-      ...profile,
-      updatedAt: new Date().toISOString(),
-    });
-
+    const auth = getAuthInstance();
+    const uid = auth.currentUser?.uid;
+    if (!uid) throw new Error('User not signed in');
+    await setDoc(doc(db, 'users', uid, 'profile'), profile);
     return true;
   } catch (error) {
     console.error('Error saving user profile:', error);
@@ -46,41 +42,33 @@ export const saveUserProfile = async (profile) => {
  */
 export const saveUserPlan = async (plan) => {
   try {
-    // Only initialize Firebase Auth when actually saving
     const auth = getAuthInstance();
+    const uid = auth.currentUser?.uid;
+    if (!uid) throw new Error('User not signed in');
     const planId = Date.now().toString();
-    const plansRef = collection(db, 'plans');
-    const planDoc = doc(plansRef, planId);
-    
-    const planData = {
-      plan,
-      createdAt: serverTimestamp(),
-      status: 'active',
-      userId: auth.currentUser?.uid || 'anonymous',
-      isPublic: true // All plans are public by default
-    };
-
-    await setDoc(planDoc, planData);
+    await setDoc(doc(db, 'users', uid, 'plans', planId), { days: plan });
     return planId;
   } catch (error) {
     console.error('Error saving workout plan:', error);
-    // If there's a permission error, try saving to a different collection
-    if (error.code === 'permission-denied') {
-      try {
-        const publicPlansRef = collection(db, 'publicPlans');
-        const publicPlanDoc = doc(publicPlansRef, planId);
-        await setDoc(publicPlanDoc, {
-          plan,
-          createdAt: serverTimestamp(),
-          status: 'active',
-          isPublic: true
-        });
-        return planId;
-      } catch (fallbackError) {
-        console.error('Error saving to public plans:', fallbackError);
-        throw fallbackError;
-      }
-    }
+    throw error;
+  }
+};
+
+/**
+ * Saves a workout log to Firestore
+ * @param {Object} workoutLog - The workout log data
+ * @returns {Promise<string>} - Resolves with the log ID
+ */
+export const saveWorkoutLog = async (workoutLog) => {
+  try {
+    const auth = getAuthInstance();
+    const uid = auth.currentUser?.uid;
+    if (!uid) throw new Error('User not signed in');
+    const logId = Date.now().toString();
+    await setDoc(doc(db, 'users', uid, 'logs', logId), workoutLog);
+    return logId;
+  } catch (error) {
+    console.error('Error saving workout log:', error);
     throw error;
   }
 };
@@ -97,6 +85,28 @@ export const generateAndSavePlan = async (preferences = {}) => {
     return planId;
   } catch (error) {
     console.error('Error in generateAndSavePlan:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches the user's profile from Firestore
+ * @returns {Promise<Object|null>} - Resolves with the profile object or null if not found
+ */
+export const getUserProfile = async () => {
+  try {
+    const auth = getAuthInstance();
+    const uid = auth.currentUser?.uid;
+    if (!uid) throw new Error('User not signed in');
+    const docRef = doc(db, 'users', uid, 'profile');
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return docSnap.data();
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
     throw error;
   }
 }; 

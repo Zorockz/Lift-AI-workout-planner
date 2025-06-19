@@ -248,8 +248,26 @@ const generateExercisesForDay = ({ experience, goal, equipment, location, dayOfW
     throw new Error('No exercises available for the selected equipment');
   }
 
+  // For strength/maintain, filter out any exercises that do not have valid sets and reps
+  if (goal === 'strength' || goal === 'maintain') {
+    filteredExercises = filteredExercises.filter(
+      ex => Number.isFinite(Number(ex.sets)) && Number(ex.sets) > 0 && Number.isFinite(Number(ex.reps)) && Number(ex.reps) > 0
+    );
+  }
+
   const numExercises = Math.min(6, Math.max(4, filteredExercises.length));
-  return shuffleArray(filteredExercises).slice(0, numExercises);
+  const selectedExercises = shuffleArray(filteredExercises).slice(0, numExercises);
+
+  // Ensure all exercises have sets/reps for strength/maintain, and duration for cardio
+  return selectedExercises.map(ex => {
+    if ((goal === 'strength' || goal === 'maintain') && (!Number.isFinite(Number(ex.sets)) || Number(ex.sets) <= 0 || !Number.isFinite(Number(ex.reps)) || Number(ex.reps) <= 0)) {
+      return { ...ex, sets: (Number.isFinite(Number(ex.sets)) && Number(ex.sets) > 0) ? ex.sets : 3, reps: (Number.isFinite(Number(ex.reps)) && Number(ex.reps) > 0) ? ex.reps : 10 };
+    }
+    if (goal === 'cardio' && (!Number.isFinite(Number(ex.duration)) || Number(ex.duration) <= 0)) {
+      return { ...ex, duration: 20 };
+    }
+    return ex;
+  });
 };
 
 /**

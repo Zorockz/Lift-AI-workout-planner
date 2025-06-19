@@ -14,7 +14,11 @@ const TodayCard = ({ plan, onStart }) => {
             <Text key={index} style={styles.exerciseText}>
               <Text style={styles.exerciseNumber}>{index + 1}. </Text>
               <Text style={styles.exerciseDetails}>
-                {exercise.sets}×{exercise.reps} @ {exercise.weight}lbs{' '}
+                {(Number.isFinite(Number(exercise.sets)) && Number(exercise.sets) > 0 && Number.isFinite(Number(exercise.reps)) && Number(exercise.reps) > 0)
+                  ? `${exercise.sets}x${exercise.reps}`
+                  : (Number.isFinite(Number(exercise.duration)) && Number(exercise.duration) > 0)
+                    ? `${exercise.duration} min`
+                    : ''}{' '}
               </Text>
               <Text style={styles.exerciseName}>{exercise.name}</Text>
             </Text>

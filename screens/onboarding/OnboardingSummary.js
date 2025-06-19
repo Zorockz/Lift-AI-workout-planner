@@ -147,16 +147,20 @@ const OnboardingSummary = ({ navigation }) => {
         return;
       }
 
-      // Fix location mismatch - if user has bodyweight equipment but gym location, use home
+      // Fix location mismatch - if user selects gym, ensure full_gym is in equipment
       let location = onboarding.exerciseLocation;
-      if (onboarding.equipment.includes('bodyweight') && onboarding.exerciseLocation === 'gym') {
+      let equipment = onboarding.equipment;
+      if (location === 'gym' && !equipment.includes('full_gym')) {
+        equipment = [...equipment, 'full_gym'];
+      }
+      if (equipment.includes('bodyweight') && location === 'gym') {
         location = 'home';
       }
 
       const planData = {
         goal: onboarding.goal,
         experience: onboarding.experienceLevel,
-        equipment: onboarding.equipment,
+        equipment: equipment,
         daysPerWeek: onboarding.workoutsPerWeek,
         location: location,
       };

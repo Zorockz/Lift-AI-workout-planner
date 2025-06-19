@@ -16,6 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../contexts/AuthContext';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
 
@@ -66,11 +67,6 @@ const WorkoutSessionScreen = ({ route }) => {
 
   // Handler for finishing the workout
   const handleFinishWorkout = async () => {
-    if (!user?.uid) {
-      Alert.alert('Error', 'User not authenticated. Please sign in to save your workout.');
-      return;
-    }
-
     setIsSaving(true);
     
     try {
@@ -93,17 +89,41 @@ const WorkoutSessionScreen = ({ route }) => {
         })),
         duration: duration,
         dayKey: dayKey || 'Unknown',
-        completedAt: serverTimestamp(),
-        userId: user.uid
+        completedAt: new Date().toISOString(),
+        isLocal: !user?.uid // Flag to identify locally saved workouts
       };
 
-      // Save to Firestore
-      const logsRef = collection(db, 'users', user.uid, 'logs');
-      await addDoc(logsRef, workoutLog);
+      if (user?.uid) {
+        // Save to Firestore if user is authenticated
+        const logsRef = collection(db, 'users', user.uid, 'logs');
+        await addDoc(logsRef, {
+          ...workoutLog,
+          userId: user.uid,
+          completedAt: serverTimestamp()
+        });
+      } else {
+        // Save to AsyncStorage if user is not authenticated
+        try {
+          // Get existing logs
+          const existingLogsStr = await AsyncStorage.getItem('localWorkoutLogs');
+          const existingLogs = existingLogsStr ? JSON.parse(existingLogsStr) : [];
+          
+          // Add new log
+          existingLogs.push(workoutLog);
+          
+          // Save back to AsyncStorage
+          await AsyncStorage.setItem('localWorkoutLogs', JSON.stringify(existingLogs));
+        } catch (storageError) {
+          console.error('Error saving to local storage:', storageError);
+          throw new Error('Failed to save workout locally');
+        }
+      }
       
       Alert.alert(
         'Workout Complete! 🎉',
-        `Great job! Your workout has been saved. Duration: ${duration} minutes`,
+        user?.uid
+          ? `Great job! Your workout has been saved.`
+          : 'Workout saved locally!',
         [
           {
             text: 'OK',
@@ -124,6 +144,8 @@ const WorkoutSessionScreen = ({ route }) => {
           }
         ]
       );
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -193,7 +215,15 @@ const WorkoutSessionScreen = ({ route }) => {
                   <View style={styles.exerciseInfo}>
                     <Text style={styles.exerciseName}>{exercise.name}</Text>
                     <Text style={styles.exerciseDetails}>
-                      {exercise.sets} sets × {exercise.reps} reps
+                      {/* Robust sets/reps/duration display, never NaN/undefined/0 unless truly zero */}
+                      {(
+                        Number.isFinite(Number(exercise.sets)) && Number(exercise.sets) > 0 &&
+                        Number.isFinite(Number(exercise.reps)) && Number(exercise.reps) > 0
+                      )
+                        ? `${Number(exercise.sets)} sets × ${Number(exercise.reps)} reps`
+                        : (Number.isFinite(Number(exercise.duration)) && Number(exercise.duration) > 0)
+                          ? `${Number(exercise.duration)} min`
+                          : ''}
                     </Text>
                     {exercise.notes && (
                       <Text style={styles.exerciseNotes}>{exercise.notes}</Text>
@@ -215,7 +245,9 @@ const WorkoutSessionScreen = ({ route }) => {
                   disabled={isComplete}
                 >
                   <Text style={styles.buttonText}>
-                    {isComplete ? 'Completed' : `Complete Set (${setsCompleted}/${exercise.sets})`}
+                    {isComplete
+                      ? 'Completed'
+                      : `Complete Set (${(setsCompleted ?? 0)}/${(Number.isFinite(Number(exercise.sets)) && Number(exercise.sets) > 0) ? Number(exercise.sets) : '-'})`}
                   </Text>
                 </TouchableOpacity>
 

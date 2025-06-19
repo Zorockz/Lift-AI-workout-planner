@@ -9,12 +9,19 @@ const FullPlanScreen = () => {
   const { plan } = route.params || {};
 
   const renderExercise = (exercise, index) => {
+    const sets = Number(exercise.sets);
+    const reps = Number(exercise.reps);
+    const duration = Number(exercise.duration);
     return (
       <View key={index} style={styles.exerciseContainer}>
         <View style={styles.exerciseHeader}>
           <Text style={styles.exerciseName}>{exercise.name}</Text>
           <Text style={styles.exerciseSets}>
-            {exercise.sets} sets × {exercise.reps} reps
+            {(!isNaN(sets) && !isNaN(reps) && sets > 0 && reps > 0)
+              ? `${sets} sets × ${reps} reps`
+              : (!isNaN(duration) && duration > 0)
+                ? `${duration} min`
+                : '-'}
           </Text>
         </View>
         {exercise.notes && (
@@ -32,6 +39,19 @@ const FullPlanScreen = () => {
     });
   };
 
+  const handleGenerateNewWeek = async () => {
+    try {
+      const { generatePlan } = await import('../utils/planGenerator');
+      const planData = plan && plan.metadata ? plan.metadata : {};
+      const newPlan = await generatePlan(planData);
+      if (newPlan && newPlan.weekPlan) {
+        navigation.replace('FullPlan', { plan: newPlan });
+      }
+    } catch (error) {
+      alert('Failed to generate new week workout.');
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -45,14 +65,13 @@ const FullPlanScreen = () => {
         <View style={styles.backButton} />
       </View>
       <ScrollView contentContainerStyle={styles.content}>
-        {plan?.weekPlan ? (
-          Object.entries(plan.weekPlan).map(([dayKey, dayData]) => (
+        {plan && plan.weekPlan ? (
+          Object.entries(plan.weekPlan).map(([dayKey, dayData], idx, arr) => (
             <View key={dayKey} style={styles.dayCard}>
               <View style={styles.dayHeader}>
                 <Text style={styles.dayTitle}>{dayKey}</Text>
-                <Text style={styles.dayDate}>{dayData.date}</Text>
+                <Text style={styles.dayDate}>{dayData.date || ''}</Text>
               </View>
-              
               {dayData.type === 'rest' ? (
                 <View style={styles.restDayContainer}>
                   <Ionicons name="bed-outline" size={32} color="#E65100" />
@@ -65,15 +84,12 @@ const FullPlanScreen = () => {
                     <Ionicons name="barbell-outline" size={24} color="#2075FF" />
                     <Text style={styles.workoutTitle}>Workout</Text>
                   </View>
-                  
                   {dayData.exercises && dayData.exercises.map((exercise, index) => 
                     renderExercise(exercise, index)
                   )}
-                  
                   {dayData.notes && (
                     <Text style={styles.workoutNotes}>{dayData.notes}</Text>
                   )}
-                  
                   <TouchableOpacity 
                     style={styles.startWorkoutButton}
                     onPress={() => handleStartWorkout(dayKey, dayData.exercises)}
@@ -81,6 +97,15 @@ const FullPlanScreen = () => {
                     <Ionicons name="play" size={20} color="#fff" />
                     <Text style={styles.startWorkoutText}>Start Workout</Text>
                   </TouchableOpacity>
+                  {idx === arr.length - 1 && (
+                    <TouchableOpacity
+                      style={[styles.startWorkoutButton, { backgroundColor: '#2ECC71', marginTop: 12 }]}
+                      onPress={handleGenerateNewWeek}
+                    >
+                      <Ionicons name="refresh" size={20} color="#fff" />
+                      <Text style={styles.startWorkoutText}>Generate New Week Workout</Text>
+                    </TouchableOpacity>
+                  )}
                 </>
               )}
             </View>

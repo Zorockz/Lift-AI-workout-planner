@@ -1,4 +1,23 @@
-# FitnessPal Dependencies & Fixes
+# Project Dependencies
+
+This project uses the following major dependencies:
+
+- **expo**: For app development and build tools
+- **react-native**: Core framework for building native apps
+- **@react-navigation/native** and **@react-navigation/native-stack**: Navigation and stack management
+- **firebase**: Backend as a service for authentication and Firestore database
+- **@react-native-async-storage/async-storage**: Local storage for guest/local data
+- **expo-image-picker**: For picking images from the device
+- **expo-secure-store**: Secure storage for sensitive data
+- **expo-font**: Custom font loading
+- **expo-web-browser**: For web browser integration
+- **react-native-safe-area-context**: Safe area handling for devices
+- **@expo/vector-icons**: Icon library
+- **expo-blur**: For blur effects
+
+See package.json for the full list and versions.
+
+# Lift: AI Workout Planner Dependencies & Fixes
 
 ## Installed Dependencies
 ### Core Navigation

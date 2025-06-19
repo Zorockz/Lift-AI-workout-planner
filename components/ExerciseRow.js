@@ -50,13 +50,17 @@ const ExerciseRow = ({ exercise, index }) => {
             styles.exerciseDetail,
             isCompleted && styles.completedExercise
           ]}>
-            {exercise.sets} sets × {exercise.reps} reps
+            {(Number.isFinite(Number(exercise.sets)) && Number(exercise.sets) > 0 && Number.isFinite(Number(exercise.reps)) && Number(exercise.reps) > 0)
+              ? `${exercise.sets} sets × ${exercise.reps} reps`
+              : (Number.isFinite(Number(exercise.duration)) && Number(exercise.duration) > 0)
+                ? `${exercise.duration} min`
+                : ''}
           </Text>
           <Text style={[
             styles.exerciseDetail,
             isCompleted && styles.completedExercise
           ]}>
-            Rest: {exercise.rest} seconds
+            Rest: {exercise.rest || exercise.restTime || 60} seconds
           </Text>
         </View>
       )}

@@ -1,17 +1,112 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput, Image, ActivityIndicator } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useOnboarding } from '../contexts/OnboardingContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
+import * as ImagePicker from 'expo-image-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
+import { db } from '../config/firebase';
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
-  const { onboarding } = useOnboarding();
-  const { signOut, error, clearError, loading } = useAuth();
+  const { user, signOut, error, clearError, loading } = useAuth();
+  const [workouts, setWorkouts] = useState([]);
+  const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
 
-  // Show error alert when authentication error occurs
+  // Local state for profile info
+  const [name, setName] = useState('');
+  const [age, setAge] = useState('');
+  const [photo, setPhoto] = useState(null);
+
+  // Load workouts (both cloud and local)
+  useEffect(() => {
+    const loadWorkouts = async () => {
+      setIsLoadingWorkouts(true);
+      try {
+        let allWorkouts = [];
+
+        // Load local workouts
+        const localLogsStr = await AsyncStorage.getItem('localWorkoutLogs');
+        if (localLogsStr) {
+          const localLogs = JSON.parse(localLogsStr);
+          allWorkouts = [...allWorkouts, ...localLogs.map(log => ({ ...log, source: 'local' }))];
+        }
+
+        // Load cloud workouts if user is authenticated
+        if (user?.uid) {
+          const logsRef = collection(db, 'users', user.uid, 'logs');
+          const q = query(logsRef, orderBy('completedAt', 'desc'), limit(50));
+          const querySnapshot = await getDocs(q);
+          const cloudWorkouts = querySnapshot.docs.map(doc => ({
+            ...doc.data(),
+            id: doc.id,
+            source: 'cloud'
+          }));
+          allWorkouts = [...allWorkouts, ...cloudWorkouts];
+        }
+
+        // Sort all workouts by date
+        allWorkouts.sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
+        setWorkouts(allWorkouts);
+      } catch (error) {
+        console.error('Error loading workouts:', error);
+      } finally {
+        setIsLoadingWorkouts(false);
+      }
+    };
+
+    loadWorkouts();
+  }, [user]);
+
+  // Format date for display
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  // Render a single workout item
+  const WorkoutItem = ({ workout }) => (
+    <View style={styles.workoutItem}>
+      <View style={styles.workoutHeader}>
+        <Text style={styles.workoutDate}>{formatDate(workout.completedAt)}</Text>
+        <View style={styles.workoutBadge}>
+          <MaterialCommunityIcons 
+            name={workout.source === 'cloud' ? 'cloud' : 'phone'} 
+            size={14} 
+            color={workout.source === 'cloud' ? '#2075FF' : '#4CAF50'} 
+          />
+          <Text style={[
+            styles.workoutBadgeText,
+            { color: workout.source === 'cloud' ? '#2075FF' : '#4CAF50' }
+          ]}>
+            {workout.source === 'cloud' ? 'Cloud' : 'Local'}
+          </Text>
+        </View>
+      </View>
+      <Text style={styles.workoutTitle}>{workout.dayKey}</Text>
+      <View style={styles.workoutStats}>
+        <View style={styles.workoutStat}>
+          <MaterialCommunityIcons name="dumbbell" size={16} color="#666" />
+          <Text style={styles.workoutStatText}>
+            {workout.exercises.length} exercises
+          </Text>
+        </View>
+        <View style={styles.workoutStat}>
+          <MaterialCommunityIcons name="clock-outline" size={16} color="#666" />
+          <Text style={styles.workoutStatText}>
+            {workout.duration} min
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+
   useEffect(() => {
     if (error) {
       Alert.alert(
@@ -35,38 +130,47 @@ const ProfileScreen = () => {
     }
   };
 
-  const menuItems = [
-    {
-      icon: 'account',
-      title: 'Personal Information',
-      subtitle: 'Update your profile details',
-      onPress: () => navigation.navigate('PersonalInfo'),
-    },
-    {
-      icon: 'dumbbell',
-      title: 'Workout Preferences',
-      subtitle: 'Modify your workout settings',
-      onPress: () => navigation.navigate('WorkoutPreferences'),
-    },
-    {
-      icon: 'chart-line',
-      title: 'Progress Tracking',
-      subtitle: 'View your fitness journey',
-      onPress: () => console.log('Progress Tracking pressed'),
-    },
-    {
-      icon: 'bell',
-      title: 'Notifications',
-      subtitle: 'Manage your alerts',
-      onPress: () => navigation.navigate('Notifications'),
-    },
-    {
-      icon: 'cog',
-      title: 'Settings',
-      subtitle: 'App preferences and more',
-      onPress: () => console.log('Settings pressed'),
-    },
-  ];
+  const handleSupport = () => {
+    Alert.alert(
+      'Support',
+      'Contact us at support@fitpal.com',
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handlePickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setPhoto(result.assets[0].uri);
+    }
+  };
+
+  const handleSave = () => {
+    // Update navigation params so HomeScreen can pick up the new name
+    if (navigation && navigation.setParams) {
+      navigation.setParams({ name });
+    }
+    // Also navigate to HomeScreen with the new name
+    if (navigation && navigation.navigate) {
+      navigation.navigate('Home', { name });
+    }
+    // Optionally store in localStorage for reload persistence (web only)
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem('userName', name);
+    }
+    Alert.alert('Profile Saved', 'Your information has been updated.');
+  };
+
+  const handleViewPastWorkouts = () => {
+    if (navigation && navigation.navigate) {
+      navigation.navigate('PastWorkouts');
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -83,56 +187,45 @@ const ProfileScreen = () => {
       </View>
 
       <ScrollView style={styles.scrollView}>
-        {/* Profile Header */}
+        {/* Profile Header - Editable */}
         <View style={styles.profileHeader}>
-          <View style={styles.avatarContainer}>
-            <MaterialCommunityIcons name="account-circle" size={80} color="#1B365D" />
-          </View>
-          <Text style={styles.name}>FitBuddy User</Text>
-          <Text style={styles.subtitle}>
-            {onboarding.goal || 'Fitness Enthusiast'}
-          </Text>
+          <TouchableOpacity style={styles.avatarContainer} onPress={handlePickImage}>
+            {photo ? (
+              <Image source={{ uri: photo }} style={styles.avatarImg} />
+            ) : (
+              <MaterialCommunityIcons name="account-circle" size={80} color="#1B365D" />
+            )}
+            <Text style={styles.editPhotoText}>Edit Photo</Text>
+          </TouchableOpacity>
+          <TextInput
+            style={styles.input}
+            placeholder="Name"
+            value={name}
+            onChangeText={setName}
+            autoCapitalize="words"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Age"
+            value={age}
+            onChangeText={setAge}
+            keyboardType="numeric"
+            maxLength={3}
+          />
+          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+            <Text style={styles.saveButtonText}>Save</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Stats Section */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{onboarding.weight || '--'}</Text>
-            <Text style={styles.statLabel}>Current Weight</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{onboarding.goalWeight || '--'}</Text>
-            <Text style={styles.statLabel}>Goal Weight</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{onboarding.experienceLevel || '--'}</Text>
-            <Text style={styles.statLabel}>Experience</Text>
-          </View>
+        {/* Workout History Section */}
+        <View style={styles.workoutHistory}>
+          <TouchableOpacity style={styles.pastWorkoutsButton} onPress={handleViewPastWorkouts}>
+            <MaterialCommunityIcons name="history" size={20} color="#2075FF" />
+            <Text style={styles.pastWorkoutsButtonText}>View Past Workouts</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Menu Items */}
-        <View style={styles.menuContainer}>
-          {menuItems.map((item, index) => (
-            <TouchableOpacity
-              key={index}
-              style={styles.menuItem}
-              onPress={item.onPress}
-            >
-              <View style={styles.menuItemLeft}>
-                <MaterialCommunityIcons name={item.icon} size={24} color="#1B365D" />
-                <View style={styles.menuItemText}>
-                  <Text style={styles.menuItemTitle}>{item.title}</Text>
-                  <Text style={styles.menuItemSubtitle}>{item.subtitle}</Text>
-                </View>
-              </View>
-              <MaterialCommunityIcons name="chevron-right" size={24} color="#6C7580" />
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* Logout Button */}
+        {/* Log Out Button */}
         <TouchableOpacity 
           style={[styles.logoutButton, loading && styles.disabledButton]}
           onPress={handleSignOut}
@@ -141,6 +234,14 @@ const ProfileScreen = () => {
           <Text style={styles.logoutText}>
             {loading ? 'Signing out...' : 'Log Out'}
           </Text>
+        </TouchableOpacity>
+
+        {/* Support Button */}
+        <TouchableOpacity 
+          style={styles.supportButton}
+          onPress={handleSupport}
+        >
+          <Text style={styles.supportText}>Support</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -178,78 +279,106 @@ const styles = StyleSheet.create({
   profileHeader: {
     alignItems: 'center',
     padding: 24,
+    marginTop: 20,
+    marginBottom: 20,
+    borderRadius: 16,
+    backgroundColor: '#F7F8FA',
+    marginHorizontal: 16,
   },
   avatarContainer: {
     marginBottom: 16,
+    alignItems: 'center',
   },
-  name: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1B365D',
+  avatarImg: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     marginBottom: 4,
   },
-  subtitle: {
-    fontSize: 16,
-    color: '#6C7580',
+  editPhotoText: {
+    color: '#2075FF',
+    fontSize: 13,
+    marginBottom: 8,
   },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 16,
-    backgroundColor: '#F7F8FA',
-    marginHorizontal: 16,
+  input: {
+    width: 200,
+    height: 40,
+    borderColor: '#E2E5EA',
+    borderWidth: 1,
     borderRadius: 8,
-    marginBottom: 24,
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1B365D',
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#6C7580',
-    marginTop: 4,
-  },
-  statDivider: {
-    width: 1,
-    backgroundColor: '#E2E5EA',
-  },
-  menuContainer: {
-    paddingHorizontal: 16,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E5EA',
-  },
-  menuItemLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  menuItemText: {
-    marginLeft: 16,
-  },
-  menuItemTitle: {
+    paddingHorizontal: 12,
+    marginBottom: 12,
+    backgroundColor: '#fff',
     fontSize: 16,
-    fontWeight: '500',
     color: '#1B365D',
   },
-  menuItemSubtitle: {
+  saveButton: {
+    backgroundColor: '#2075FF',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 32,
+    marginTop: 8,
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  workoutHistory: {
+    padding: 16,
+  },
+  workoutItem: {
+    backgroundColor: '#F7F8FA',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+  },
+  workoutHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  workoutDate: {
     fontSize: 14,
-    color: '#6C7580',
-    marginTop: 2,
+    color: '#666',
+  },
+  workoutBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0F7FF',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  workoutBadgeText: {
+    fontSize: 12,
+    marginLeft: 4,
+  },
+  workoutTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1B365D',
+    marginBottom: 8,
+  },
+  workoutStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  workoutStat: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  workoutStatText: {
+    fontSize: 14,
+    color: '#666',
+    marginLeft: 4,
   },
   logoutButton: {
     height: 48,
     marginHorizontal: 16,
-    marginVertical: 24,
+    marginVertical: 12,
     backgroundColor: '#2075FF',
     borderRadius: 8,
     alignItems: 'center',
@@ -260,8 +389,38 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#FFFFFF',
   },
+  supportButton: {
+    height: 48,
+    marginHorizontal: 16,
+    marginVertical: 0,
+    marginBottom: 24,
+    backgroundColor: '#E3F2FD',
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  supportText: {
+    fontSize: 18,
+    fontWeight: '500',
+    color: '#2075FF',
+  },
   disabledButton: {
     opacity: 0.7,
+  },
+  pastWorkoutsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F0F7FF',
+    borderRadius: 8,
+    paddingVertical: 12,
+    marginBottom: 12,
+  },
+  pastWorkoutsButtonText: {
+    color: '#2075FF',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
   },
 });
 

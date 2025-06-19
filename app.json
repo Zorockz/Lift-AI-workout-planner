@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "FitnessPal",
-    "slug": "fitnesspal",
+    "name": "Lift: AI Workout Planner",
+    "slug": "lift-ai-workout-planner",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -10,23 +10,19 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.fitnesspal.app"
+      "bundleIdentifier": "com.yourcompany.liftaiworkoutplanner",
+      "buildNumber": "1.0.0",
+      "infoPlist": {
+        "CFBundleDisplayName": "Lift: AI Workout Planner"
+      }
     },
     "android": {
-      "package": "com.fitnesspal.app"
+      "package": "com.yourcompany.liftaiworkoutplanner",
+      "versionCode": 1
     },
-    "plugins": [
-      "expo-secure-store",
-      "expo-font",
-      "expo-web-browser"
-    ],
-    "scheme": "fitnesspal",
-    "extra": {
-      "googleClientId": "234734836314-q9irge2opsfgv4ivjvcvjuk976ofrfu3.apps.googleusercontent.com",
-      "authSession": {
-        "redirectUri": "fitnesspal://redirect",
-        "useProxy": true
-      }
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "name": "Lift: AI Workout Planner"
     }
   }
 }

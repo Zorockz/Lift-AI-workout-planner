@@ -6,7 +6,7 @@ import { OnboardingProvider } from './contexts/OnboardingContext';
 import { WorkoutProvider } from './contexts/WorkoutContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Text } from 'react-native';
 import { testFirebaseAuth } from './utils/testAuth';
 import React from 'react';
 
@@ -31,6 +31,16 @@ import HomeScreen from './screens/HomeScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import FullPlanScreen from './screens/FullPlanScreen';
 import WorkoutSessionScreen from './screens/WorkoutSessionScreen';
+import CardioScreen from './screens/CardioScreen';
+import FlexibilityScreen from './screens/FlexibilityScreen';
+
+// Placeholder PastWorkoutsScreen
+const PastWorkoutsScreen = () => (
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
+    <Text style={{ fontSize: 22, color: '#1B365D', fontWeight: 'bold' }}>Past Workouts</Text>
+    <Text style={{ color: '#666', marginTop: 12 }}>This is where your workout history will appear.</Text>
+  </View>
+);
 
 const Stack = createNativeStackNavigator();
 const RootStack = createNativeStackNavigator();
@@ -64,12 +74,19 @@ const MainNavigator = () => (
       component={ProfileScreen}
       options={{ headerShown: false }}
     />
-    <Stack.Screen name="FullPlan" component={FullPlanScreen} />
+    <Stack.Screen 
+      name="FullPlan" 
+      component={FullPlanScreen}
+      options={{ headerShown: false }}
+    />
     <Stack.Screen 
       name="WorkoutSession" 
       component={WorkoutSessionScreen}
       options={{ headerShown: false }}
     />
+    <Stack.Screen name="CardioScreen" component={CardioScreen} />
+    <Stack.Screen name="FlexibilityScreen" component={FlexibilityScreen} />
+    <Stack.Screen name="PastWorkouts" component={PastWorkoutsScreen} options={{ title: 'Past Workouts' }} />
   </Stack.Navigator>
 );
 

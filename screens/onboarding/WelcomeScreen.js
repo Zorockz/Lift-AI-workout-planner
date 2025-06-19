@@ -5,9 +5,12 @@ import ProgressBar from '../../components/ProgressBar';
 import { commonStyles } from '../../utils/styles';
 import { useAuth } from '../../contexts/AuthContext';
 import GoogleLogo from '../../assets/google_logo.png';
+import { useOnboarding } from '../../contexts/OnboardingContext';
 
 const WelcomeScreen = ({ navigation }) => {
   const { signIn, error, clearError, loading } = useAuth();
+  const { onboarding } = useOnboarding ? useOnboarding() : { onboarding: {} };
+  const [userName, setUserName] = React.useState('');
 
   // Show error alert when authentication error occurs
   useEffect(() => {
@@ -24,6 +27,18 @@ const WelcomeScreen = ({ navigation }) => {
       );
     }
   }, [error]);
+
+  React.useEffect(() => {
+    // Try to get name from localStorage (web) or onboarding context
+    let name = '';
+    if (typeof window !== 'undefined' && window.localStorage) {
+      name = window.localStorage.getItem('userName') || '';
+    }
+    if (!name && onboarding && onboarding.name) {
+      name = onboarding.name;
+    }
+    setUserName(name);
+  }, [onboarding]);
 
   // Handler for Google sign-in
   const handleGoogleSignIn = async () => {
@@ -48,8 +63,14 @@ const WelcomeScreen = ({ navigation }) => {
     >
       <ProgressBar currentStep={1} totalSteps={15} />
       <View style={[commonStyles.content, { justifyContent: 'center' }]}>
-        <Text style={commonStyles.title}>Welcome to FitBuddy</Text>
-        <Text style={commonStyles.subtitle}>Your AI Fitness Companion</Text>
+        {userName ? (
+          <Text style={[commonStyles.title, { color: '#2075FF' }]}>Welcome, {userName}!</Text>
+        ) : (
+          <>
+            <Text style={commonStyles.title}>Welcome to Lift</Text>
+            <Text style={commonStyles.subtitle}>Your AI Workout Planner</Text>
+          </>
+        )}
         <Button 
           title="Sign Up"
           onPress={handleSignUp}

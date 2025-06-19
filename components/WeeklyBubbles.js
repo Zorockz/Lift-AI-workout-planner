@@ -1,59 +1,52 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-const colorMap = {
-  workout: '#4F46E5',
-  rest: '#E5E7EB',
-  recovery: '#14B8A6',
-  hiit: '#F97316',
-};
+const bubbles = [
+  { label: 'Strength', icon: 'dumbbell', color: '#2075FF' },
+  { label: 'Cardio', icon: 'run', color: '#E65100' },
+  { label: 'Flexibility', icon: 'yoga', color: '#43A047' },
+];
 
-const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-const WeeklyBubbles = ({ weekData }) => {
-  return (
-    <View style={styles.container}>
-      <View style={styles.bubblesRow}>
-        {weekData.map((day, index) => (
-          <View key={index} style={styles.bubbleContainer}>
-            <View 
-              style={[
-                styles.bubble,
-                { backgroundColor: day?.type ? colorMap[day.type] : '#FFFFFF' }
-              ]} 
-            />
-            <Text style={styles.weekdayLabel}>{WEEKDAYS[index]}</Text>
-          </View>
-        ))}
-      </View>
-    </View>
-  );
-};
+const WeeklyBubbles = ({ onSelect, selected }) => (
+  <View style={styles.container}>
+    {bubbles.map((bubble, idx) => (
+      <TouchableOpacity
+        key={bubble.label}
+        style={[
+          styles.bubble,
+          selected === bubble.label && { backgroundColor: bubble.color + '22' },
+        ]}
+        onPress={() => onSelect && onSelect(bubble.label)}
+      >
+        <MaterialCommunityIcons name={bubble.icon} size={24} color={bubble.color} />
+        <Text style={styles.label}>{bubble.label}</Text>
+      </TouchableOpacity>
+    ))}
+  </View>
+);
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 16,
-  },
-  bubblesRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
     alignItems: 'center',
-  },
-  bubbleContainer: {
-    alignItems: 'center',
-    gap: 4,
+    backgroundColor: '#fff',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E5EA',
   },
   bubble: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    alignItems: 'center',
+    padding: 10,
+    borderRadius: 20,
+    minWidth: 80,
   },
-  weekdayLabel: {
-    fontSize: 10,
-    color: '#6B7280',
-    fontFamily: 'System',
+  label: {
+    marginTop: 4,
+    fontSize: 12,
+    color: '#1B365D',
+    fontWeight: '500',
   },
 });
 

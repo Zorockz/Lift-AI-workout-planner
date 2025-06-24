@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Text } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useOnboarding } from '../contexts/OnboardingContext';
 import HeaderStats from '../components/HeaderStats';
@@ -8,15 +8,18 @@ import TodayWorkoutCard from '../components/TodayWorkoutCard';
 import UpcomingWorkoutCard from '../components/UpcomingWorkoutCard';
 import { getAuth } from 'firebase/auth';
 import { Ionicons } from '@expo/vector-icons';
+import AddExerciseModal from '../components/AddExerciseModal';
+import { useWorkout } from '../contexts/WorkoutContext';
+import Button from '../components/Button';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
   const { onboarding } = useOnboarding();
-  const [plan, setPlan] = useState(null);
   const [stats, setStats] = useState({ workouts: 0, calories: 0 });
   const [user, setUser] = useState({ name: 'User', streak: 1, photoURL: null });
-  const [generatedPlan, setGeneratedPlan] = useState(null);
   const [selectedBubble, setSelectedBubble] = useState('Strength');
+  const [modalVisible, setModalVisible] = useState(false);
+  const { workoutPlan, addExercise, currentDay, setWorkoutPlan } = useWorkout();
 
   useEffect(() => {
     // Get user photoURL from Firebase Auth if available
@@ -30,58 +33,9 @@ const HomeScreen = () => {
   }, []);
 
   useEffect(() => {
-    const generatePlanFromOnboarding = async () => {
-      if (onboarding && Object.keys(onboarding).length > 0) {
-        try {
-          const { generatePlan } = await import('../utils/planGenerator');
-          const generated = await generatePlan({
-            goal: onboarding.goal,
-            experience: onboarding.experienceLevel,
-            equipment: onboarding.equipment,
-            daysPerWeek: onboarding.workoutsPerWeek,
-            location: onboarding.exerciseLocation,
-          });
-          setGeneratedPlan(generated);
-        } catch (error) {
-          console.error('Error generating plan from onboarding data:', error);
-        }
-      } else if (onboarding.generatedPlan) {
-        setGeneratedPlan(onboarding.generatedPlan);
-      } else {
-        // Fallback to a basic plan if no onboarding data
-        const fallbackPlan = {
-          weekPlan: {
-            "Day 1": {
-              date: new Date().toISOString().split('T')[0],
-              type: "workout",
-              exercises: [
-                { name: "Push-ups", sets: 3, reps: 10, restTime: 60, equipment: "bodyweight", notes: "Focus on form" },
-                { name: "Bodyweight Squats", sets: 3, reps: 12, restTime: 60, equipment: "bodyweight", notes: "Keep back straight" },
-                { name: "Plank", sets: 3, reps: 30, restTime: 45, equipment: "bodyweight", notes: "Hold position" }
-              ],
-              notes: "Basic workout to get started"
-            }
-          },
-          metadata: {
-            experience: "beginner",
-            goal: "strength",
-            daysPerWeek: 1,
-            equipment: ["bodyweight"],
-            location: "home",
-            generatedAt: new Date().toISOString()
-          }
-        };
-        setGeneratedPlan(fallbackPlan);
-      }
-    };
-    generatePlanFromOnboarding();
-  }, [onboarding]);
-
-  useEffect(() => {
-    if (generatedPlan) {
-      setPlan(generatedPlan.weekPlan);
+    if (workoutPlan && workoutPlan.weekPlan) {
       let workouts = 0, calories = 0;
-      Object.values(generatedPlan.weekPlan).forEach(day => {
+      Object.values(workoutPlan.weekPlan).forEach(day => {
         if (day.type === 'workout') {
           workouts++;
           calories += 100; // Placeholder
@@ -89,12 +43,24 @@ const HomeScreen = () => {
       });
       setStats({ workouts, calories });
     }
-  }, [generatedPlan]);
+  }, [workoutPlan]);
 
-  // Find today's and next workout
-  const todayKey = plan && Object.keys(plan)[0];
-  const todayWorkout = plan && plan[todayKey] && plan[todayKey].type === 'workout' ? plan[todayKey] : null;
-  const nextWorkout = plan && Object.values(plan).find(day => day && day.type === 'workout' && day !== todayWorkout);
+  // Find today's and next workout from context
+  const todayKey = workoutPlan && workoutPlan.weekPlan && Object.keys(workoutPlan.weekPlan)[currentDay - 1];
+  let todayWorkout = workoutPlan && workoutPlan.weekPlan && workoutPlan.weekPlan[todayKey] && workoutPlan.weekPlan[todayKey].type === 'workout'
+    ? workoutPlan.weekPlan[todayKey]
+    : null;
+  // If today is a rest day, show the next workout day
+  if (!todayWorkout && workoutPlan && workoutPlan.weekPlan) {
+    const nextWorkoutDay = Object.values(workoutPlan.weekPlan).find(day => day && day.type === 'workout');
+    if (nextWorkoutDay) {
+      todayWorkout = nextWorkoutDay;
+    } else {
+      // If all days are rest days, fallback to first day
+      todayWorkout = workoutPlan.weekPlan[Object.keys(workoutPlan.weekPlan)[0]];
+    }
+  }
+  const nextWorkout = workoutPlan && workoutPlan.weekPlan && Object.values(workoutPlan.weekPlan).find(day => day && day.type === 'workout' && day !== todayWorkout);
 
   const handleStartWorkout = () => {
     if (todayWorkout) {
@@ -106,8 +72,8 @@ const HomeScreen = () => {
   };
 
   const handleSeeFullPlan = () => {
-    if (plan) {
-      navigation.navigate('FullPlan', { plan: { weekPlan: plan } });
+    if (workoutPlan && workoutPlan.weekPlan) {
+      navigation.navigate('FullPlan', { plan: { weekPlan: workoutPlan.weekPlan } });
     }
   };
 
@@ -139,18 +105,75 @@ const HomeScreen = () => {
     }, [navigation])
   );
 
+  const handleGenerateTodayWorkout = async () => {
+    if (onboarding && Object.keys(onboarding).length > 0 && workoutPlan && workoutPlan.weekPlan) {
+      try {
+        const { generatePlan } = await import('../utils/planGenerator');
+        // Generate a single day plan for today only
+        const generated = await generatePlan({
+          goal: onboarding.goal,
+          experience: onboarding.experienceLevel,
+          equipment: onboarding.equipment,
+          daysPerWeek: 1, // Only one day
+          location: onboarding.exerciseLocation,
+        });
+        // Replace only today's exercises and notes in the weekPlan
+        const todayKey = Object.keys(workoutPlan.weekPlan)[currentDay - 1];
+        const newWeekPlan = { ...workoutPlan.weekPlan };
+        const generatedDay = generated.weekPlan['Day 1'];
+        newWeekPlan[todayKey] = {
+          ...newWeekPlan[todayKey],
+          exercises: generatedDay.exercises || [],
+          notes: generatedDay.notes || '',
+          type: 'workout',
+        };
+        setWorkoutPlan({ ...workoutPlan, weekPlan: newWeekPlan });
+      } catch (error) {
+        console.error('Error generating today\'s workout:', error);
+      }
+    }
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <HeaderStats userName={user.name} streak={user.streak} stats={stats} photoURL={user.photoURL} />
+        <HeaderStats userName={user.name} streak={user.streak} photoURL={user.photoURL} />
         <WeeklyBubbles selected={selectedBubble} onSelect={handleBubbleSelect} />
-        <TodayWorkoutCard exercises={todayWorkout ? todayWorkout.exercises : []} onStart={handleStartWorkout} />
+        <TodayWorkoutCard
+          exercises={todayWorkout && todayWorkout.exercises ? todayWorkout.exercises : []}
+          onStart={handleStartWorkout}
+          renderFooter={() => (
+            <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 12 }}>
+              <Button
+                title="+ Add Exercise"
+                onPress={() => setModalVisible(true)}
+              />
+              <Button
+                title={<View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Ionicons name="reload-circle" size={22} color="#66bb6a" style={{ marginRight: 6 }} />
+                  <Text style={{ color: '#388e3c', fontWeight: 'bold' }}>Generate New Workout</Text>
+                </View>}
+                onPress={handleGenerateTodayWorkout}
+                style={{ backgroundColor: '#e8f5e9', borderWidth: 1, borderColor: '#66bb6a', minWidth: 0, paddingHorizontal: 10, paddingVertical: 8, borderRadius: 20 }}
+                textStyle={{ color: '#388e3c', fontWeight: 'bold' }}
+              />
+            </View>
+          )}
+        />
         <UpcomingWorkoutCard
           date={nextWorkout ? nextWorkout.date : ''}
-          exercises={nextWorkout ? nextWorkout.exercises : []}
+          exercises={nextWorkout && nextWorkout.exercises ? nextWorkout.exercises : []}
           onSeeFullPlan={handleSeeFullPlan}
         />
       </ScrollView>
+      <AddExerciseModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onAdd={(exercise) => {
+          addExercise(currentDay - 1, exercise);
+          setModalVisible(false);
+        }}
+      />
       {/* Footer Navigation */}
       <View style={styles.footerNav}>
         <TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.iconButton}>

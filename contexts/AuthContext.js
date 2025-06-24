@@ -45,6 +45,7 @@ export const AuthProvider = ({ children }) => {
 
   // Get the Google Client ID from app.json
   const clientId = Constants.expoConfig?.extra?.googleClientId;
+  const iosClientId = Constants.expoConfig?.extra?.iosClientId;
   const authSession = Constants.expoConfig?.extra?.authSession;
 
   // Initialize Firebase Auth state listener
@@ -67,7 +68,7 @@ export const AuthProvider = ({ children }) => {
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     clientId,
-    iosClientId: clientId,
+    iosClientId,
     androidClientId: clientId,
     webClientId: clientId,
     redirectUri,
@@ -134,18 +135,16 @@ export const AuthProvider = ({ children }) => {
         await auth.signOut();
       }
       
-      // Clear all stored data
+      // Clear all stored data except onboarding completion
       setUser(null);
       setIsGuest(false);
-      setIsOnboardingComplete(false);
-      
+      // Do NOT reset onboarding completion
+      // setIsOnboardingComplete(false);
       await AsyncStorage.multiRemove([
         'user',
         'isGuest',
-        'isOnboardingComplete',
-        'onboardingComplete',
-        'onboardingData',
-        'onboardingInProgress',
+        // 'isOnboardingComplete',
+        // 'onboardingComplete',
         'workoutPlan',
         'completedExercises'
       ]);

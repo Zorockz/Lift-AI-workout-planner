@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Lift: AI Workout Planner",
+    "name": "Lift AI: Workout Planner",
     "slug": "lift-ai-workout-planner",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,19 +10,24 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.yourcompany.liftaiworkoutplanner",
+      "bundleIdentifier": "com.zorockz.liftai",
       "buildNumber": "1.0.0",
       "infoPlist": {
-        "CFBundleDisplayName": "Lift: AI Workout Planner"
+        "CFBundleDisplayName": "Lift AI: Workout Planner"
       }
-    },
-    "android": {
-      "package": "com.yourcompany.liftaiworkoutplanner",
-      "versionCode": 1
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "name": "Lift: AI Workout Planner"
+      "name": "Lift AI: Workout Planner"
+    },
+    "scheme": "liftaiworkoutplanner",
+    "extra": {
+      "googleClientId": "234734836314-q9irge2opsfgv4ivjvcvjuk976ofrfu3.apps.googleusercontent.com",
+      "iosClientId": "234734836314-g00v0tabcmj2s67q9ihhtbb8rlt6vmdf.apps.googleusercontent.com",
+      "authSession": {
+        "redirectUri": "liftaiworkoutplanner:/oauthredirect",
+        "useProxy": false
+      }
     }
   }
 }

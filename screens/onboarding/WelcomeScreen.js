@@ -8,7 +8,7 @@ import GoogleLogo from '../../assets/google_logo.png';
 import { useOnboarding } from '../../contexts/OnboardingContext';
 
 const WelcomeScreen = ({ navigation }) => {
-  const { signIn, error, clearError, loading } = useAuth();
+  const { signIn, error, clearError, loading, isOnboardingComplete } = useAuth();
   const { onboarding } = useOnboarding ? useOnboarding() : { onboarding: {} };
   const [userName, setUserName] = React.useState('');
 
@@ -72,7 +72,7 @@ const WelcomeScreen = ({ navigation }) => {
           </>
         )}
         <Button 
-          title="Sign Up"
+          title={isOnboardingComplete ? "Sign In" : "Sign Up"}
           onPress={handleSignUp}
           style={[commonStyles.button, { marginBottom: 16 }]}
         />

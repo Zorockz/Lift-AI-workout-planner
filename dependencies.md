@@ -36,9 +36,10 @@ See package.json for the full list and versions.
 - expo-status-bar (~2.2.3)
 - @react-native-community/slider (4.5.6)
 - @react-native-picker/picker (2.11.0)
+- expo-linear-gradient (^14.1.5)
 
 ### Storage and Data
-- @react-native-async-storage/async-storage (^2.1.2)
+- @react-native-async-storage/async-storage (2.1.2)
 - expo-secure-store (~14.2.3)
 - expo-file-system (~18.1.10)
 - firebase (^11.9.1)  # Using modular SDK with AsyncStorage persistence
@@ -71,8 +72,13 @@ See package.json for the full list and versions.
 - expo-splash-screen (~0.30.9)
 - expo-font (~13.3.1)
 
+### Utilities
+- uuid (^11.1.0) - For generating unique IDs
+- tslib (^2.6.2) - TypeScript runtime library
+
 ### Development Dependencies
 - @babel/core (^7.20.0)
+- @react-native-community/cli (^18.0.0)
 - react-native-dotenv (^3.4.11)
 
 ## Version Information
@@ -155,19 +161,20 @@ useEffect(() => {
 6. EquipmentInputScreen
 7. ScheduleInputScreen
 8. OnboardingSummary
-9. PlanGenerationScreen
-10. **PlanPreviewScreen** ← Navigation issue here
-11. ExerciseLocationScreen
-12. TargetMusclesScreen
-13. HeightInputScreen
-14. WeightInputScreen
-15. GoalWeightInputScreen
+9. ExerciseLocationScreen
+10. TargetMusclesScreen
+11. HeightInputScreen
+12. WeightInputScreen
+13. GoalWeightInputScreen
 
 ### Main App Flow:
 - HomeScreen
 - ProfileScreen
 - FullPlanScreen
 - WorkoutSessionScreen
+- CardioScreen
+- FlexibilityScreen
+- ExerciseDetails
 
 ## Known Issues & Solutions
 
@@ -222,54 +229,103 @@ useEffect(() => {
 - ✅ Navigation state persistence
 - ✅ Conditional rendering based on auth state
 
+### 3. Workout Plan Generation Issues ✅ FIXED
+**Problem**: 
+- Workout cards showing empty
+- "Generate New Workout" button not working
+- Plan generator returning incompatible data structure
+- First day could be a rest day causing empty cards
+
+**Solution Applied**:
+- ✅ **Fixed HomeScreen**: Updated `todayKey` calculation to use `currentDay` instead of always showing Day 1
+- ✅ **Fixed WorkoutContext**: Replaced OpenAI-based plan generator with local `generatePlan` from `utils/planGenerator.js`
+- ✅ **Enhanced HomeScreen**: Added logic to show next workout day if today is a rest day
+- ✅ **Improved Exercise Database**: Moved to separate `utils/exerciseDatabase.js` with 5-10 exercises per category
+- ✅ **Fixed AddExerciseModal**: Removed `uuid` dependency causing `crypto.getRandomValues()` error
+- ✅ **Enhanced AddExerciseModal**: Added logic to set sets/reps to 1 for cardio workouts
+
+**Files Modified**:
+- `screens/HomeScreen.js` - **FIXED**: Corrected todayKey calculation and added next workout day display
+- `contexts/WorkoutContext.js` - **FIXED**: Replaced OpenAI generator with local plan generator
+- `utils/exerciseDatabase.js` - **CREATED**: Separate exercise database with full exercise lists
+- `utils/planGenerator.js` - **UPDATED**: Now imports from exerciseDatabase.js
+- `components/AddExerciseModal.js` - **FIXED**: Removed uuid dependency and added cardio logic
+
+### 4. Authentication Flow Issues ✅ FIXED
+**Problem**: 
+- Users couldn't get back in after logout without going through onboarding again
+- "Sign Up" button didn't change to "Sign In" after logout
+
+**Solution Applied**:
+- ✅ **Fixed AuthContext**: Preserved onboarding completion state and AsyncStorage keys on logout
+- ✅ **Fixed WelcomeScreen**: Added conditional button label based on onboarding completion state
+
+**Files Modified**:
+- `contexts/AuthContext.js` - **FIXED**: Preserved onboarding state on logout
+- `screens/onboarding/WelcomeScreen.js` - **FIXED**: Added conditional button label
+
+### 5. UI/UX Improvements ✅ IMPLEMENTED
+**Problem**: 
+- Stats below streak counter were not useful
+- "Generate New Week Workout" button placement was poor
+- Button styling needed improvement
+
+**Solution Applied**:
+- ✅ **Updated HeaderStats**: Replaced stats with better streak counter including fire emoji
+- ✅ **Updated HomeScreen**: Moved "Generate New Workout" button next to "+ Add Exercise"
+- ✅ **Enhanced Button**: Changed to lighter green color with generate circle icon
+- ✅ **Fixed Button Handler**: Now generates only today's workout instead of entire week
+
+**Files Modified**:
+- `components/HeaderStats.js` - **ENHANCED**: Better streak counter design
+- `screens/HomeScreen.js` - **IMPROVED**: Better button placement and functionality
+
 ## Installation Notes
 - All Expo packages are installed using `expo install` to ensure version compatibility
 - Third-party packages are installed using `npm install`
 - Firebase is using the modular SDK (version 11.9.1) with AsyncStorage persistence for React Native
 - Keep babel.config.js updated when adding new packages that require babel configuration
 
-## Latest Fixes (June 2025)
+## Latest Fixes (December 2024)
 
-### Plan Generation Loop & Code Cleanup ✅ FIXED
+### Workout Plan Generation & UI Improvements ✅ FIXED
 **Problem**: 
-- Plan generation running in infinite loops
-- Excessive debug logging causing performance issues
-- Duplicate headers in Profile screen
-- Firebase export errors
-- Redundant code and unused files
+- Workout cards showing empty due to incorrect day calculation
+- "Generate New Workout" button not working due to incompatible data structure
+- Exercise database needed better organization
+- UI improvements needed for better user experience
 
 **Solution Applied**:
-- ✅ **Removed PlanGenerationScreen**: Simplified flow to generate plans directly in OnboardingSummary
-- ✅ **Fixed Firebase Export Error**: Removed duplicate `getAuthInstance` export
-- ✅ **Cleaned Up Debug Logging**: Removed 30+ console.log statements across multiple files
-- ✅ **Fixed Profile Screen**: Removed duplicate header by adding `headerShown: false`
-- ✅ **Optimized PlanPreviewScreen**: Fixed spacing (20px top margin, 5px bottom margin)
-- ✅ **Simplified Plan Generator**: Removed complex workout day distribution logic
-- ✅ **Added Loading States**: Prevented multiple button presses during plan generation
-- ✅ **Removed Unused Imports**: Cleaned up unused `useMemo` imports
+- ✅ **Fixed HomeScreen Day Calculation**: Corrected `todayKey` to use `currentDay` instead of always showing Day 1
+- ✅ **Replaced OpenAI Plan Generator**: Switched to local `generatePlan` for consistent data structure
+- ✅ **Created Separate Exercise Database**: Moved exercises to `utils/exerciseDatabase.js` with 5-10 exercises per category
+- ✅ **Enhanced Workout Display**: Added logic to show next workout day if today is a rest day
+- ✅ **Fixed AddExerciseModal**: Removed `uuid` dependency causing crypto errors
+- ✅ **Improved UI/UX**: Better button placement, styling, and streak counter design
+- ✅ **Fixed Authentication Flow**: Preserved onboarding state on logout
 
 **Files Modified**:
-- `screens/onboarding/PlanGenerationScreen.js` - **DELETED**: No longer needed
-- `screens/onboarding/OnboardingSummary.js` - **ENHANCED**: Added loading state, removed debug logs
-- `screens/onboarding/PlanPreviewScreen.js` - **OPTIMIZED**: Fixed spacing, removed debug logs, simplified useEffect
-- `utils/planGenerator.js` - **SIMPLIFIED**: Removed debug logs, simplified workout distribution
-- `screens/HomeScreen.js` - **CLEANED**: Removed debug logs, simplified plan generation
-- `App.js` - **FIXED**: Removed debug logs, added headerShown: false for Profile
-- `contexts/AuthContext.js` - **OPTIMIZED**: Simplified auth state management, removed debug logs
-- `config/firebase.js` - **FIXED**: Removed duplicate export causing syntax error
+- `screens/HomeScreen.js` - **CRITICAL FIX**: Fixed todayKey calculation and workout display logic
+- `contexts/WorkoutContext.js` - **CRITICAL FIX**: Replaced OpenAI generator with local plan generator
+- `utils/exerciseDatabase.js` - **CREATED**: Comprehensive exercise database with all categories
+- `utils/planGenerator.js` - **UPDATED**: Now imports from exerciseDatabase.js
+- `components/AddExerciseModal.js` - **FIXED**: Removed uuid dependency, added cardio logic
+- `components/HeaderStats.js` - **ENHANCED**: Better streak counter with fire emoji
+- `contexts/AuthContext.js` - **FIXED**: Preserved onboarding state on logout
+- `screens/onboarding/WelcomeScreen.js` - **FIXED**: Conditional button label
 
 **Performance Improvements**:
-- Reduced console output by 80%
-- Eliminated infinite re-renders in PlanPreviewScreen
-- Simplified plan generation logic
-- Removed unnecessary memoization
-- Fixed Firebase initialization errors
+- Eliminated crypto.getRandomValues() errors
+- Fixed infinite re-renders in workout generation
+- Improved data structure consistency
+- Enhanced user experience with better UI
 
 **UI Improvements**:
-- PlanPreviewScreen header: 20px margin from top
-- PlanPreviewScreen button: 5px margin from bottom
-- Profile screen: Single header (no duplicates)
-- Loading states for better UX
+- Better button placement next to "+ Add Exercise"
+- Lighter green color for "Generate New Workout" button
+- Generate circle icon for better visual feedback
+- Enhanced streak counter with fire emoji
+- Conditional "Sign Up"/"Sign In" button labels
 
 ## Development Commands
 ```bash
@@ -287,4 +343,6 @@ taskkill /f /im node.exe
 1. **Port conflicts**: Use `taskkill /f /im node.exe` to kill all processes
 2. **Firebase auth errors**: Check metro.config.js and firebase.js configuration
 3. **Navigation issues**: Verify screen names match in App.js and navigation calls
-4. **Cache issues**: Always use `--clear` flag when restarting after major changes 
+4. **Cache issues**: Always use `--clear` flag when restarting after major changes
+5. **Crypto errors**: Avoid using `uuid` package, use simple ID generation instead
+6. **Empty workout cards**: Check if today is a rest day and verify day calculation logic 

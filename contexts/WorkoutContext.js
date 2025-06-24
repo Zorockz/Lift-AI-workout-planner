@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { generateWorkoutPlan, getExerciseDetails } from '../services/openaiService';
+import { getExerciseDetails } from '../services/openaiService';
+import { generatePlan } from '../utils/planGenerator';
 
 const WorkoutContext = createContext();
 
@@ -80,9 +81,8 @@ export const WorkoutProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const plan = await generateWorkoutPlan(userPreferences);
-      const structuredPlan = parseWorkoutPlan(plan);
-      setWorkoutPlan(structuredPlan);
+      const plan = await generatePlan(userPreferences);
+      setWorkoutPlan(plan);
     } catch (error) {
       setError(error.message);
       console.error('Error creating workout plan:', error);
@@ -165,6 +165,31 @@ export const WorkoutProvider = ({ children }) => {
     }
   };
 
+  // Add a custom exercise to a specific day (dayIndex: 0-based, exercise: {id, name, sets, reps})
+  const addExercise = (dayIndex, exercise) => {
+    setWorkoutPlan(prevPlan => {
+      if (!prevPlan || !prevPlan.weekPlan) return prevPlan;
+      const dayKey = `Day ${dayIndex + 1}`;
+      const updatedPlan = { ...prevPlan };
+      // Always initialize as a workout day with an empty exercises array if needed
+      if (!updatedPlan.weekPlan[dayKey] || !Array.isArray(updatedPlan.weekPlan[dayKey].exercises)) {
+        updatedPlan.weekPlan[dayKey] = {
+          ...(updatedPlan.weekPlan[dayKey] || {}),
+          type: 'workout',
+          exercises: [],
+        };
+      }
+      updatedPlan.weekPlan[dayKey] = {
+        ...updatedPlan.weekPlan[dayKey],
+        exercises: [
+          ...(updatedPlan.weekPlan[dayKey].exercises || []),
+          exercise,
+        ],
+      };
+      return { ...updatedPlan };
+    });
+  };
+
   if (!isInitialized) {
     return null;
   }
@@ -181,7 +206,8 @@ export const WorkoutProvider = ({ children }) => {
       createWorkoutPlan,
       getExerciseInstructions,
       loading,
-      error
+      error,
+      addExercise
     }}>
       {children}
     </WorkoutContext.Provider>

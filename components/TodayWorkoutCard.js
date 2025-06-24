@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const TodayWorkoutCard = ({ exercises = [], onStart }) => (
+const TodayWorkoutCard = ({ exercises = [], onStart, renderFooter }) => (
   <View style={styles.card}>
     <Text style={styles.title}>Today's Workout</Text>
     {exercises.length === 0 ? (
@@ -26,6 +26,11 @@ const TodayWorkoutCard = ({ exercises = [], onStart }) => (
       <Ionicons name="play" size={20} color="#fff" />
       <Text style={styles.startText}>Start Workout</Text>
     </TouchableOpacity>
+    {renderFooter && (
+      <View style={styles.footerContainer}>
+        {renderFooter()}
+      </View>
+    )}
   </View>
 );
 
@@ -81,6 +86,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 8,
     fontSize: 16,
+  },
+  footerContainer: {
+    marginTop: 16,
+    alignItems: 'center',
   },
 });
 

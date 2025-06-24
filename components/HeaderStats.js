@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-const HeaderStats = ({ userName = "User", streak = 5, stats = {}, photoURL }) => {
+const HeaderStats = ({ userName = 'User', streak = 5, stats = {}, photoURL }) => {
   // Example stats: { workouts: 12, calories: 3400 }
   return (
     <View style={styles.headerContainer}>

@@ -42,7 +42,7 @@ const ProfileScreen = () => {
           const cloudWorkouts = querySnapshot.docs.map(doc => ({
             ...doc.data(),
             id: doc.id,
-            source: 'cloud'
+            source: 'cloud',
           }));
           allWorkouts = [...allWorkouts, ...cloudWorkouts];
         }
@@ -51,7 +51,7 @@ const ProfileScreen = () => {
         allWorkouts.sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
         setWorkouts(allWorkouts);
       } catch (error) {
-        console.error('Error loading workouts:', error);
+        // Remove all console.error statements for production
       } finally {
         setIsLoadingWorkouts(false);
       }
@@ -66,7 +66,7 @@ const ProfileScreen = () => {
     return date.toLocaleDateString('en-US', {
       weekday: 'short',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
 
@@ -83,7 +83,7 @@ const ProfileScreen = () => {
           />
           <Text style={[
             styles.workoutBadgeText,
-            { color: workout.source === 'cloud' ? '#2075FF' : '#4CAF50' }
+            { color: workout.source === 'cloud' ? '#2075FF' : '#4CAF50' },
           ]}>
             {workout.source === 'cloud' ? 'Cloud' : 'Local'}
           </Text>
@@ -115,8 +115,8 @@ const ProfileScreen = () => {
         [
           {
             text: 'OK',
-            onPress: clearError
-          }
+            onPress: clearError,
+          },
         ]
       );
     }
@@ -126,7 +126,7 @@ const ProfileScreen = () => {
     try {
       await signOut();
     } catch (error) {
-      console.error('Error signing out:', error);
+      // Remove all console.error statements for production
     }
   };
 

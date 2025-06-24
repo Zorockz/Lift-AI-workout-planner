@@ -50,7 +50,7 @@ const PlanPreviewScreen = () => {
       // The navigation will be handled automatically by the AuthContext
       // when isOnboardingComplete changes to true
     } catch (error) {
-      console.error('PlanPreviewScreen: Error completing onboarding:', error);
+      // Remove all console.error statements for production
     }
   }, [completeOnboarding, completeAuthOnboarding]);
 
@@ -130,7 +130,7 @@ const PlanPreviewScreen = () => {
         key={index} 
         style={[
           styles.dayCard,
-          isSelected && styles.selectedDayCard
+          isSelected && styles.selectedDayCard,
         ]}
         onPress={() => setSelectedDayIndex(index)}
         activeOpacity={0.8}
@@ -163,7 +163,7 @@ const PlanPreviewScreen = () => {
                 </Text>
                 <Text style={[styles.exerciseDetails, isSelected && styles.selectedSubText]}>
                   {exercise.sets && exercise.reps ? `${exercise.sets} sets × ${exercise.reps} reps` : 
-                   exercise.duration ? `${exercise.duration} minutes` : ''}
+                    exercise.duration ? `${exercise.duration} minutes` : ''}
                 </Text>
                 {exercise.notes && (
                   <Text style={[styles.exerciseNotes, isSelected && styles.selectedSubText]}>

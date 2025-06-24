@@ -100,7 +100,7 @@ const HeightWeightPicker = ({ type = 'height', value, onChange }) => {
       >
         <Text style={[
           styles.itemText,
-          isSelected && styles.selectedItemText
+          isSelected && styles.selectedItemText,
         ]}>
           {item.label}
         </Text>

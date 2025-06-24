@@ -40,7 +40,7 @@ const EquipmentInputScreen = ({ navigation }) => {
       icon: 'weight-lifter',
       value: 'full_gym',
       iconColor: '#1976D2',
-      iconBackground: '#E3F2FD'
+      iconBackground: '#E3F2FD',
     },
     {
       title: 'Home Gym',
@@ -48,7 +48,7 @@ const EquipmentInputScreen = ({ navigation }) => {
       icon: 'home',
       value: 'home_gym',
       iconColor: '#4CAF50',
-      iconBackground: '#E8F5E9'
+      iconBackground: '#E8F5E9',
     },
     {
       title: 'Dumbbells Only',
@@ -56,7 +56,7 @@ const EquipmentInputScreen = ({ navigation }) => {
       icon: 'dumbbell',
       value: 'dumbbells',
       iconColor: '#FF9800',
-      iconBackground: '#FFF3E0'
+      iconBackground: '#FFF3E0',
     },
     {
       title: 'Bodyweight Only',
@@ -64,8 +64,8 @@ const EquipmentInputScreen = ({ navigation }) => {
       icon: 'human-handsup',
       value: 'bodyweight',
       iconColor: '#9C27B0',
-      iconBackground: '#F3E5F5'
-    }
+      iconBackground: '#F3E5F5',
+    },
   ];
 
   return (

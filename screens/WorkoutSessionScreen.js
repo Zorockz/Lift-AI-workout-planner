@@ -8,7 +8,7 @@ import {
   SafeAreaView, 
   Dimensions,
   Alert,
-  ActivityIndicator
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -56,7 +56,7 @@ const WorkoutSessionScreen = ({ route }) => {
     
     setCompletedExercises(prev => ({
       ...prev,
-      [exerciseIndex]: currentSets + 1
+      [exerciseIndex]: currentSets + 1,
     }));
 
     if (currentSets + 1 < exercise.sets) {
@@ -85,12 +85,12 @@ const WorkoutSessionScreen = ({ route }) => {
           completed: (completedExercises[index] || 0) === exercise.sets,
           setsCompleted: completedExercises[index] || 0,
           restTime: exercise.restTime || 60,
-          notes: exercise.notes || ''
+          notes: exercise.notes || '',
         })),
         duration: duration,
         dayKey: dayKey || 'Unknown',
         completedAt: new Date().toISOString(),
-        isLocal: !user?.uid // Flag to identify locally saved workouts
+        isLocal: !user?.uid, // Flag to identify locally saved workouts
       };
 
       if (user?.uid) {
@@ -99,7 +99,7 @@ const WorkoutSessionScreen = ({ route }) => {
         await addDoc(logsRef, {
           ...workoutLog,
           userId: user.uid,
-          completedAt: serverTimestamp()
+          completedAt: serverTimestamp(),
         });
       } else {
         // Save to AsyncStorage if user is not authenticated
@@ -114,7 +114,6 @@ const WorkoutSessionScreen = ({ route }) => {
           // Save back to AsyncStorage
           await AsyncStorage.setItem('localWorkoutLogs', JSON.stringify(existingLogs));
         } catch (storageError) {
-          console.error('Error saving to local storage:', storageError);
           throw new Error('Failed to save workout locally');
         }
       }
@@ -122,26 +121,25 @@ const WorkoutSessionScreen = ({ route }) => {
       Alert.alert(
         'Workout Complete! 🎉',
         user?.uid
-          ? `Great job! Your workout has been saved.`
+          ? 'Great job! Your workout has been saved.'
           : 'Workout saved locally!',
         [
           {
             text: 'OK',
-            onPress: () => navigation.navigate('Home')
-          }
+            onPress: () => navigation.navigate('Home'),
+          },
         ]
       );
       
     } catch (error) {
-      console.error('Error saving workout log:', error);
       Alert.alert(
         'Error',
         'Failed to save your workout. Please try again.',
         [
           {
             text: 'OK',
-            onPress: () => setIsSaving(false)
-          }
+            onPress: () => setIsSaving(false),
+          },
         ]
       );
     } finally {
@@ -183,7 +181,7 @@ const WorkoutSessionScreen = ({ route }) => {
             <View 
               style={[
                 styles.overallProgressFill, 
-                { width: `${overallProgress}%` }
+                { width: `${overallProgress}%` },
               ]} 
             />
           </View>
@@ -207,9 +205,9 @@ const WorkoutSessionScreen = ({ route }) => {
                 <View style={styles.exerciseHeader}>
                   <View style={styles.exerciseIcon}>
                     <Ionicons 
-                      name={isComplete ? "checkmark-circle" : "barbell-outline"} 
+                      name={isComplete ? 'checkmark-circle' : 'barbell-outline'} 
                       size={28} 
-                      color={isComplete ? "#2ECC71" : "#fff"} 
+                      color={isComplete ? '#2ECC71' : '#fff'} 
                     />
                   </View>
                   <View style={styles.exerciseInfo}>
@@ -239,7 +237,7 @@ const WorkoutSessionScreen = ({ route }) => {
                 <TouchableOpacity
                   style={[
                     styles.completeButton,
-                    isComplete && styles.completeButtonDisabled
+                    isComplete && styles.completeButtonDisabled,
                   ]}
                   onPress={() => handleCompleteSet(index)}
                   disabled={isComplete}
@@ -269,7 +267,7 @@ const WorkoutSessionScreen = ({ route }) => {
           <TouchableOpacity
             style={[
               styles.finishButton,
-              (!isWorkoutComplete || isSaving) && styles.finishButtonDisabled
+              (!isWorkoutComplete || isSaving) && styles.finishButtonDisabled,
             ]}
             onPress={handleFinishWorkout}
             disabled={!isWorkoutComplete || isSaving}

@@ -27,8 +27,8 @@ const ProgressBar = ({ currentStep = 1, totalSteps = 1 }) => {
               width: progressAnim.interpolate({
                 inputRange: [0, 100],
                 outputRange: ['0%', '100%'],
-              })
-            }
+              }),
+            },
           ]} 
         />
       </View>

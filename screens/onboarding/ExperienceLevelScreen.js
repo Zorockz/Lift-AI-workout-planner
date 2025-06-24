@@ -30,7 +30,7 @@ const ExperienceLevelScreen = ({ navigation }) => {
       icon: 'weight-lifter',
       value: 'beginner',
       iconColor: '#4CAF50',
-      iconBackground: '#E8F5E9'
+      iconBackground: '#E8F5E9',
     },
     {
       title: 'Intermediate',
@@ -38,7 +38,7 @@ const ExperienceLevelScreen = ({ navigation }) => {
       icon: 'dumbbell',
       value: 'intermediate',
       iconColor: '#FF9800',
-      iconBackground: '#FFF3E0'
+      iconBackground: '#FFF3E0',
     },
     {
       title: 'Advanced',
@@ -46,8 +46,8 @@ const ExperienceLevelScreen = ({ navigation }) => {
       icon: 'weight',
       value: 'advanced',
       iconColor: '#F44336',
-      iconBackground: '#FFEBEE'
-    }
+      iconBackground: '#FFEBEE',
+    },
   ];
 
   return (

@@ -39,14 +39,14 @@ const ScheduleInputScreen = ({ navigation }) => {
                 key={n}
                 style={[
                   styles.numberContainer,
-                  n === daysPerWeek && styles.selectedContainer
+                  n === daysPerWeek && styles.selectedContainer,
                 ]}
                 onPress={() => setDaysPerWeek(n)}
               >
                 <Text 
                   style={[
                     styles.number,
-                    n === daysPerWeek && styles.selectedNumber
+                    n === daysPerWeek && styles.selectedNumber,
                   ]}
                 >
                   {n}

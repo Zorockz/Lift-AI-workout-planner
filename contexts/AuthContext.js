@@ -8,8 +8,8 @@ import { GoogleAuthProvider, signInWithCredential, onAuthStateChanged } from 'fi
 import { getAuthInstance } from '../config/firebase';
 import { Platform } from 'react-native';
 
-// Development flag - set to true during development
-const IS_DEVELOPMENT = true;
+// Development flag - set to false for production
+const IS_DEVELOPMENT = false;
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -23,7 +23,7 @@ const defaultContext = {
   signOut: () => {},
   continueAsGuest: () => {},
   clearError: () => {},
-  completeOnboarding: () => {}
+  completeOnboarding: () => {},
 };
 
 const AuthContext = createContext(defaultContext);
@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }) => {
   // Use the redirect URI from app.json if available, otherwise generate one
   const redirectUri = authSession?.redirectUri || AuthSession.makeRedirectUri({
     scheme: 'fitnesspal',
-    useProxy: authSession?.useProxy ?? Platform.OS !== 'web'
+    useProxy: authSession?.useProxy ?? Platform.OS !== 'web',
   });
 
   const [request, response, promptAsync] = Google.useAuthRequest({
@@ -72,7 +72,7 @@ export const AuthProvider = ({ children }) => {
     androidClientId: clientId,
     webClientId: clientId,
     redirectUri,
-    scopes: ['profile', 'email']
+    scopes: ['profile', 'email'],
   });
 
   useEffect(() => {
@@ -81,7 +81,6 @@ export const AuthProvider = ({ children }) => {
       handleSignIn(id_token);
     } else if (response?.type === 'error') {
       setError('Google sign in failed. Please try again.');
-      console.error('Google sign in error:', response.error);
     }
   }, [response]);
 
@@ -127,32 +126,34 @@ export const AuthProvider = ({ children }) => {
   const signOut = async () => {
     try {
       setLoading(true);
-      setError(null);
+      const auth = getAuthInstance();
+      await auth.signOut();
       
-      if (!isGuest) {
-        // Sign out from Firebase
-        const auth = getAuthInstance();
-        await auth.signOut();
+      // Clear local storage but preserve onboarding completion
+      const onboardingCompleted = await AsyncStorage.getItem('onboardingCompleted');
+      const userProfile = await AsyncStorage.getItem('userProfile');
+      
+      await AsyncStorage.clear();
+      
+      // Restore onboarding completion and user profile
+      if (onboardingCompleted) {
+        await AsyncStorage.setItem('onboardingCompleted', onboardingCompleted);
+      }
+      if (userProfile) {
+        await AsyncStorage.setItem('userProfile', userProfile);
       }
       
-      // Clear all stored data except onboarding completion
       setUser(null);
-      setIsGuest(false);
-      // Do NOT reset onboarding completion
-      // setIsOnboardingComplete(false);
-      await AsyncStorage.multiRemove([
-        'user',
-        'isGuest',
-        // 'isOnboardingComplete',
-        // 'onboardingComplete',
-        'workoutPlan',
-        'completedExercises'
-      ]);
+      setIsOnboardingComplete(onboardingCompleted === 'true');
       
-      console.log('Sign out successful');
+      if (IS_DEVELOPMENT) {
+        console.log('Sign out successful');
+      }
     } catch (error) {
-      console.error('Error signing out:', error);
-      setError('Failed to sign out. Please try again.');
+      if (IS_DEVELOPMENT) {
+        console.error('Sign out error:', error);
+      }
+      setError(error.message);
     } finally {
       setLoading(false);
     }

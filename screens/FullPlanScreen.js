@@ -35,7 +35,7 @@ const FullPlanScreen = () => {
   const handleStartWorkout = (dayKey, exercises) => {
     navigation.navigate('WorkoutSession', {
       exercises: exercises,
-      dayKey: dayKey
+      dayKey: dayKey,
     });
   };
 

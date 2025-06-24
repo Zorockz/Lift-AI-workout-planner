@@ -40,7 +40,7 @@ export const OnboardingProvider = ({ children }) => {
         setOnboarding(JSON.parse(savedData));
       }
     } catch (error) {
-      console.error('Error loading onboarding data:', error);
+      // Remove all console.error statements for production
     }
   };
 
@@ -50,7 +50,7 @@ export const OnboardingProvider = ({ children }) => {
     try {
       await AsyncStorage.setItem('onboardingData', JSON.stringify(updatedData));
     } catch (error) {
-      console.error('Error saving onboarding data:', error);
+      // Remove all console.error statements for production
     }
   };
 
@@ -84,7 +84,7 @@ export const OnboardingProvider = ({ children }) => {
       await AsyncStorage.removeItem('onboardingInProgress');
       return true;
     } catch (error) {
-      console.error('Error completing onboarding:', error);
+      // Remove all console.error statements for production
       return false;
     }
   };

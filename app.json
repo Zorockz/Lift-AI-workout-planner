@@ -13,14 +13,34 @@
       "bundleIdentifier": "com.zorockz.liftai",
       "buildNumber": "1.0.0",
       "infoPlist": {
-        "CFBundleDisplayName": "Lift AI: Workout Planner"
+        "CFBundleDisplayName": "Lift AI: Workout Planner",
+        "NSCameraUsageDescription": "This app uses the camera to take profile pictures and document your fitness progress.",
+        "NSPhotoLibraryUsageDescription": "This app accesses your photo library to select profile pictures and save workout progress photos.",
+        "NSLocationWhenInUseUsageDescription": "This app uses location to provide location-based workout recommendations."
       }
+    },
+    "android": {
+      "package": "com.zorockz.liftai",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
       "name": "Lift AI: Workout Planner"
     },
     "scheme": "liftaiworkoutplanner",
+    "privacy": "public",
+    "platforms": ["ios", "android", "web"],
     "extra": {
       "googleClientId": "234734836314-q9irge2opsfgv4ivjvcvjuk976ofrfu3.apps.googleusercontent.com",
       "iosClientId": "234734836314-g00v0tabcmj2s67q9ihhtbb8rlt6vmdf.apps.googleusercontent.com",
@@ -28,6 +48,17 @@
         "redirectUri": "liftaiworkoutplanner:/oauthredirect",
         "useProxy": false
       }
+    },
+    "hooks": {
+      "postPublish": [
+        {
+          "file": "sentry-expo/upload-sourcemaps",
+          "config": {
+            "organization": "your-sentry-org",
+            "project": "lift-ai-workout-planner"
+          }
+        }
+      ]
     }
   }
 }

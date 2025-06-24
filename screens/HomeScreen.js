@@ -66,7 +66,7 @@ const HomeScreen = () => {
     if (todayWorkout) {
       navigation.navigate('WorkoutSession', {
         exercises: todayWorkout.exercises,
-        dayKey: todayKey
+        dayKey: todayKey,
       });
     }
   };
@@ -129,7 +129,7 @@ const HomeScreen = () => {
         };
         setWorkoutPlan({ ...workoutPlan, weekPlan: newWeekPlan });
       } catch (error) {
-        console.error('Error generating today\'s workout:', error);
+        // Remove all console.error statements for production
       }
     }
   };

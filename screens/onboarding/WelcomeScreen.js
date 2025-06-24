@@ -21,8 +21,8 @@ const WelcomeScreen = ({ navigation }) => {
         [
           {
             text: 'OK',
-            onPress: clearError
-          }
+            onPress: clearError,
+          },
         ]
       );
     }
@@ -46,7 +46,7 @@ const WelcomeScreen = ({ navigation }) => {
       await signIn();
       // Navigation will be handled by the auth state change in App.js
     } catch (error) {
-      console.error('Error signing in:', error);
+      // Remove all console.error statements for production
     }
   };
 
@@ -72,7 +72,7 @@ const WelcomeScreen = ({ navigation }) => {
           </>
         )}
         <Button 
-          title={isOnboardingComplete ? "Sign In" : "Sign Up"}
+          title={isOnboardingComplete ? 'Sign In' : 'Sign Up'}
           onPress={handleSignUp}
           style={[commonStyles.button, { marginBottom: 16 }]}
         />

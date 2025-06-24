@@ -30,7 +30,7 @@ const ExerciseLocationScreen = ({ navigation }) => {
       icon: 'home',
       value: 'home',
       iconColor: '#4CAF50',
-      iconBackground: '#E8F5E9'
+      iconBackground: '#E8F5E9',
     },
     {
       title: 'Gym',
@@ -38,7 +38,7 @@ const ExerciseLocationScreen = ({ navigation }) => {
       icon: 'weight-lifter',
       value: 'gym',
       iconColor: '#2196F3',
-      iconBackground: '#E3F2FD'
+      iconBackground: '#E3F2FD',
     },
     {
       title: 'Outdoors',
@@ -46,7 +46,7 @@ const ExerciseLocationScreen = ({ navigation }) => {
       icon: 'nature',
       value: 'outdoors',
       iconColor: '#FF9800',
-      iconBackground: '#FFF3E0'
+      iconBackground: '#FFF3E0',
     },
     {
       title: 'Mixed',
@@ -54,8 +54,8 @@ const ExerciseLocationScreen = ({ navigation }) => {
       icon: 'map-marker-multiple',
       value: 'mixed',
       iconColor: '#9C27B0',
-      iconBackground: '#F3E5F5'
-    }
+      iconBackground: '#F3E5F5',
+    },
   ];
 
   return (

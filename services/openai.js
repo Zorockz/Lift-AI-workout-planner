@@ -15,12 +15,12 @@ export const sendMessageToAI = async (message) => {
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful fitness assistant that provides personalized workout and nutrition advice.'
+            content: 'You are a helpful fitness assistant that provides personalized workout and nutrition advice.',
           },
           {
             role: 'user',
-            content: message
-          }
+            content: message,
+          },
         ],
       }),
     });
@@ -28,7 +28,6 @@ export const sendMessageToAI = async (message) => {
     const data = await response.json();
     return data.choices[0].message.content;
   } catch (error) {
-    console.error('Error sending message to OpenAI:', error);
     throw error;
   }
 }; 

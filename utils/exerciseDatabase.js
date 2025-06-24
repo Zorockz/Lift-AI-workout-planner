@@ -12,7 +12,7 @@ const exerciseDatabase = {
         { name: 'Cable Tricep Pushdown', sets: 3, reps: 12, restTime: 60, equipment: 'full_gym', notes: 'Keep elbows tucked' },
         { name: 'Leg Curl', sets: 3, reps: 15, restTime: 45, equipment: 'full_gym', notes: 'Control the movement' },
         { name: 'Chest Fly Machine', sets: 3, reps: 12, restTime: 60, equipment: 'full_gym', notes: 'Focus on chest squeeze' },
-        { name: 'Standing Calf Raise', sets: 3, reps: 15, restTime: 45, equipment: 'full_gym', notes: 'Full range of motion' }
+        { name: 'Standing Calf Raise', sets: 3, reps: 15, restTime: 45, equipment: 'full_gym', notes: 'Full range of motion' },
       ],
       intermediate: [
         { name: 'Barbell Bench Press', sets: 4, reps: 10, restTime: 90, equipment: 'full_gym', notes: 'Focus on chest contraction' },
@@ -24,7 +24,7 @@ const exerciseDatabase = {
         { name: 'Incline Dumbbell Press', sets: 4, reps: 10, restTime: 90, equipment: 'full_gym', notes: 'Focus on upper chest' },
         { name: 'Leg Press', sets: 4, reps: 12, restTime: 90, equipment: 'full_gym', notes: 'Drive through heels' },
         { name: 'Face Pulls', sets: 3, reps: 15, restTime: 60, equipment: 'full_gym', notes: 'Control the movement' },
-        { name: 'Cable Bicep Curl', sets: 3, reps: 12, restTime: 60, equipment: 'full_gym', notes: 'Squeeze at the top' }
+        { name: 'Cable Bicep Curl', sets: 3, reps: 12, restTime: 60, equipment: 'full_gym', notes: 'Squeeze at the top' },
       ],
       advanced: [
         { name: 'Deadlifts', sets: 5, reps: 5, restTime: 120, equipment: 'full_gym', notes: 'Focus on hip hinge' },
@@ -36,8 +36,8 @@ const exerciseDatabase = {
         { name: 'Bulgarian Split Squats', sets: 4, reps: 10, restTime: 90, equipment: 'full_gym', notes: 'Keep torso upright' },
         { name: 'Pendlay Row', sets: 4, reps: 8, restTime: 90, equipment: 'full_gym', notes: 'Explosive pull' },
         { name: 'Arnold Press', sets: 4, reps: 10, restTime: 90, equipment: 'full_gym', notes: 'Rotate wrists' },
-        { name: 'Barbell Hip Thrust', sets: 4, reps: 10, restTime: 90, equipment: 'full_gym', notes: 'Squeeze glutes at top' }
-      ]
+        { name: 'Barbell Hip Thrust', sets: 4, reps: 10, restTime: 90, equipment: 'full_gym', notes: 'Squeeze glutes at top' },
+      ],
     },
     home: {
       beginner: [
@@ -50,7 +50,7 @@ const exerciseDatabase = {
         { name: 'Superman', sets: 3, reps: 12, restTime: 45, equipment: 'bodyweight', notes: 'Hold at top' },
         { name: 'Wall Sit', sets: 3, reps: 30, restTime: 45, equipment: 'bodyweight', notes: 'Hold position' },
         { name: 'Step-ups', sets: 3, reps: 12, restTime: 60, equipment: 'bodyweight', notes: 'Alternate legs' },
-        { name: 'Standing Calf Raise', sets: 3, reps: 15, restTime: 45, equipment: 'bodyweight', notes: 'Full range of motion' }
+        { name: 'Standing Calf Raise', sets: 3, reps: 15, restTime: 45, equipment: 'bodyweight', notes: 'Full range of motion' },
       ],
       intermediate: [
         { name: 'Diamond Push-ups', sets: 4, reps: 12, restTime: 60, equipment: 'bodyweight', notes: 'Focus on triceps' },
@@ -62,7 +62,7 @@ const exerciseDatabase = {
         { name: 'Reverse Lunge', sets: 3, reps: 12, restTime: 60, equipment: 'bodyweight', notes: 'Alternate legs' },
         { name: 'V-Ups', sets: 3, reps: 15, restTime: 45, equipment: 'bodyweight', notes: 'Control the movement' },
         { name: 'Tricep Dips', sets: 3, reps: 12, restTime: 60, equipment: 'bodyweight', notes: 'Use chair or bench' },
-        { name: 'Russian Twist', sets: 3, reps: 20, restTime: 45, equipment: 'bodyweight', notes: 'Twist fully' }
+        { name: 'Russian Twist', sets: 3, reps: 20, restTime: 45, equipment: 'bodyweight', notes: 'Twist fully' },
       ],
       advanced: [
         { name: 'Pike Push-ups', sets: 4, reps: 12, restTime: 60, equipment: 'bodyweight', notes: 'Focus on shoulders' },
@@ -74,9 +74,9 @@ const exerciseDatabase = {
         { name: 'Single-leg Glute Bridge', sets: 3, reps: 12, restTime: 60, equipment: 'bodyweight', notes: 'Alternate legs' },
         { name: 'Dragon Flag', sets: 3, reps: 6, restTime: 120, equipment: 'bodyweight', notes: 'Advanced core' },
         { name: 'Clapping Push-ups', sets: 3, reps: 10, restTime: 60, equipment: 'bodyweight', notes: 'Explosive power' },
-        { name: 'L-Sit', sets: 3, reps: 20, restTime: 60, equipment: 'bodyweight', notes: 'Hold position' }
-      ]
-    }
+        { name: 'L-Sit', sets: 3, reps: 20, restTime: 60, equipment: 'bodyweight', notes: 'Hold position' },
+      ],
+    },
   },
   cardio: {
     gym: {
@@ -87,7 +87,7 @@ const exerciseDatabase = {
         { name: 'Rowing Machine', duration: 10, intensity: 'low', equipment: 'full_gym', notes: 'Focus on form' },
         { name: 'Stair Climber', duration: 10, intensity: 'low', equipment: 'full_gym', notes: 'Steady pace' },
         { name: 'Recumbent Bike', duration: 15, intensity: 'low', equipment: 'full_gym', notes: 'Low impact' },
-        { name: 'Arm Ergometer', duration: 10, intensity: 'low', equipment: 'full_gym', notes: 'Upper body cardio' }
+        { name: 'Arm Ergometer', duration: 10, intensity: 'low', equipment: 'full_gym', notes: 'Upper body cardio' },
       ],
       intermediate: [
         { name: 'Treadmill Jog', duration: 20, intensity: 'medium', equipment: 'full_gym', notes: 'Steady pace' },
@@ -97,7 +97,7 @@ const exerciseDatabase = {
         { name: 'Stair Climber', duration: 15, intensity: 'medium', equipment: 'full_gym', notes: 'Keep good posture' },
         { name: 'Spin Bike', duration: 20, intensity: 'medium', equipment: 'full_gym', notes: 'Interval sprints' },
         { name: 'HIIT Treadmill', duration: 15, intensity: 'high', equipment: 'full_gym', notes: 'Intervals' },
-        { name: 'Battle Ropes', duration: 10, intensity: 'high', equipment: 'full_gym', notes: 'Explosive intervals' }
+        { name: 'Battle Ropes', duration: 10, intensity: 'high', equipment: 'full_gym', notes: 'Explosive intervals' },
       ],
       advanced: [
         { name: 'Treadmill Run', duration: 25, intensity: 'high', equipment: 'full_gym', notes: 'Push pace' },
@@ -107,8 +107,8 @@ const exerciseDatabase = {
         { name: 'Elliptical HIIT', duration: 15, intensity: 'high', equipment: 'full_gym', notes: 'Intervals' },
         { name: 'Battle Ropes HIIT', duration: 10, intensity: 'high', equipment: 'full_gym', notes: 'Explosive intervals' },
         { name: 'Spin Bike Sprints', duration: 15, intensity: 'high', equipment: 'full_gym', notes: 'Sprint intervals' },
-        { name: 'Treadmill Incline Sprints', duration: 10, intensity: 'high', equipment: 'full_gym', notes: 'High incline' }
-      ]
+        { name: 'Treadmill Incline Sprints', duration: 10, intensity: 'high', equipment: 'full_gym', notes: 'High incline' },
+      ],
     },
     home: {
       beginner: [
@@ -117,7 +117,7 @@ const exerciseDatabase = {
         { name: 'Step Touch', duration: 10, intensity: 'low', equipment: 'bodyweight', notes: 'Side to side' },
         { name: 'Seated Jacks', duration: 10, intensity: 'low', equipment: 'bodyweight', notes: 'Chair supported' },
         { name: 'Standing Knee Lifts', duration: 10, intensity: 'low', equipment: 'bodyweight', notes: 'Alternate knees' },
-        { name: 'Jumping Jacks', sets: 3, reps: 20, restTime: 30, equipment: 'bodyweight', notes: 'Land softly' }
+        { name: 'Jumping Jacks', sets: 3, reps: 20, restTime: 30, equipment: 'bodyweight', notes: 'Land softly' },
       ],
       intermediate: [
         { name: 'Jogging in Place', duration: 20, intensity: 'medium', equipment: 'bodyweight', notes: 'Steady pace' },
@@ -126,7 +126,7 @@ const exerciseDatabase = {
         { name: 'Mountain Climbers', sets: 4, reps: 20, restTime: 30, equipment: 'bodyweight', notes: 'Quick pace' },
         { name: 'Jump Rope', duration: 10, intensity: 'medium', equipment: 'bodyweight', notes: 'Steady pace' },
         { name: 'Burpees', sets: 3, reps: 10, restTime: 45, equipment: 'bodyweight', notes: 'Explosive movement' },
-        { name: 'Skaters', sets: 3, reps: 20, restTime: 30, equipment: 'bodyweight', notes: 'Side to side' }
+        { name: 'Skaters', sets: 3, reps: 20, restTime: 30, equipment: 'bodyweight', notes: 'Side to side' },
       ],
       advanced: [
         { name: 'HIIT Sprints', duration: 15, intensity: 'high', equipment: 'bodyweight', notes: 'All out effort' },
@@ -136,9 +136,9 @@ const exerciseDatabase = {
         { name: 'Mountain Climbers', sets: 4, reps: 30, restTime: 30, equipment: 'bodyweight', notes: 'Quick pace' },
         { name: 'Jump Rope Double Unders', duration: 10, intensity: 'high', equipment: 'bodyweight', notes: 'Advanced' },
         { name: 'Plank Jacks', sets: 3, reps: 20, restTime: 30, equipment: 'bodyweight', notes: 'Core and cardio' },
-        { name: 'Skaters', sets: 4, reps: 20, restTime: 30, equipment: 'bodyweight', notes: 'Side to side' }
-      ]
-    }
+        { name: 'Skaters', sets: 4, reps: 20, restTime: 30, equipment: 'bodyweight', notes: 'Side to side' },
+      ],
+    },
   },
   maintain: {
     gym: {
@@ -148,7 +148,7 @@ const exerciseDatabase = {
         { name: 'Treadmill Walking', duration: 15, intensity: 'low', equipment: 'full_gym', notes: 'Comfortable pace' },
         { name: 'Seated Row', sets: 3, reps: 10, restTime: 60, equipment: 'full_gym', notes: 'Squeeze shoulder blades' },
         { name: 'Lat Pulldown', sets: 3, reps: 10, restTime: 60, equipment: 'full_gym', notes: 'Full range' },
-        { name: 'Elliptical', duration: 10, intensity: 'low', equipment: 'full_gym', notes: 'Smooth motion' }
+        { name: 'Elliptical', duration: 10, intensity: 'low', equipment: 'full_gym', notes: 'Smooth motion' },
       ],
       intermediate: [
         { name: 'Barbell Squats', sets: 3, reps: 8, restTime: 90, equipment: 'full_gym', notes: 'Keep form' },
@@ -157,7 +157,7 @@ const exerciseDatabase = {
         { name: 'Treadmill Jog', duration: 15, intensity: 'medium', equipment: 'full_gym', notes: 'Steady pace' },
         { name: 'Seated Row', sets: 3, reps: 10, restTime: 60, equipment: 'full_gym', notes: 'Squeeze shoulder blades' },
         { name: 'Leg Press', sets: 3, reps: 10, restTime: 60, equipment: 'full_gym', notes: 'Drive through heels' },
-        { name: 'Chest Fly Machine', sets: 3, reps: 10, restTime: 60, equipment: 'full_gym', notes: 'Focus on chest squeeze' }
+        { name: 'Chest Fly Machine', sets: 3, reps: 10, restTime: 60, equipment: 'full_gym', notes: 'Focus on chest squeeze' },
       ],
       advanced: [
         { name: 'Deadlifts', sets: 3, reps: 6, restTime: 90, equipment: 'full_gym', notes: 'Focus on form' },
@@ -166,8 +166,8 @@ const exerciseDatabase = {
         { name: 'Barbell Bench Press', sets: 3, reps: 8, restTime: 90, equipment: 'full_gym', notes: 'Focus on chest contraction' },
         { name: 'Barbell Squats', sets: 3, reps: 8, restTime: 90, equipment: 'full_gym', notes: 'Keep chest up' },
         { name: 'Elliptical', duration: 15, intensity: 'medium', equipment: 'full_gym', notes: 'Steady pace' },
-        { name: 'Treadmill Run', duration: 15, intensity: 'high', equipment: 'full_gym', notes: 'Push pace' }
-      ]
+        { name: 'Treadmill Run', duration: 15, intensity: 'high', equipment: 'full_gym', notes: 'Push pace' },
+      ],
     },
     home: {
       beginner: [
@@ -176,7 +176,7 @@ const exerciseDatabase = {
         { name: 'Brisk Walking', duration: 10, intensity: 'low', equipment: 'bodyweight', notes: 'Comfortable pace' },
         { name: 'Step-ups', sets: 3, reps: 10, restTime: 60, equipment: 'bodyweight', notes: 'Alternate legs' },
         { name: 'Wall Sit', sets: 3, reps: 20, restTime: 45, equipment: 'bodyweight', notes: 'Hold position' },
-        { name: 'Plank', sets: 3, reps: 20, restTime: 45, equipment: 'bodyweight', notes: 'Hold position' }
+        { name: 'Plank', sets: 3, reps: 20, restTime: 45, equipment: 'bodyweight', notes: 'Hold position' },
       ],
       intermediate: [
         { name: 'Diamond Push-ups', sets: 3, reps: 10, restTime: 60, equipment: 'bodyweight', notes: 'Focus on triceps' },
@@ -185,7 +185,7 @@ const exerciseDatabase = {
         { name: 'Reverse Lunge', sets: 3, reps: 10, restTime: 60, equipment: 'bodyweight', notes: 'Alternate legs' },
         { name: 'V-Ups', sets: 3, reps: 12, restTime: 45, equipment: 'bodyweight', notes: 'Control the movement' },
         { name: 'Burpees', sets: 3, reps: 10, restTime: 45, equipment: 'bodyweight', notes: 'Explosive movement' },
-        { name: 'Russian Twist', sets: 3, reps: 15, restTime: 45, equipment: 'bodyweight', notes: 'Twist fully' }
+        { name: 'Russian Twist', sets: 3, reps: 15, restTime: 45, equipment: 'bodyweight', notes: 'Twist fully' },
       ],
       advanced: [
         { name: 'Pistol Squats', sets: 3, reps: 6, restTime: 90, equipment: 'bodyweight', notes: 'Progress gradually' },
@@ -194,10 +194,10 @@ const exerciseDatabase = {
         { name: 'Handstand Push-ups', sets: 3, reps: 4, restTime: 120, equipment: 'bodyweight', notes: 'Wall support if needed' },
         { name: 'Dragon Flag', sets: 3, reps: 4, restTime: 120, equipment: 'bodyweight', notes: 'Advanced core' },
         { name: 'Clapping Push-ups', sets: 3, reps: 8, restTime: 60, equipment: 'bodyweight', notes: 'Explosive power' },
-        { name: 'L-Sit', sets: 3, reps: 15, restTime: 60, equipment: 'bodyweight', notes: 'Hold position' }
-      ]
-    }
-  }
+        { name: 'L-Sit', sets: 3, reps: 15, restTime: 60, equipment: 'bodyweight', notes: 'Hold position' },
+      ],
+    },
+  },
 };
 
 export default exerciseDatabase; 

@@ -10,7 +10,7 @@ const OnboardingOptionCard = ({
   isSelected, 
   onSelect,
   iconColor = '#2075FF',
-  iconBackground = '#E3F2FD'
+  iconBackground = '#E3F2FD',
 }) => {
   return (
     <TouchableOpacity 

@@ -40,7 +40,7 @@ const TargetMusclesScreen = ({ navigation }) => {
       icon: 'weight-lifter',
       value: 'chest',
       iconColor: '#1976D2',
-      iconBackground: '#E3F2FD'
+      iconBackground: '#E3F2FD',
     },
     {
       title: 'Back',
@@ -48,7 +48,7 @@ const TargetMusclesScreen = ({ navigation }) => {
       icon: 'human-handsup',
       value: 'back',
       iconColor: '#4CAF50',
-      iconBackground: '#E8F5E9'
+      iconBackground: '#E8F5E9',
     },
     {
       title: 'Legs',
@@ -56,7 +56,7 @@ const TargetMusclesScreen = ({ navigation }) => {
       icon: 'run',
       value: 'legs',
       iconColor: '#FF9800',
-      iconBackground: '#FFF3E0'
+      iconBackground: '#FFF3E0',
     },
     {
       title: 'Shoulders',
@@ -64,7 +64,7 @@ const TargetMusclesScreen = ({ navigation }) => {
       icon: 'weight',
       value: 'shoulders',
       iconColor: '#9C27B0',
-      iconBackground: '#F3E5F5'
+      iconBackground: '#F3E5F5',
     },
     {
       title: 'Arms',
@@ -72,7 +72,7 @@ const TargetMusclesScreen = ({ navigation }) => {
       icon: 'arm-flex',
       value: 'arms',
       iconColor: '#F44336',
-      iconBackground: '#FFEBEE'
+      iconBackground: '#FFEBEE',
     },
     {
       title: 'Core',
@@ -80,8 +80,8 @@ const TargetMusclesScreen = ({ navigation }) => {
       icon: 'human-handsup',
       value: 'core',
       iconColor: '#009688',
-      iconBackground: '#E0F2F1'
-    }
+      iconBackground: '#E0F2F1',
+    },
   ];
 
   return (

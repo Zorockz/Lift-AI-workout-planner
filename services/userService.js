@@ -30,7 +30,6 @@ export const saveUserProfile = async (profile) => {
     await setDoc(doc(db, 'users', uid, 'profile'), profile);
     return true;
   } catch (error) {
-    console.error('Error saving user profile:', error);
     throw error;
   }
 };
@@ -49,7 +48,6 @@ export const saveUserPlan = async (plan) => {
     await setDoc(doc(db, 'users', uid, 'plans', planId), { days: plan });
     return planId;
   } catch (error) {
-    console.error('Error saving workout plan:', error);
     throw error;
   }
 };
@@ -68,7 +66,6 @@ export const saveWorkoutLog = async (workoutLog) => {
     await setDoc(doc(db, 'users', uid, 'logs', logId), workoutLog);
     return logId;
   } catch (error) {
-    console.error('Error saving workout log:', error);
     throw error;
   }
 };
@@ -84,7 +81,6 @@ export const generateAndSavePlan = async (preferences = {}) => {
     const planId = await generatePlan(preferences);
     return planId;
   } catch (error) {
-    console.error('Error in generateAndSavePlan:', error);
     throw error;
   }
 };
@@ -106,7 +102,6 @@ export const getUserProfile = async () => {
       return null;
     }
   } catch (error) {
-    console.error('Error fetching user profile:', error);
     throw error;
   }
 }; 

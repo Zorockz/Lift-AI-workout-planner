@@ -10,18 +10,18 @@ const getWorkoutNotes = (goal, experience) => {
     strength: {
       beginner: 'Focus on form and technique. Take full rest between sets.',
       intermediate: 'Push yourself while maintaining good form. Consider supersets.',
-      advanced: 'Challenge yourself with complex movements and shorter rest periods.'
+      advanced: 'Challenge yourself with complex movements and shorter rest periods.',
     },
     cardio: {
       beginner: 'Start slow and build endurance. Stay hydrated.',
       intermediate: 'Mix high and low intensity. Monitor heart rate.',
-      advanced: 'Push your limits with interval training. Focus on recovery.'
+      advanced: 'Push your limits with interval training. Focus on recovery.',
     },
     maintain: {
       beginner: 'Focus on consistency and proper form. Take your time with each exercise.',
       intermediate: 'Maintain current fitness level with balanced workouts. Stay consistent.',
-      advanced: 'Keep challenging yourself while maintaining good form and technique.'
-    }
+      advanced: 'Keep challenging yourself while maintaining good form and technique.',
+    },
   };
   
   return notes[goal][experience];
@@ -35,18 +35,18 @@ const getRestDayNotes = (goal, experience) => {
     strength: {
       beginner: 'Focus on light stretching and mobility work.',
       intermediate: 'Active recovery - light cardio or mobility work.',
-      advanced: 'Active recovery - mobility work and foam rolling.'
+      advanced: 'Active recovery - mobility work and foam rolling.',
     },
     cardio: {
       beginner: 'Complete rest day. Focus on hydration.',
       intermediate: 'Light stretching and mobility work.',
-      advanced: 'Active recovery - light cardio or mobility work.'
+      advanced: 'Active recovery - light cardio or mobility work.',
     },
     maintain: {
       beginner: 'Light stretching and mobility work.',
       intermediate: 'Active recovery - light cardio or mobility work.',
-      advanced: 'Active recovery - mobility work and foam rolling.'
-    }
+      advanced: 'Active recovery - mobility work and foam rolling.',
+    },
   };
   
   return notes[goal][experience];
@@ -77,16 +77,16 @@ const filterExercisesByEquipment = (exercises, equipment) => {
     // Check if user has the required equipment
     return equipment.some(userEquipment => {
       switch (userEquipment) {
-        case 'full_gym':
-          return true; // Full gym has all equipment
-        case 'home_gym':
-          return ['bodyweight', 'dumbbells', 'home_gym'].includes(exercise.equipment);
-        case 'dumbbells':
-          return ['bodyweight', 'dumbbells'].includes(exercise.equipment);
-        case 'bodyweight':
-          return exercise.equipment === 'bodyweight';
-        default:
-          return false;
+      case 'full_gym':
+        return true; // Full gym has all equipment
+      case 'home_gym':
+        return ['bodyweight', 'dumbbells', 'home_gym'].includes(exercise.equipment);
+      case 'dumbbells':
+        return ['bodyweight', 'dumbbells'].includes(exercise.equipment);
+      case 'bodyweight':
+        return exercise.equipment === 'bodyweight';
+      default:
+        return false;
       }
     });
   });
@@ -100,8 +100,8 @@ function splitHighRepExercise(ex) {
   }
   if (ex.reps > 15) {
     // Target 8-15 reps per set, max 5 sets
-    let totalReps = (ex.reps || 0) * (ex.sets || 1);
-    let sets = Math.min(5, Math.ceil(totalReps / 12)); // Aim for ~12 reps per set
+    const totalReps = (ex.reps || 0) * (ex.sets || 1);
+    const sets = Math.min(5, Math.ceil(totalReps / 12)); // Aim for ~12 reps per set
     let reps = Math.ceil(totalReps / sets);
     reps = Math.max(8, Math.min(15, reps));
     return { ...ex, sets, reps };
@@ -125,14 +125,12 @@ const generateExercisesForDay = ({ experience, goal, equipment, location, dayOfW
   
   // If no exercises found for current location, try the other location
   if (filteredExercises.length === 0) {
-    console.log(`No exercises found for ${locationKey} location, trying alternative location`);
     const alternativeLocationKey = locationKey === 'gym' ? 'home' : 'gym';
     
     if (exerciseDatabase[goal] && exerciseDatabase[goal][alternativeLocationKey] && exerciseDatabase[goal][alternativeLocationKey][experience]) {
       exercisePool = exerciseDatabase[goal][alternativeLocationKey][experience];
       filteredExercises = filterExercisesByEquipment(exercisePool, equipment);
       locationKey = alternativeLocationKey;
-      console.log(`Found ${filteredExercises.length} exercises for ${alternativeLocationKey} location`);
     }
   }
   
@@ -160,7 +158,7 @@ const generateExercisesForDay = ({ experience, goal, equipment, location, dayOfW
       legs: ['squat', 'leg', 'lunge', 'deadlift'],
       shoulders: ['press', 'shoulder', 'overhead'],
       arms: ['curl', 'tricep', 'bicep', 'diamond'],
-      core: ['plank', 'crunch', 'sit-up', 'core', 'hollow']
+      core: ['plank', 'crunch', 'sit-up', 'core', 'hollow'],
     };
     
     const targetKeywords = muscleGroupExercises[targetMuscleGroup] || [];
@@ -206,7 +204,7 @@ const generateExercisesForDay = ({ experience, goal, equipment, location, dayOfW
 
   // Ensure all exercises have sets/reps for strength/maintain, and duration for cardio
   return selectedExercises.map(ex => {
-    let processed = splitHighRepExercise(ex);
+    const processed = splitHighRepExercise(ex);
 
     // Ensure only duration/timed or running exercises have sets: 1
     if ((processed.duration || /run|running/i.test(processed.name)) && processed.sets !== 1) {
@@ -238,7 +236,7 @@ export const generatePlan = async (profile) => {
     build_muscle: 'strength',
     lose_weight: 'cardio',
     improve_fitness: 'cardio',
-    maintain: 'maintain'
+    maintain: 'maintain',
   };
   
   const { 
@@ -246,7 +244,7 @@ export const generatePlan = async (profile) => {
     experience = 'beginner', 
     goal = 'strength', 
     equipment = [],
-    location = 'home'
+    location = 'home',
   } = profile;
   
   const mappedGoal = goalMap[goal] || goal;
@@ -291,7 +289,7 @@ export const generatePlan = async (profile) => {
       weekPlan[dayKey] = {
         date,
         type: 'rest',
-        notes: getRestDayNotes(mappedGoal, experience)
+        notes: getRestDayNotes(mappedGoal, experience),
       };
     } else {
       try {
@@ -300,22 +298,21 @@ export const generatePlan = async (profile) => {
           goal: mappedGoal,
           equipment,
           location,
-          dayOfWeek: i
+          dayOfWeek: i,
         });
         
         weekPlan[dayKey] = {
           date,
           type: 'workout',
           exercises,
-          notes: getWorkoutNotes(mappedGoal, experience)
+          notes: getWorkoutNotes(mappedGoal, experience),
         };
       } catch (error) {
-        console.error(`Error generating exercises for day ${i + 1}:`, error);
         // Fallback to rest day if exercise generation fails
         weekPlan[dayKey] = {
           date,
           type: 'rest',
-          notes: 'Rest day due to exercise generation error'
+          notes: 'Rest day due to exercise generation error',
         };
       }
     }
@@ -367,8 +364,8 @@ export const generatePlan = async (profile) => {
       daysPerWeek: workoutDays,
       equipment,
       location,
-      generatedAt: new Date().toISOString()
-    }
+      generatedAt: new Date().toISOString(),
+    },
   };
 
   return plan;
@@ -390,13 +387,12 @@ const savePlan = async (plan) => {
       createdAt: serverTimestamp(),
       status: 'active',
       userId: auth.currentUser?.uid || 'anonymous',
-      isPublic: true
+      isPublic: true,
     };
 
     await setDoc(planDoc, planData);
     return planId;
   } catch (error) {
-    console.error('Error saving workout plan:', error);
     if (error.code === 'permission-denied') {
       try {
         const publicPlansRef = collection(db, 'publicPlans');
@@ -405,11 +401,10 @@ const savePlan = async (plan) => {
           plan,
           createdAt: serverTimestamp(),
           status: 'active',
-          isPublic: true
+          isPublic: true,
         });
         return planId;
       } catch (fallbackError) {
-        console.error('Error saving to public plans:', fallbackError);
         throw fallbackError;
       }
     }
@@ -442,7 +437,6 @@ export const generateAndSavePlan = async (preferences = {}) => {
     const planId = await savePlan(plan);
     return planId;
   } catch (error) {
-    console.error('Error in generateAndSavePlan:', error);
     throw error;
   }
 }; 

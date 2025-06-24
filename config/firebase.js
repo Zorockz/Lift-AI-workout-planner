@@ -4,14 +4,14 @@ import { getFirestore } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCgrsDA-pOgqot5UCC6SgHXoRT1xKTfpO0",
-  authDomain: "fitpal-d4b78.firebaseapp.com",
-  projectId: "fitpal-d4b78",
-  storageBucket: "fitpal-d4b78.appspot.com",
-  messagingSenderId: "455544394958",
-  appId: "1:455544394958:web:b1cb0efc2b020b30292c9f",
-  measurementId: "G-M8D40Y5P4N",
-  databaseURL: "https://fitpal-d4b78-default-rtdb.firebaseio.com"
+  apiKey: 'AIzaSyCgrsDA-pOgqot5UCC6SgHXoRT1xKTfpO0',
+  authDomain: 'fitpal-d4b78.firebaseapp.com',
+  projectId: 'fitpal-d4b78',
+  storageBucket: 'fitpal-d4b78.appspot.com',
+  messagingSenderId: '455544394958',
+  appId: '1:455544394958:web:b1cb0efc2b020b30292c9f',
+  measurementId: 'G-M8D40Y5P4N',
+  databaseURL: 'https://fitpal-d4b78-default-rtdb.firebaseio.com',
 };
 
 // Initialize Firebase app
@@ -28,13 +28,12 @@ const initializeAuthInstance = () => {
     try {
       // Try to initialize auth with AsyncStorage persistence
       authInstance = initializeAuth(app, {
-        persistence: getReactNativePersistence(AsyncStorage)
+        persistence: getReactNativePersistence(AsyncStorage),
       });
     } catch (error) {
       if (error.code === 'auth/duplicate-instance') {
         authInstance = getAuth(app);
       } else {
-        console.error('Error initializing Firebase Auth:', error);
         // Fallback to getAuth if initialization fails
         authInstance = getAuth(app);
       }

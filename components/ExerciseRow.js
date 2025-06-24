@@ -6,7 +6,7 @@ import { colors } from '../utils/styles';
 const ExerciseRow = ({ exercise, index }) => {
   const [isCompleted, setIsCompleted] = useState(false);
 
-  if (exercise === "Rest Day") {
+  if (exercise === 'Rest Day') {
     return (
       <View style={styles.restDayContainer}>
         <Text style={styles.restDayText}>Rest Day</Text>
@@ -21,7 +21,7 @@ const ExerciseRow = ({ exercise, index }) => {
         <View style={styles.typeAndToggle}>
           <Text style={[
             styles.exerciseType,
-            exercise.type === "Warm-up" ? styles.warmupType : styles.mainType
+            exercise.type === 'Warm-up' ? styles.warmupType : styles.mainType,
           ]}>
             {exercise.type}
           </Text>
@@ -30,7 +30,7 @@ const ExerciseRow = ({ exercise, index }) => {
             onPress={() => setIsCompleted(!isCompleted)}
           >
             <MaterialCommunityIcons
-              name={isCompleted ? "checkbox-marked-circle" : "checkbox-blank-circle-outline"}
+              name={isCompleted ? 'checkbox-marked-circle' : 'checkbox-blank-circle-outline'}
               size={24}
               color={isCompleted ? colors.primary : colors.textSecondary}
             />
@@ -40,15 +40,15 @@ const ExerciseRow = ({ exercise, index }) => {
       </View>
       <Text style={[
         styles.exerciseName,
-        isCompleted && styles.completedExercise
+        isCompleted && styles.completedExercise,
       ]}>
         {exercise.name}
       </Text>
-      {exercise.type === "Main" && (
+      {exercise.type === 'Main' && (
         <View style={styles.exerciseDetails}>
           <Text style={[
             styles.exerciseDetail,
-            isCompleted && styles.completedExercise
+            isCompleted && styles.completedExercise,
           ]}>
             {(Number.isFinite(Number(exercise.sets)) && Number(exercise.sets) > 0 && Number.isFinite(Number(exercise.reps)) && Number(exercise.reps) > 0)
               ? `${exercise.sets} sets × ${exercise.reps} reps`
@@ -58,7 +58,7 @@ const ExerciseRow = ({ exercise, index }) => {
           </Text>
           <Text style={[
             styles.exerciseDetail,
-            isCompleted && styles.completedExercise
+            isCompleted && styles.completedExercise,
           ]}>
             Rest: {exercise.rest || exercise.restTime || 60} seconds
           </Text>

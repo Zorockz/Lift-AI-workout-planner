@@ -13,7 +13,7 @@ const FITNESS_GOALS = [
     description: 'Burn fat and get leaner',
     icon: 'weight-lifter',
     iconColor: '#4CAF50',
-    iconBackground: '#E8F5E9'
+    iconBackground: '#E8F5E9',
   },
   {
     id: 'build_muscle',
@@ -21,7 +21,7 @@ const FITNESS_GOALS = [
     description: 'Gain strength and muscle mass',
     icon: 'dumbbell',
     iconColor: '#2196F3',
-    iconBackground: '#E3F2FD'
+    iconBackground: '#E3F2FD',
   },
   {
     id: 'improve_fitness',
@@ -29,7 +29,7 @@ const FITNESS_GOALS = [
     description: 'Enhance overall fitness and endurance',
     icon: 'run',
     iconColor: '#FF9800',
-    iconBackground: '#FFF3E0'
+    iconBackground: '#FFF3E0',
   },
   {
     id: 'maintain',
@@ -37,7 +37,7 @@ const FITNESS_GOALS = [
     description: 'Stay in shape and maintain current fitness',
     icon: 'heart-pulse',
     iconColor: '#9C27B0',
-    iconBackground: '#F3E5F5'
+    iconBackground: '#F3E5F5',
   },
 ];
 

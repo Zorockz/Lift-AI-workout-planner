@@ -58,64 +58,64 @@ const OnboardingSummary = ({ navigation }) => {
     {
       icon: 'gender-male-female',
       label: 'Gender',
-      value: formatValue(onboarding.gender)
+      value: formatValue(onboarding.gender),
     },
     {
       icon: 'map-marker',
       label: 'Workout Location',
-      value: formatValue(onboarding.exerciseLocation)
+      value: formatValue(onboarding.exerciseLocation),
     },
     {
       icon: 'human-male-height',
       label: 'BMI',
-      value: calculateBMI(onboarding.height, onboarding.weight)
-    }
+      value: calculateBMI(onboarding.height, onboarding.weight),
+    },
   ];
 
   const bodyStatsItems = [
     {
       icon: 'human-male-height',
       label: 'Height',
-      value: formatHeight(onboarding.height)
+      value: formatHeight(onboarding.height),
     },
     {
       icon: 'weight',
       label: 'Current Weight',
-      value: `${onboarding.weight} lb`
+      value: `${onboarding.weight} lb`,
     },
     {
       icon: 'target',
       label: 'Goal Weight',
-      value: `${onboarding.goalWeight} lb`
-    }
+      value: `${onboarding.goalWeight} lb`,
+    },
   ];
 
   const planDetailsItems = [
     {
       icon: 'flag',
       label: 'Goal',
-      value: formatValue(onboarding.goal)
+      value: formatValue(onboarding.goal),
     },
     {
       icon: 'star',
       label: 'Experience Level',
-      value: formatValue(onboarding.experienceLevel)
+      value: formatValue(onboarding.experienceLevel),
     },
     {
       icon: 'history',
       label: 'Strength History',
-      value: formatValue(onboarding.strengthTrainingHistory)
+      value: formatValue(onboarding.strengthTrainingHistory),
     },
     {
       icon: 'dumbbell',
       label: 'Equipment',
-      value: onboarding.equipment.map(item => formatValue(item)).join(', ')
+      value: onboarding.equipment.map(item => formatValue(item)).join(', '),
     },
     {
       icon: 'calendar',
       label: 'Training Frequency',
-      value: `${onboarding.workoutsPerWeek} Days Per Week`
-    }
+      value: `${onboarding.workoutsPerWeek} Days Per Week`,
+    },
   ];
 
   const InfoCard = ({ title, items }) => (
@@ -143,7 +143,6 @@ const OnboardingSummary = ({ navigation }) => {
       
       // Validate required data
       if (!onboarding.goal || !onboarding.experienceLevel || !onboarding.equipment || !onboarding.workoutsPerWeek || !onboarding.exerciseLocation) {
-        console.error('Missing required onboarding data');
         return;
       }
 
@@ -176,14 +175,12 @@ const OnboardingSummary = ({ navigation }) => {
         if (navigation && typeof navigation.navigate === 'function') {
           navigation.navigate('PlanPreview', { 
             plan, 
-            planId: 'generated-' + Date.now().toString() 
+            planId: 'generated-' + Date.now().toString(), 
           });
         }
-      } else {
-        console.error('Failed to generate valid plan');
       }
     } catch (error) {
-      console.error('Error generating plan:', error);
+      // Remove all console.error statements for production
     } finally {
       setIsGenerating(false);
     }

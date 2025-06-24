@@ -31,7 +31,7 @@ const GenderSelectionScreen = ({ navigation }) => {
       icon: 'gender-male',
       value: 'male',
       iconColor: '#1976D2',
-      iconBackground: '#E3F2FD'
+      iconBackground: '#E3F2FD',
     },
     {
       title: 'Female',
@@ -39,7 +39,7 @@ const GenderSelectionScreen = ({ navigation }) => {
       icon: 'gender-female',
       value: 'female',
       iconColor: '#C2185B',
-      iconBackground: '#FCE4EC'
+      iconBackground: '#FCE4EC',
     },
     {
       title: 'Other',
@@ -47,7 +47,7 @@ const GenderSelectionScreen = ({ navigation }) => {
       icon: 'account',
       value: 'other',
       iconColor: '#7B1FA2',
-      iconBackground: '#F3E5F5'
+      iconBackground: '#F3E5F5',
     },
     {
       title: 'Prefer not to say',
@@ -55,8 +55,8 @@ const GenderSelectionScreen = ({ navigation }) => {
       icon: 'account-question',
       value: 'prefer-not-to-say',
       iconColor: '#757575',
-      iconBackground: '#F5F5F5'
-    }
+      iconBackground: '#F5F5F5',
+    },
   ];
 
   return (

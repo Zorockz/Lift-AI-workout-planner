@@ -40,7 +40,6 @@ export const WorkoutProvider = ({ children }) => {
 
         setIsInitialized(true);
       } catch (error) {
-        console.error('Error initializing WorkoutContext:', error);
         setError('Failed to load workout data');
       } finally {
         setLoading(false);
@@ -57,7 +56,6 @@ export const WorkoutProvider = ({ children }) => {
       try {
         await AsyncStorage.setItem('workoutPlan', JSON.stringify(workoutPlan));
       } catch (error) {
-        console.error('Error saving workout plan:', error);
       }
     };
 
@@ -70,7 +68,6 @@ export const WorkoutProvider = ({ children }) => {
       try {
         await AsyncStorage.setItem('completedExercises', JSON.stringify(completedExercises));
       } catch (error) {
-        console.error('Error saving completed exercises:', error);
       }
     };
 
@@ -85,7 +82,6 @@ export const WorkoutProvider = ({ children }) => {
       setWorkoutPlan(plan);
     } catch (error) {
       setError(error.message);
-      console.error('Error creating workout plan:', error);
     } finally {
       setLoading(false);
     }
@@ -96,7 +92,6 @@ export const WorkoutProvider = ({ children }) => {
       const instructions = await getExerciseDetails(exerciseName);
       return instructions;
     } catch (error) {
-      console.error('Error getting exercise instructions:', error);
       throw error;
     }
   };
@@ -137,7 +132,7 @@ export const WorkoutProvider = ({ children }) => {
       day: dayKey,
       title: Array.isArray(workout) ? 'Workout' : 'Rest Day',
       exercises: Array.isArray(workout) ? workout.map(ex => ex.name) : [],
-      isRestDay: !Array.isArray(workout)
+      isRestDay: !Array.isArray(workout),
     };
   };
 
@@ -146,10 +141,9 @@ export const WorkoutProvider = ({ children }) => {
       const parsedPlan = JSON.parse(plan);
       return {
         weekPlan: parsedPlan,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       };
     } catch (error) {
-      console.error('Error parsing workout plan:', error);
       return {
         weekPlan: {
           'Day 1': [],
@@ -158,9 +152,9 @@ export const WorkoutProvider = ({ children }) => {
           'Day 4': [],
           'Day 5': [],
           'Day 6': [],
-          'Day 7': []
+          'Day 7': [],
         },
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       };
     }
   };
@@ -207,7 +201,7 @@ export const WorkoutProvider = ({ children }) => {
       getExerciseInstructions,
       loading,
       error,
-      addExercise
+      addExercise,
     }}>
       {children}
     </WorkoutContext.Provider>

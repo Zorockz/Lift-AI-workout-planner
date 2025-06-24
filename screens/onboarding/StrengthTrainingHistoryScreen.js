@@ -30,7 +30,7 @@ const StrengthTrainingHistoryScreen = ({ navigation }) => {
       icon: 'clock-outline',
       value: 'never',
       iconColor: '#9E9E9E',
-      iconBackground: '#F5F5F5'
+      iconBackground: '#F5F5F5',
     },
     {
       title: 'Less than 6 months',
@@ -38,7 +38,7 @@ const StrengthTrainingHistoryScreen = ({ navigation }) => {
       icon: 'clock-time-four-outline',
       value: 'less_than_6_months',
       iconColor: '#4CAF50',
-      iconBackground: '#E8F5E9'
+      iconBackground: '#E8F5E9',
     },
     {
       title: '6-12 months',
@@ -46,7 +46,7 @@ const StrengthTrainingHistoryScreen = ({ navigation }) => {
       icon: 'clock-time-five-outline',
       value: '6_to_12_months',
       iconColor: '#2196F3',
-      iconBackground: '#E3F2FD'
+      iconBackground: '#E3F2FD',
     },
     {
       title: 'More than 1 year',
@@ -54,8 +54,8 @@ const StrengthTrainingHistoryScreen = ({ navigation }) => {
       icon: 'clock-time-eight-outline',
       value: 'more_than_1_year',
       iconColor: '#9C27B0',
-      iconBackground: '#F3E5F5'
-    }
+      iconBackground: '#F3E5F5',
+    },
   ];
 
   return (

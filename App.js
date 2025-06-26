@@ -6,9 +6,11 @@ import { OnboardingProvider } from './contexts/OnboardingContext';
 import { WorkoutProvider } from './contexts/WorkoutContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { View, ActivityIndicator, Text } from 'react-native';
+import { View, ActivityIndicator, Text, Platform } from 'react-native';
 import { testFirebaseAuth } from './utils/testAuth';
 import React from 'react';
+import Purchases from 'react-native-purchases';
+import { REV_CAT_IOS } from '@env';
 
 // Onboarding Screens
 import WelcomeScreen from './screens/onboarding/WelcomeScreen';
@@ -89,6 +91,13 @@ const MainNavigator = () => (
     <Stack.Screen name="PastWorkouts" component={PastWorkoutsScreen} options={{ title: 'Past Workouts' }} />
   </Stack.Navigator>
 );
+
+// RevenueCat initialization using env variable for iOS
+if (Platform.OS === 'ios') {
+  Purchases.configure({ apiKey: REV_CAT_IOS });
+} else if (Platform.OS === 'android') {
+  Purchases.configure({ apiKey: 'REVENUECAT_ANDROID_API_KEY' });
+}
 
 function AppNavigator() {
   const { isOnboardingComplete, loading, user, isGuest } = useAuth();

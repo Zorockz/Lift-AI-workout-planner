@@ -77,16 +77,16 @@ const filterExercisesByEquipment = (exercises, equipment) => {
     // Check if user has the required equipment
     return equipment.some(userEquipment => {
       switch (userEquipment) {
-      case 'full_gym':
-        return true; // Full gym has all equipment
-      case 'home_gym':
-        return ['bodyweight', 'dumbbells', 'home_gym'].includes(exercise.equipment);
-      case 'dumbbells':
-        return ['bodyweight', 'dumbbells'].includes(exercise.equipment);
-      case 'bodyweight':
-        return exercise.equipment === 'bodyweight';
-      default:
-        return false;
+        case 'full_gym':
+          return true; // Full gym has all equipment
+        case 'home_gym':
+          return ['bodyweight', 'dumbbells', 'home_gym'].includes(exercise.equipment);
+        case 'dumbbells':
+          return ['bodyweight', 'dumbbells'].includes(exercise.equipment);
+        case 'bodyweight':
+          return exercise.equipment === 'bodyweight';
+        default:
+          return false;
       }
     });
   });

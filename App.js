@@ -7,7 +7,6 @@ import { WorkoutProvider } from './contexts/WorkoutContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { View, ActivityIndicator, Text, Platform } from 'react-native';
-import { testFirebaseAuth } from './utils/testAuth';
 import React from 'react';
 import Purchases from 'react-native-purchases';
 import { REV_CAT_IOS } from '@env';
@@ -146,11 +145,6 @@ function AppNavigator() {
 }
 
 export default function App() {
-  // Test Firebase auth initialization
-  React.useEffect(() => {
-    testFirebaseAuth();
-  }, []);
-
   return (
     <ErrorBoundary>
       <SafeAreaProvider>

@@ -1,43 +1,38 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { COLORS, FONTS, SPACING } from '../utils/styles';
 import Slider from '@react-native-community/slider';
-import { COLORS, FONTS, SPACING } from '../utils/constants';
 
-const { width } = Dimensions.get('window');
-const SLIDER_WIDTH = width - (SPACING.lg * 2);
-
-const CustomSlider = ({ value, onValueChange, minimumValue, maximumValue, step }) => {
-  const renderTickMarks = () => {
-    const ticks = [];
-    for (let i = minimumValue; i <= maximumValue; i += step) {
-      ticks.push(
-        <View key={i} style={styles.tickContainer}>
-          <View style={styles.tick} />
-          <Text style={styles.tickLabel}>{i}</Text>
-        </View>
-      );
-    }
-    return ticks;
-  };
-
+const CustomSlider = ({ 
+  value, 
+  onValueChange, 
+  minimumValue = 0, 
+  maximumValue = 100, 
+  step = 1,
+  label,
+  unit = '',
+  style 
+}) => {
   return (
-    <View style={styles.container}>
-      <Text style={styles.value}>{Math.round(value)}</Text>
+    <View style={[styles.container, style]}>
+      {label && (
+        <Text style={styles.label}>{label}</Text>
+      )}
       <View style={styles.sliderContainer}>
         <Slider
           style={styles.slider}
           minimumValue={minimumValue}
           maximumValue={maximumValue}
-          step={step}
           value={value}
           onValueChange={onValueChange}
+          step={step}
           minimumTrackTintColor={COLORS.primary}
-          maximumTrackTintColor="#E5E5E5"
-          thumbTintColor={COLORS.primary}
+          maximumTrackTintColor="#E0E0E0"
+          thumbStyle={styles.thumb}
         />
-        <View style={styles.tickMarksContainer}>
-          {renderTickMarks()}
-        </View>
+        <Text style={styles.valueText}>
+          {Math.round(value)}{unit}
+        </Text>
       </View>
     </View>
   );
@@ -45,42 +40,34 @@ const CustomSlider = ({ value, onValueChange, minimumValue, maximumValue, step }
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: 'center',
-    width: '100%',
+    marginVertical: SPACING.sm,
   },
-  value: {
-    fontSize: 72,
-    ...FONTS.bold,
-    color: COLORS.primary,
-    marginBottom: SPACING.xl,
+  label: {
+    fontSize: 16,
+    color: COLORS.text,
+    marginBottom: SPACING.xs,
+    ...FONTS.medium,
   },
   sliderContainer: {
-    width: SLIDER_WIDTH,
-    height: 60,
-  },
-  slider: {
-    width: '100%',
-    height: 40,
-  },
-  tickMarksContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    paddingHorizontal: 10,
-  },
-  tickContainer: {
     alignItems: 'center',
   },
-  tick: {
-    width: 2,
-    height: 8,
-    backgroundColor: COLORS.textLight,
-    marginBottom: 4,
+  slider: {
+    flex: 1,
+    height: 40,
   },
-  tickLabel: {
-    fontSize: 14,
+  valueText: {
+    fontSize: 16,
+    color: COLORS.primary,
+    marginLeft: SPACING.sm,
+    minWidth: 50,
+    textAlign: 'right',
     ...FONTS.medium,
-    color: COLORS.textLight,
+  },
+  thumb: {
+    backgroundColor: COLORS.primary,
+    width: 20,
+    height: 20,
   },
 });
 

@@ -1,108 +1,117 @@
 import { StyleSheet } from 'react-native';
 
-// Colors
-export const colors = {
-  primary: '#2075FF',
-  secondary: '#1B365D',
-  text: {
-    primary: '#1B365D',
-    secondary: '#6C7580',
-    white: '#FFFFFF',
+// Constants
+export const COLORS = {
+  primary: '#007AFF',
+  secondary: '#5856D6',
+  background: '#FFFFFF',
+  text: '#333333',
+  textLight: '#666666',
+  error: '#FF3B30',
+  success: '#34C759',
+};
+
+export const FONTS = {
+  regular: {
+    fontWeight: '400',
   },
-  background: {
-    primary: '#FFFFFF',
-    secondary: '#F7F8FA',
+  medium: {
+    fontWeight: '500',
   },
-  status: {
-    success: '#2E7D32',
-    error: '#C62828',
-    successBg: '#E8F5E9',
-    errorBg: '#FFEBEE',
+  bold: {
+    fontWeight: '700',
   },
 };
 
-// Dimensions
-export const dimensions = {
-  spacing: {
-    xs: 4,
-    sm: 8,
-    md: 16,
-    lg: 24,
-    xl: 32,
-  },
-  borderRadius: {
-    sm: 4,
-    md: 8,
-    lg: 12,
-  },
-  fontSize: {
-    xs: 12,
-    sm: 14,
-    md: 16,
-    lg: 18,
-    xl: 24,
-    xxl: 32,
-  },
+export const SPACING = {
+  xs: 4,
+  sm: 8,
+  md: 16,
+  lg: 24,
+  xl: 32,
 };
 
-// Common styles
+// Common Styles
 export const commonStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
+    backgroundColor: COLORS.background,
   },
   content: {
     flex: 1,
-    padding: dimensions.spacing.lg,
+    padding: SPACING.md,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    textAlign: 'center',
+    marginBottom: SPACING.sm,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: COLORS.textLight,
+    textAlign: 'center',
+    marginBottom: SPACING.lg,
+  },
+  button: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: SPACING.sm,
+  },
+  buttonText: {
+    color: COLORS.background,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 8,
+    padding: SPACING.md,
+    fontSize: 16,
+    marginBottom: SPACING.md,
+  },
+  card: {
+    backgroundColor: COLORS.background,
+    borderRadius: 12,
+    padding: SPACING.md,
+    marginVertical: SPACING.sm,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  center: {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  title: {
-    fontSize: dimensions.fontSize.xxl,
-    fontWeight: 'bold',
-    color: colors.text.primary,
-    marginBottom: dimensions.spacing.xs,
+  textCenter: {
     textAlign: 'center',
   },
-  subtitle: {
-    fontSize: dimensions.fontSize.lg,
-    color: colors.text.secondary,
-    marginBottom: dimensions.spacing.xl,
+  errorText: {
+    color: COLORS.error,
+    fontSize: 14,
     textAlign: 'center',
+    marginTop: SPACING.sm,
   },
-  button: {
-    width: '100%',
-    marginBottom: dimensions.spacing.xl,
-  },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 56,
-    borderRadius: dimensions.borderRadius.md,
-    borderWidth: 2,
-    marginBottom: dimensions.spacing.md,
-    paddingLeft: dimensions.spacing.md,
-    paddingRight: dimensions.spacing.md,
-    justifyContent: 'space-between',
-    position: 'relative',
-  },
-  cardUnselected: {
-    backgroundColor: colors.background.secondary,
-    borderColor: colors.primary,
-  },
-  cardSelected: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  label: {
-    fontSize: dimensions.fontSize.lg,
-    fontWeight: '500',
-  },
-  labelUnselected: {
-    color: colors.text.primary,
-  },
-  labelSelected: {
-    color: colors.text.white,
-    fontWeight: 'bold',
+  successText: {
+    color: COLORS.success,
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: SPACING.sm,
   },
 }); 

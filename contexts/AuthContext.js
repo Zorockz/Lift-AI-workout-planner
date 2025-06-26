@@ -1,17 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
-import * as AuthSession from 'expo-auth-session';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Constants from 'expo-constants';
-import { GoogleAuthProvider, signInWithCredential, onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
 import { getAuthInstance } from '../config/firebase';
-import { Platform } from 'react-native';
+import { AppleAuthService, GoogleAuthService } from '../services/authService';
 
 // Development flag - set to false for production
 const IS_DEVELOPMENT = false;
-
-WebBrowser.maybeCompleteAuthSession();
 
 const defaultContext = {
   user: null,
@@ -19,7 +13,8 @@ const defaultContext = {
   loading: true,
   error: null,
   isOnboardingComplete: false,
-  signIn: () => {},
+  signInWithGoogle: () => {},
+  signInWithApple: () => {},
   signOut: () => {},
   continueAsGuest: () => {},
   clearError: () => {},
@@ -43,11 +38,6 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
 
-  // Get the Google Client ID from app.json
-  const clientId = Constants.expoConfig?.extra?.googleClientId;
-  const iosClientId = Constants.expoConfig?.extra?.iosClientId;
-  const authSession = Constants.expoConfig?.extra?.authSession;
-
   // Initialize Firebase Auth state listener
   useEffect(() => {
     const auth = getAuthInstance();
@@ -60,48 +50,39 @@ export const AuthProvider = ({ children }) => {
     return unsubscribe;
   }, []);
 
-  // Use the redirect URI from app.json if available, otherwise generate one
-  const redirectUri = authSession?.redirectUri || AuthSession.makeRedirectUri({
-    scheme: 'fitnesspal',
-    useProxy: authSession?.useProxy ?? Platform.OS !== 'web',
-  });
-
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId,
-    iosClientId,
-    androidClientId: clientId,
-    webClientId: clientId,
-    redirectUri,
-    scopes: ['profile', 'email'],
-  });
-
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const { id_token } = response.params;
-      handleSignIn(id_token);
-    } else if (response?.type === 'error') {
-      setError('Google sign in failed. Please try again.');
-    }
-  }, [response]);
-
-  const handleSignIn = async (idToken) => {
+  const handleGoogleSignIn = async () => {
     try {
-      setLoading(true);
       setError(null);
+      setLoading(true);
       
-      console.log('Signing in with Google token...');
-      const auth = getAuthInstance();
+      const result = await GoogleAuthService.signIn();
       
-      // Create a Google credential with the token
-      const credential = GoogleAuthProvider.credential(idToken);
-      
-      // Sign in with Firebase using the credential
-      await signInWithCredential(auth, credential);
-      
-      console.log('Sign-in successful');
+      if (result.success) {
+        setUser(result.user);
+      } else {
+        setError(result.error);
+      }
     } catch (error) {
-      console.error('Error signing in:', error);
-      setError('Failed to sign in. Please try again.');
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAppleSignIn = async () => {
+    try {
+      setError(null);
+      setLoading(true);
+      
+      const result = await AppleAuthService.signIn();
+      
+      if (result.success) {
+        setUser(result.user);
+      } else {
+        setError(result.error);
+      }
+    } catch (error) {
+      setError(error.message);
     } finally {
       setLoading(false);
     }
@@ -178,10 +159,8 @@ export const AuthProvider = ({ children }) => {
         loading,
         error,
         isOnboardingComplete,
-        signIn: () => {
-          setError(null);
-          promptAsync();
-        },
+        signInWithGoogle: handleGoogleSignIn,
+        signInWithApple: handleAppleSignIn,
         signOut,
         continueAsGuest,
         clearError,

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { colors } from '../utils/styles';
+import { COLORS } from '../utils/styles';
 
 const ExerciseRow = ({ exercise, index }) => {
   const [isCompleted, setIsCompleted] = useState(false);
@@ -32,7 +32,7 @@ const ExerciseRow = ({ exercise, index }) => {
             <MaterialCommunityIcons
               name={isCompleted ? 'checkbox-marked-circle' : 'checkbox-blank-circle-outline'}
               size={24}
-              color={isCompleted ? colors.primary : colors.textSecondary}
+              color={isCompleted ? COLORS.primary : COLORS.textLight}
             />
           </TouchableOpacity>
         </View>

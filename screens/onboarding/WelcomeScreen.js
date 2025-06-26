@@ -1,16 +1,35 @@
 import React, { useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, StyleSheet, Alert, Platform } from 'react-native';
 import Button from '../../components/Button';
 import ProgressBar from '../../components/ProgressBar';
 import { commonStyles } from '../../utils/styles';
 import { useAuth } from '../../contexts/AuthContext';
 import GoogleLogo from '../../assets/google_logo.png';
 import { useOnboarding } from '../../contexts/OnboardingContext';
+import * as AppleAuthentication from 'expo-apple-authentication';
 
 const WelcomeScreen = ({ navigation }) => {
-  const { signIn, error, clearError, loading, isOnboardingComplete } = useAuth();
+  const { signInWithGoogle, signInWithApple, error, clearError, loading, isOnboardingComplete } = useAuth();
   const { onboarding } = useOnboarding ? useOnboarding() : { onboarding: {} };
   const [userName, setUserName] = React.useState('');
+  const [appleSignInAvailable, setAppleSignInAvailable] = React.useState(false);
+
+  // Check if Apple Sign In is available
+  useEffect(() => {
+    const checkAppleSignInAvailability = async () => {
+      if (Platform.OS === 'ios') {
+        try {
+          const isAvailable = await AppleAuthentication.isAvailableAsync();
+          setAppleSignInAvailable(isAvailable);
+        } catch (error) {
+          console.log('Apple Sign In not available:', error.message);
+          setAppleSignInAvailable(false);
+        }
+      }
+    };
+    
+    checkAppleSignInAvailability();
+  }, []);
 
   // Show error alert when authentication error occurs
   useEffect(() => {
@@ -43,10 +62,20 @@ const WelcomeScreen = ({ navigation }) => {
   // Handler for Google sign-in
   const handleGoogleSignIn = async () => {
     try {
-      await signIn();
+      await signInWithGoogle();
       // Navigation will be handled by the auth state change in App.js
     } catch (error) {
       // Remove all console.error statements for production
+    }
+  };
+
+  // Handler for Apple sign-in
+  const handleAppleSignIn = async () => {
+    try {
+      await signInWithApple();
+      // Navigation will be handled by the auth state change in App.js
+    } catch (error) {
+      // Error handling is done in the AuthContext
     }
   };
 
@@ -87,6 +116,16 @@ const WelcomeScreen = ({ navigation }) => {
             {loading ? 'Signing in...' : 'Sign in with Google'}
           </Text>
         </TouchableOpacity>
+        
+        {appleSignInAvailable && (
+          <AppleAuthentication.AppleAuthenticationButton
+            buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+            cornerRadius={10}
+            style={styles.appleButton}
+            onPress={handleAppleSignIn}
+          />
+        )}
       </View>
     </ScrollView>
   );
@@ -120,6 +159,11 @@ const styles = StyleSheet.create({
     color: '#222',
     fontSize: 16,
     fontWeight: '600',
+  },
+  appleButton: {
+    height: 50,
+    alignSelf: 'stretch',
+    marginBottom: 16,
   },
 });
 

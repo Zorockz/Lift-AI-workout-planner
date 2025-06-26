@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getExerciseDetails } from '../services/openaiService';
+import { getExerciseDetails } from '../services/appService';
 import { generatePlan } from '../utils/planGenerator';
+import { exerciseDatabase } from '../utils/exerciseDatabase';
 
 const WorkoutContext = createContext();
 

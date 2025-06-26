@@ -16,8 +16,18 @@
         "CFBundleDisplayName": "Lift AI: Workout Planner",
         "NSCameraUsageDescription": "This app uses the camera to take profile pictures and document your fitness progress.",
         "NSPhotoLibraryUsageDescription": "This app accesses your photo library to select profile pictures and save workout progress photos.",
-        "NSLocationWhenInUseUsageDescription": "This app uses location to provide location-based workout recommendations."
-      }
+        "NSLocationWhenInUseUsageDescription": "This app uses location to provide location-based workout recommendations.",
+        "GIDClientID": "455544394958-5t0jo86dpiu6kruh6lrg4jbcl0vk7dnu.apps.googleusercontent.com",
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLName": "Google Sign In",
+            "CFBundleURLSchemes": [
+              "com.googleusercontent.apps.455544394958-5t0jo86dpiu6kruh6lrg4jbcl0vk7dnu"
+            ]
+          }
+        ]
+      },
+      "usesAppleSignIn": true
     },
     "android": {
       "package": "com.zorockz.liftai",
@@ -32,7 +42,8 @@
         "WRITE_EXTERNAL_STORAGE",
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION"
-      ]
+      ],
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -42,11 +53,11 @@
     "privacy": "public",
     "platforms": ["ios", "android", "web"],
     "extra": {
-      "googleClientId": "234734836314-q9irge2opsfgv4ivjvcvjuk976ofrfu3.apps.googleusercontent.com",
-      "iosClientId": "234734836314-g00v0tabcmj2s67q9ihhtbb8rlt6vmdf.apps.googleusercontent.com",
+      "googleClientId": "455544394958-5t0jo86dpiu6kruh6lrg4jbcl0vk7dnu.apps.googleusercontent.com",
+      "iosClientId": "455544394958-5t0jo86dpiu6kruh6lrg4jbcl0vk7dnu.apps.googleusercontent.com",
       "authSession": {
-        "redirectUri": "liftaiworkoutplanner:/oauthredirect",
-        "useProxy": false
+        "redirectUri": "https://auth.expo.io/@zorockz/lift-ai-workout-planner",
+        "useProxy": true
       }
     },
     "hooks": {

@@ -1,0 +1,32 @@
+{
+  "cli": {
+    "version": ">= 5.9.1",
+    "promptToConfigurePushNotifications": false
+  },
+  "build": {
+    "development": {
+      "distribution": "internal",
+      "ios": {
+        "resourceClass": "m-medium"
+      },
+      "env": {
+        "EXPO_NO_CAPABILITY_SYNC": "1",
+        "EAS_SKIP_AUTO_FINGERPRINT": "1"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "ios": {
+        "resourceClass": "m-medium"
+      }
+    },
+    "production": {
+      "ios": {
+        "resourceClass": "m-medium"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

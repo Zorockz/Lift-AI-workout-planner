@@ -24,8 +24,15 @@
             "CFBundleURLSchemes": [
               "com.googleusercontent.apps.455544394958-5t0jo86dpiu6kruh6lrg4jbcl0vk7dnu"
             ]
+          },
+          {
+            "CFBundleURLName": "Expo Auth Session",
+            "CFBundleURLSchemes": [
+              "liftaiworkoutplanner"
+            ]
           }
-        ]
+        ],
+        "ITSAppUsesNonExemptEncryption": false
       },
       "usesAppleSignIn": true
     },
@@ -51,13 +58,16 @@
     },
     "scheme": "liftaiworkoutplanner",
     "privacy": "public",
-    "platforms": ["ios", "android", "web"],
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "extra": {
       "googleClientId": "455544394958-5t0jo86dpiu6kruh6lrg4jbcl0vk7dnu.apps.googleusercontent.com",
       "iosClientId": "455544394958-5t0jo86dpiu6kruh6lrg4jbcl0vk7dnu.apps.googleusercontent.com",
-      "authSession": {
-        "redirectUri": "https://auth.expo.io/@zorockz/lift-ai-workout-planner",
-        "useProxy": true
+      "eas": {
+        "projectId": "dd767f2f-38a0-4eff-bcea-8b0ac49c018a"
       }
     },
     "hooks": {

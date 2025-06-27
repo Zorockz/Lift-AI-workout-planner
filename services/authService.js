@@ -1,7 +1,11 @@
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
-import { OAuthProvider, signInWithCredential } from 'firebase/auth';
+import { 
+  GoogleAuthProvider, 
+  OAuthProvider, 
+  signInWithCredential 
+} from 'firebase/auth';
 import { getAuthInstance } from '../config/firebase';
 import * as Crypto from 'expo-crypto';
 import Constants from 'expo-constants';
@@ -84,6 +88,7 @@ export class AppleAuthService {
           AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
           AppleAuthentication.AppleAuthenticationScope.EMAIL,
         ],
+        nonce: hashedNonce,
       });
 
       if (!credential.identityToken) {
@@ -199,17 +204,16 @@ export class GoogleAuthService {
   static getIOSClientId() {
     const iosClientId = Constants.expoConfig?.extra?.iosClientId;
     if (!iosClientId) {
-      throw new Error('iOS Google Client ID not configured in app.json');
+      // Fallback to regular Google Client ID if iOS specific ID not available
+      return this.getGoogleClientId();
     }
     return iosClientId;
   }
 
   static getRedirectUri() {
-    const redirectUri = Constants.expoConfig?.extra?.authSession?.redirectUri;
-    if (!redirectUri) {
-      throw new Error('Redirect URI not configured in app.json');
-    }
-    return redirectUri;
+    // For development builds, use the proper scheme-based redirect URI
+    const scheme = Constants.expoConfig?.scheme || 'liftaiworkoutplanner';
+    return `${scheme}://`;
   }
 
   static getFirebaseAuth() {
@@ -227,8 +231,8 @@ export class GoogleAuthService {
   }
 
   static createGoogleAuthRequest() {
-    // Use the same client ID for both web and iOS to avoid redirect URI mismatch
-    const clientId = this.getGoogleClientId();
+    // Use the appropriate client ID based on platform
+    const clientId = Platform.OS === 'ios' ? this.getIOSClientId() : this.getGoogleClientId();
     const redirectUri = this.getRedirectUri();
 
     return new AuthSession.AuthRequest({
@@ -256,15 +260,17 @@ export class GoogleAuthService {
 
       const request = this.createGoogleAuthRequest();
       const isExpoGo = Constants.appOwnership === 'expo';
+      const clientId = Platform.OS === 'ios' ? this.getIOSClientId() : this.getGoogleClientId();
+      
       console.log('Google Auth Request created:', {
-        clientId: this.getGoogleClientId(),
+        clientId: clientId,
         redirectUri: this.getRedirectUri(),
         platform: Platform.OS,
         isExpoGo: isExpoGo
       });
 
       const result = await request.promptAsync(this.discovery);
-      console.log('Google Auth Result:', result);
+      console.log('Google Auth Result:', result.type);
 
       if (result.type === 'cancel') {
         return {
@@ -291,10 +297,18 @@ export class GoogleAuthService {
         };
       }
 
+      if (!result.params.code) {
+        return {
+          success: false,
+          error: 'No authorization code received from Google',
+          code: 'NO_AUTH_CODE',
+        };
+      }
+
       console.log('Exchanging code for tokens...');
       const tokenResult = await AuthSession.exchangeCodeAsync(
         {
-          clientId: this.getGoogleClientId(),
+          clientId: clientId,
           code: result.params.code,
           redirectUri: this.getRedirectUri(),
           extraParams: {
@@ -305,12 +319,19 @@ export class GoogleAuthService {
       );
       console.log('Token exchange successful');
 
-      const provider = new OAuthProvider('google.com');
-      
-      const firebaseCredential = provider.credential({
-        idToken: tokenResult.idToken,
-        accessToken: tokenResult.accessToken,
-      });
+      if (!tokenResult.idToken) {
+        return {
+          success: false,
+          error: 'No ID token received from Google',
+          code: 'NO_ID_TOKEN',
+        };
+      }
+
+      // Use GoogleAuthProvider instead of OAuthProvider for better compatibility
+      const firebaseCredential = GoogleAuthProvider.credential(
+        tokenResult.idToken,
+        tokenResult.accessToken
+      );
 
       const userCredential = await signInWithCredential(auth, firebaseCredential);
       

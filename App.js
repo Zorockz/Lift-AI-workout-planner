@@ -8,8 +8,8 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { View, ActivityIndicator, Text, Platform } from 'react-native';
 import React from 'react';
-import Purchases from 'react-native-purchases';
-import { REV_CAT_IOS } from '@env';
+// import Purchases from 'react-native-purchases';
+// import { REV_CAT_IOS } from '@env';
 
 // Onboarding Screens
 import WelcomeScreen from './screens/onboarding/WelcomeScreen';
@@ -92,11 +92,11 @@ const MainNavigator = () => (
 );
 
 // RevenueCat initialization using env variable for iOS
-if (Platform.OS === 'ios') {
-  Purchases.configure({ apiKey: REV_CAT_IOS });
-} else if (Platform.OS === 'android') {
-  Purchases.configure({ apiKey: 'REVENUECAT_ANDROID_API_KEY' });
-}
+// if (Platform.OS === 'ios') {
+//   Purchases.configure({ apiKey: REV_CAT_IOS });
+// } else if (Platform.OS === 'android') {
+//   Purchases.configure({ apiKey: 'REVENUECAT_ANDROID_API_KEY' });
+// }
 
 function AppNavigator() {
   const { isOnboardingComplete, loading, user, isGuest } = useAuth();
@@ -145,6 +145,8 @@ function AppNavigator() {
 }
 
 export default function App() {
+  console.log('App component rendering...');
+  
   return (
     <ErrorBoundary>
       <SafeAreaProvider>

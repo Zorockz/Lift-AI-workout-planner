@@ -80,6 +80,12 @@
           }
         }
       ]
+    },
+    "icon": "./assets/lift_ai_logo.png",
+    "splash": {
+      "image": "./assets/lift_ai_logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
     }
   }
 }

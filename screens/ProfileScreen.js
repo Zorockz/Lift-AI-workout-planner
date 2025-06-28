@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput, Image, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput, Image, ActivityIndicator, Linking } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -130,12 +130,16 @@ const ProfileScreen = () => {
     }
   };
 
-  const handleSupport = () => {
-    Alert.alert(
-      'Support',
-      'Contact us at support@fitpal.com',
-      [{ text: 'OK' }]
-    );
+  const handleSupport = async () => {
+    try {
+      await Linking.openURL('https://www.termsfeed.com/live/c3308725-408e-4db1-917d-f3eb4377277e');
+    } catch (error) {
+      Alert.alert(
+        'Error',
+        'Unable to open privacy policy. Please check your internet connection.',
+        [{ text: 'OK' }]
+      );
+    }
   };
 
   const handlePickImage = async () => {
@@ -241,7 +245,7 @@ const ProfileScreen = () => {
           style={styles.supportButton}
           onPress={handleSupport}
         >
-          <Text style={styles.supportText}>Support</Text>
+          <Text style={styles.supportText}>Privacy Policy</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

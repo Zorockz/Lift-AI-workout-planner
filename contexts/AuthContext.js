@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { onAuthStateChanged } from 'firebase/auth';
-import { getAuthInstance } from '../config/firebase';
+import { onAuthStateChanged, signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { getAuthInstance, db } from '../config/firebase';
 import { BasicAuthService } from '../services/authService';
 
 const defaultContext = {
@@ -106,9 +107,22 @@ export const AuthProvider = ({ children }) => {
         return { success: false, error: 'Please enter a valid email address' };
       }
       
-      // For demo purposes, accept any valid email/password combination
-      // In a real app, this would validate against Firebase or your backend
-      setUser({ id: 'user', email, name: email.split('@')[0] });
+      // Use Firebase Auth for sign in
+      const auth = getAuthInstance();
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      
+      // Get additional user data from Firestore
+      try {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          // You can store additional user data here if needed
+          console.log('User data from Firestore:', userData);
+        }
+      } catch (firestoreError) {
+        console.warn('Could not fetch user data from Firestore:', firestoreError);
+      }
       
       // Check if onboarding is complete
       const onboardingCompleted = await AsyncStorage.getItem('isOnboardingComplete');
@@ -116,8 +130,21 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
-      setError('Sign in failed. Please try again.');
-      return { success: false, error: 'Sign in failed. Please try again.' };
+      console.error('Sign in error:', error);
+      let errorMessage = 'Sign in failed. Please try again.';
+      
+      if (error.code === 'auth/user-not-found') {
+        errorMessage = 'No account found with this email address.';
+      } else if (error.code === 'auth/wrong-password') {
+        errorMessage = 'Incorrect password. Please try again.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Please enter a valid email address.';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many failed attempts. Please try again later.';
+      }
+      
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
     }

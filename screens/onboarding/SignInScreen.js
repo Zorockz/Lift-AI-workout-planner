@@ -10,6 +10,8 @@ import {
   KeyboardAvoidingView,
   Platform 
 } from 'react-native';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { getAuthInstance } from '../../config/firebase';
 import Button from '../../components/Button';
 import ProgressBar from '../../components/ProgressBar';
 import { commonStyles } from '../../utils/styles';
@@ -20,6 +22,7 @@ const SignInScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
   const { signIn, isOnboardingComplete } = useAuth();
   const { onboarding } = useOnboarding();
 
@@ -50,6 +53,53 @@ const SignInScreen = ({ navigation }) => {
       Alert.alert('Error', 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      Alert.alert('Error', 'Please enter your email address first');
+      return;
+    }
+
+    // Simple email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert('Error', 'Please enter a valid email address');
+      return;
+    }
+
+    setResetLoading(true);
+
+    try {
+      const auth = getAuthInstance();
+      await sendPasswordResetEmail(auth, email);
+      
+      Alert.alert(
+        'Password Reset Email Sent',
+        'Check your email for a password reset link. If you don\'t see it, check your spam folder.',
+        [
+          {
+            text: 'OK',
+            onPress: () => console.log('Password reset email sent to:', email)
+          }
+        ]
+      );
+    } catch (error) {
+      console.error('Password reset error:', error);
+      let errorMessage = 'Failed to send password reset email. Please try again.';
+      
+      if (error.code === 'auth/user-not-found') {
+        errorMessage = 'No account found with this email address.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Please enter a valid email address.';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many reset attempts. Please try again later.';
+      }
+      
+      Alert.alert('Error', errorMessage);
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -106,6 +156,16 @@ const SignInScreen = ({ navigation }) => {
             />
 
             <TouchableOpacity
+              style={styles.forgotPasswordButton}
+              onPress={handleForgotPassword}
+              disabled={resetLoading}
+            >
+              <Text style={styles.forgotPasswordText}>
+                {resetLoading ? 'Sending Reset Email...' : 'Forgot Password?'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
               style={styles.backButton}
               onPress={handleBack}
             >
@@ -146,6 +206,17 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     backgroundColor: '#fafafa',
+  },
+  forgotPasswordButton: {
+    alignItems: 'center',
+    padding: 12,
+    marginBottom: 16,
+  },
+  forgotPasswordText: {
+    color: '#2075FF',
+    fontSize: 14,
+    fontWeight: '500',
+    textDecorationLine: 'underline',
   },
   backButton: {
     alignItems: 'center',

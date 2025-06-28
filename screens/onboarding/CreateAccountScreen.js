@@ -10,6 +10,9 @@ import {
   KeyboardAvoidingView,
   Platform 
 } from 'react-native';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { getAuthInstance, db } from '../../config/firebase';
 import Button from '../../components/Button';
 import ProgressBar from '../../components/ProgressBar';
 import { commonStyles } from '../../utils/styles';
@@ -41,17 +44,70 @@ const CreateAccountScreen = ({ navigation }) => {
     setLoading(true);
 
     try {
-      // Simple account creation - just save to onboarding context
+      // Create Firebase Auth account
+      const auth = getAuthInstance();
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      console.log('Firebase Auth account created successfully:', user.uid);
+
+      // Save user data to Firestore for future reference
+      const saveUserData = async () => {
+        try {
+          // Wait for auth state to be fully established
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          // Check if user is still authenticated
+          const currentUser = auth.currentUser;
+          if (!currentUser) {
+            throw new Error('User not authenticated');
+          }
+
+          await setDoc(doc(db, 'users', user.uid), {
+            email: user.email,
+            createdAt: new Date(),
+            accountCreated: true,
+            // You can add more user data here as needed
+          });
+          console.log('User data saved to Firestore successfully');
+          return true;
+        } catch (firestoreError) {
+          console.warn('Firestore save attempt failed:', firestoreError);
+          return false;
+        }
+      };
+
+      // Try to save user data, but don't fail the account creation if it doesn't work
+      const firestoreSaved = await saveUserData();
+      if (!firestoreSaved) {
+        console.log('Continuing without Firestore save - user can still use the app');
+      }
+
+      // Update onboarding context
       updateOnboarding({ 
         email, 
         password,
-        accountCreated: true 
+        accountCreated: true,
+        userId: user.uid
       });
       
       incrementStep();
       navigation.navigate('OnboardingSummary');
     } catch (error) {
-      Alert.alert('Error', 'Something went wrong. Please try again.');
+      console.error('Account creation error:', error);
+      let errorMessage = 'Something went wrong. Please try again.';
+      
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'An account with this email already exists.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Please enter a valid email address.';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'Password is too weak. Please choose a stronger password.';
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = 'Network error. Please check your internet connection.';
+      }
+      
+      Alert.alert('Error', errorMessage);
     } finally {
       setLoading(false);
     }

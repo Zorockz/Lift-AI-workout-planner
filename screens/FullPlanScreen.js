@@ -2,11 +2,13 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
+import { useWorkout } from '../contexts/WorkoutContext';
 
 const FullPlanScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { plan } = route.params || {};
+  const { setWorkoutPlan } = useWorkout();
 
   const renderExercise = (exercise, index) => {
     const sets = Number(exercise.sets);
@@ -45,10 +47,33 @@ const FullPlanScreen = () => {
       const planData = plan && plan.metadata ? plan.metadata : {};
       const newPlan = await generatePlan(planData);
       if (newPlan && newPlan.weekPlan) {
+        setWorkoutPlan(newPlan);
         navigation.replace('FullPlan', { plan: newPlan });
       }
     } catch (error) {
       alert('Failed to generate new week workout.');
+    }
+  };
+
+  const handleGenerateWorkoutForDay = async (dayKey) => {
+    try {
+      const { generateSingleWorkout } = await import('../utils/planGenerator');
+      const planData = plan && plan.metadata ? plan.metadata : {};
+      const newWorkout = await generateSingleWorkout(planData);
+      
+      // Update the specific day in the current plan
+      const updatedPlan = { ...plan };
+      updatedPlan.weekPlan[dayKey] = {
+        ...updatedPlan.weekPlan[dayKey],
+        type: 'workout',
+        exercises: newWorkout.exercises,
+        notes: newWorkout.notes,
+      };
+      
+      setWorkoutPlan(updatedPlan);
+      navigation.replace('FullPlan', { plan: updatedPlan });
+    } catch (error) {
+      alert('Failed to generate workout for this day.');
     }
   };
 
@@ -77,6 +102,13 @@ const FullPlanScreen = () => {
                   <Ionicons name="bed-outline" size={32} color="#E65100" />
                   <Text style={styles.restDayText}>Rest Day</Text>
                   <Text style={styles.restDaySubtext}>{dayData.notes}</Text>
+                  <TouchableOpacity 
+                    style={styles.generateWorkoutButton}
+                    onPress={() => handleGenerateWorkoutForDay(dayKey)}
+                  >
+                    <Ionicons name="refresh" size={20} color="#fff" />
+                    <Text style={styles.generateWorkoutText}>Generate Workout</Text>
+                  </TouchableOpacity>
                 </View>
               ) : (
                 <>
@@ -270,6 +302,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6C7580',
     textAlign: 'center',
+  },
+  generateWorkoutButton: {
+    backgroundColor: '#2075FF',
+    padding: 12,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+    shadowColor: '#2075FF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  generateWorkoutText: {
+    color: '#fff',
+    fontWeight: '600',
+    marginLeft: 8,
+    fontSize: 16,
   },
 });
 

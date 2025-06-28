@@ -2,7 +2,6 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getExerciseDetails } from '../services/appService';
 import { generatePlan } from '../utils/planGenerator';
-import { exerciseDatabase } from '../utils/exerciseDatabase';
 
 const WorkoutContext = createContext();
 
@@ -135,29 +134,6 @@ export const WorkoutProvider = ({ children }) => {
       exercises: Array.isArray(workout) ? workout.map(ex => ex.name) : [],
       isRestDay: !Array.isArray(workout),
     };
-  };
-
-  const parseWorkoutPlan = (plan) => {
-    try {
-      const parsedPlan = JSON.parse(plan);
-      return {
-        weekPlan: parsedPlan,
-        createdAt: new Date().toISOString(),
-      };
-    } catch (error) {
-      return {
-        weekPlan: {
-          'Day 1': [],
-          'Day 2': [],
-          'Day 3': [],
-          'Day 4': [],
-          'Day 5': [],
-          'Day 6': [],
-          'Day 7': [],
-        },
-        createdAt: new Date().toISOString(),
-      };
-    }
   };
 
   // Add a custom exercise to a specific day (dayIndex: 0-based, exercise: {id, name, sets, reps})

@@ -108,28 +108,26 @@ const HomeScreen = () => {
   const handleGenerateTodayWorkout = async () => {
     if (onboarding && Object.keys(onboarding).length > 0 && workoutPlan && workoutPlan.weekPlan) {
       try {
-        const { generatePlan } = await import('../utils/planGenerator');
-        // Generate a single day plan for today only
-        const generated = await generatePlan({
+        const { generateSingleWorkout } = await import('../utils/planGenerator');
+        // Generate a single workout day for today
+        const generatedWorkout = await generateSingleWorkout({
           goal: onboarding.goal,
           experience: onboarding.experienceLevel,
           equipment: onboarding.equipment,
-          daysPerWeek: 1, // Only one day
           location: onboarding.exerciseLocation,
         });
         // Replace only today's exercises and notes in the weekPlan
         const todayKey = Object.keys(workoutPlan.weekPlan)[currentDay - 1];
         const newWeekPlan = { ...workoutPlan.weekPlan };
-        const generatedDay = generated.weekPlan['Day 1'];
         newWeekPlan[todayKey] = {
           ...newWeekPlan[todayKey],
-          exercises: generatedDay.exercises || [],
-          notes: generatedDay.notes || '',
-          type: 'workout',
+          exercises: generatedWorkout.exercises || [],
+          notes: generatedWorkout.notes || '',
+          type: 'workout', // Always ensure it's a workout day
         };
         setWorkoutPlan({ ...workoutPlan, weekPlan: newWeekPlan });
       } catch (error) {
-        // Remove all console.error statements for production
+        // Handle workout generation error silently or show user-friendly message
       }
     }
   };
@@ -142,6 +140,9 @@ const HomeScreen = () => {
         <TodayWorkoutCard
           exercises={todayWorkout && todayWorkout.exercises ? todayWorkout.exercises : []}
           onStart={handleStartWorkout}
+          isRestDay={todayWorkout && todayWorkout.type === 'rest'}
+          restDayNotes={todayWorkout && todayWorkout.type === 'rest' ? todayWorkout.notes : ''}
+          onGenerateWorkout={handleGenerateTodayWorkout}
           renderFooter={() => (
             <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 12 }}>
               <Button

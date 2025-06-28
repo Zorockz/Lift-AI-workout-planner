@@ -13,7 +13,7 @@ const GoalWeightInputScreen = ({ navigation }) => {
   const handleNext = () => {
     updateOnboarding({ goalWeight });
     incrementStep();
-    navigation.navigate('OnboardingSummary');
+    navigation.navigate('CreateAccount');
   };
 
   const handleBack = () => {

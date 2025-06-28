@@ -8,8 +8,6 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { View, ActivityIndicator, Text, Platform } from 'react-native';
 import React from 'react';
-// import Purchases from 'react-native-purchases';
-// import { REV_CAT_IOS } from '@env';
 
 // Onboarding Screens
 import WelcomeScreen from './screens/onboarding/WelcomeScreen';
@@ -26,6 +24,8 @@ import TargetMusclesScreen from './screens/onboarding/TargetMusclesScreen';
 import HeightInputScreen from './screens/onboarding/HeightInputScreen';
 import WeightInputScreen from './screens/onboarding/WeightInputScreen';
 import GoalWeightInputScreen from './screens/onboarding/GoalWeightInputScreen';
+import SignInScreen from './screens/onboarding/SignInScreen';
+import CreateAccountScreen from './screens/onboarding/CreateAccountScreen';
 
 // Main App Screens
 import HomeScreen from './screens/HomeScreen';
@@ -63,6 +63,8 @@ const OnboardingNavigator = () => (
     <Stack.Screen name="HeightInput" component={HeightInputScreen} />
     <Stack.Screen name="WeightInput" component={WeightInputScreen} />
     <Stack.Screen name="GoalWeightInput" component={GoalWeightInputScreen} />
+    <Stack.Screen name="SignIn" component={SignInScreen} />
+    <Stack.Screen name="CreateAccount" component={CreateAccountScreen} />
   </Stack.Navigator>
 );
 
@@ -90,13 +92,6 @@ const MainNavigator = () => (
     <Stack.Screen name="PastWorkouts" component={PastWorkoutsScreen} options={{ title: 'Past Workouts' }} />
   </Stack.Navigator>
 );
-
-// RevenueCat initialization using env variable for iOS
-// if (Platform.OS === 'ios') {
-//   Purchases.configure({ apiKey: REV_CAT_IOS });
-// } else if (Platform.OS === 'android') {
-//   Purchases.configure({ apiKey: 'REVENUECAT_ANDROID_API_KEY' });
-// }
 
 function AppNavigator() {
   const { isOnboardingComplete, loading, user, isGuest } = useAuth();
@@ -145,8 +140,6 @@ function AppNavigator() {
 }
 
 export default function App() {
-  console.log('App component rendering...');
-  
   return (
     <ErrorBoundary>
       <SafeAreaProvider>

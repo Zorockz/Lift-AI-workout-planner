@@ -1,4 +1,4 @@
-import { doc, setDoc, getDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db, getAuthInstance } from '../config/firebase';
 import { generateAndSavePlan as generatePlan } from '../utils/planGenerator';
 import { OPENAI_KEY } from '@env';
@@ -8,15 +8,6 @@ const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 /**
  * User Service Functions
  */
-
-const getUserPath = async () => {
-  const auth = getAuthInstance();
-  const user = auth.currentUser;
-  if (user) {
-    return user.uid;
-  }
-  return 'public';
-};
 
 export const saveUserProfile = async (profile) => {
   try {

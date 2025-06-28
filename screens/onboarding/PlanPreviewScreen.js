@@ -4,6 +4,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useOnboarding } from '../../contexts/OnboardingContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { BlurView } from 'expo-blur';
+import { useWorkout } from '../../contexts/WorkoutContext';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -12,6 +13,7 @@ const PlanPreviewScreen = () => {
   const route = useRoute();
   const { onboarding, completeOnboarding } = useOnboarding();
   const { completeOnboarding: completeAuthOnboarding } = useAuth();
+  const { setWorkoutPlan } = useWorkout();
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(true);
   const [hasInitialized, setHasInitialized] = useState(false);
@@ -25,16 +27,19 @@ const PlanPreviewScreen = () => {
     // Get plan from route params first, then from context
     const routePlan = route.params?.plan;
     const contextPlan = onboarding.generatedPlan;
-    
+    let loadedPlan = null;
     if (routePlan && routePlan.weekPlan) {
       setPlan(routePlan);
+      loadedPlan = routePlan;
     } else if (contextPlan && contextPlan.weekPlan) {
       setPlan(contextPlan);
+      loadedPlan = contextPlan;
     }
-    
+    if (loadedPlan) {
+      setWorkoutPlan(loadedPlan);
+    }
     setLoading(false);
     setHasInitialized(true);
-    
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 500,
@@ -50,7 +55,7 @@ const PlanPreviewScreen = () => {
       // The navigation will be handled automatically by the AuthContext
       // when isOnboardingComplete changes to true
     } catch (error) {
-      // Remove all console.error statements for production
+      // Handle onboarding completion error silently
     }
   }, [completeOnboarding, completeAuthOnboarding]);
 

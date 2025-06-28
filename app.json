@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Lift AI: Workout Planner",
+    "name": "Lift AI",
     "slug": "lift-ai-workout-planner",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -13,7 +13,7 @@
       "bundleIdentifier": "com.zorockz.liftai",
       "buildNumber": "1.0.0",
       "infoPlist": {
-        "CFBundleDisplayName": "Lift AI: Workout Planner",
+        "CFBundleDisplayName": "Lift AI",
         "NSCameraUsageDescription": "This app uses the camera to take profile pictures and document your fitness progress.",
         "NSPhotoLibraryUsageDescription": "This app accesses your photo library to select profile pictures and save workout progress photos.",
         "NSLocationWhenInUseUsageDescription": "This app uses location to provide location-based workout recommendations.",
@@ -54,7 +54,7 @@
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "name": "Lift AI: Workout Planner"
+      "name": "Lift AI"
     },
     "scheme": "liftaiworkoutplanner",
     "privacy": "public",

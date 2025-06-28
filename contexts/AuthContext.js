@@ -2,10 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { onAuthStateChanged } from 'firebase/auth';
 import { getAuthInstance } from '../config/firebase';
-import { AppleAuthService, GoogleAuthService } from '../services/authService';
-
-// Development flag - set to false for production
-const IS_DEVELOPMENT = false;
+import { BasicAuthService } from '../services/authService';
 
 const defaultContext = {
   user: null,
@@ -13,8 +10,6 @@ const defaultContext = {
   loading: true,
   error: null,
   isOnboardingComplete: false,
-  signInWithGoogle: () => {},
-  signInWithApple: () => {},
   signOut: () => {},
   continueAsGuest: () => {},
   clearError: () => {},
@@ -50,44 +45,6 @@ export const AuthProvider = ({ children }) => {
     return unsubscribe;
   }, []);
 
-  const handleGoogleSignIn = async () => {
-    try {
-      setError(null);
-      setLoading(true);
-      
-      const result = await GoogleAuthService.signIn();
-      
-      if (result.success) {
-        setUser(result.user);
-      } else {
-        setError(result.error);
-      }
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAppleSignIn = async () => {
-    try {
-      setError(null);
-      setLoading(true);
-      
-      const result = await AppleAuthService.signIn();
-      
-      if (result.success) {
-        setUser(result.user);
-      } else {
-        setError(result.error);
-      }
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const continueAsGuest = async () => {
     try {
       setLoading(true);
@@ -97,7 +54,6 @@ export const AuthProvider = ({ children }) => {
       await AsyncStorage.setItem('isGuest', 'true');
       await AsyncStorage.removeItem('user');
     } catch (error) {
-      console.error('Error setting guest mode:', error);
       setError('Failed to continue as guest');
     } finally {
       setLoading(false);
@@ -107,8 +63,7 @@ export const AuthProvider = ({ children }) => {
   const signOut = async () => {
     try {
       setLoading(true);
-      const auth = getAuthInstance();
-      await auth.signOut();
+      await BasicAuthService.signOut();
       
       // Clear local storage but preserve onboarding completion
       const onboardingCompleted = await AsyncStorage.getItem('onboardingCompleted');
@@ -126,14 +81,7 @@ export const AuthProvider = ({ children }) => {
       
       setUser(null);
       setIsOnboardingComplete(onboardingCompleted === 'true');
-      
-      if (IS_DEVELOPMENT) {
-        console.log('Sign out successful');
-      }
     } catch (error) {
-      if (IS_DEVELOPMENT) {
-        console.error('Sign out error:', error);
-      }
       setError(error.message);
     } finally {
       setLoading(false);
@@ -142,12 +90,45 @@ export const AuthProvider = ({ children }) => {
 
   const clearError = () => setError(null);
 
+  const signIn = async (email, password) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Simple validation
+      if (!email || !password) {
+        return { success: false, error: 'Please fill in all fields' };
+      }
+      
+      // Simple email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return { success: false, error: 'Please enter a valid email address' };
+      }
+      
+      // For demo purposes, accept any valid email/password combination
+      // In a real app, this would validate against Firebase or your backend
+      setUser({ id: 'user', email, name: email.split('@')[0] });
+      
+      // Check if onboarding is complete
+      const onboardingCompleted = await AsyncStorage.getItem('isOnboardingComplete');
+      setIsOnboardingComplete(onboardingCompleted === 'true');
+      
+      return { success: true };
+    } catch (error) {
+      setError('Sign in failed. Please try again.');
+      return { success: false, error: 'Sign in failed. Please try again.' };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const completeOnboarding = useCallback(async () => {
     try {
       setIsOnboardingComplete(true);
       await AsyncStorage.setItem('isOnboardingComplete', 'true');
     } catch (error) {
-      console.error('Error completing onboarding:', error);
+      // Handle onboarding completion error silently
     }
   }, []);
 
@@ -159,12 +140,11 @@ export const AuthProvider = ({ children }) => {
         loading,
         error,
         isOnboardingComplete,
-        signInWithGoogle: handleGoogleSignIn,
-        signInWithApple: handleAppleSignIn,
         signOut,
         continueAsGuest,
         clearError,
         completeOnboarding,
+        signIn,
       }}
     >
       {children}

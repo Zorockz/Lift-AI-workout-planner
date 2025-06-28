@@ -77,16 +77,16 @@ const filterExercisesByEquipment = (exercises, equipment) => {
     // Check if user has the required equipment
     return equipment.some(userEquipment => {
       switch (userEquipment) {
-        case 'full_gym':
-          return true; // Full gym has all equipment
-        case 'home_gym':
-          return ['bodyweight', 'dumbbells', 'home_gym'].includes(exercise.equipment);
-        case 'dumbbells':
-          return ['bodyweight', 'dumbbells'].includes(exercise.equipment);
-        case 'bodyweight':
-          return exercise.equipment === 'bodyweight';
-        default:
-          return false;
+      case 'full_gym':
+        return true; // Full gym has all equipment
+      case 'home_gym':
+        return ['bodyweight', 'dumbbells', 'home_gym'].includes(exercise.equipment);
+      case 'dumbbells':
+        return ['bodyweight', 'dumbbells'].includes(exercise.equipment);
+      case 'bodyweight':
+        return exercise.equipment === 'bodyweight';
+      default:
+        return false;
       }
     });
   });
@@ -228,6 +228,55 @@ const generateExercisesForDay = ({ experience, goal, equipment, location, dayOfW
 };
 
 /**
+ * Generates a single workout day (no rest days)
+ */
+export const generateSingleWorkout = async (profile) => {
+  // Map onboarding goal to supported database goal
+  const goalMap = {
+    build_muscle: 'strength',
+    lose_weight: 'cardio',
+    improve_fitness: 'cardio',
+    maintain: 'maintain',
+  };
+  
+  const { 
+    experience = 'beginner', 
+    goal = 'strength', 
+    equipment = [],
+    location = 'home',
+  } = profile;
+  
+  const mappedGoal = goalMap[goal] || goal;
+
+  try {
+    const exercises = generateExercisesForDay({
+      experience,
+      goal: mappedGoal,
+      equipment,
+      location,
+      dayOfWeek: 0, // Use day 0 for single workout
+    });
+    
+    return {
+      type: 'workout',
+      exercises,
+      notes: getWorkoutNotes(mappedGoal, experience),
+    };
+  } catch (error) {
+    // If exercise generation fails, return a simple workout with basic exercises
+    return {
+      type: 'workout',
+      exercises: [
+        { name: 'Push-ups', sets: 3, reps: 10, restTime: 60 },
+        { name: 'Squats', sets: 3, reps: 15, restTime: 60 },
+        { name: 'Plank', sets: 3, reps: 30, restTime: 60 },
+      ],
+      notes: 'Basic workout with fundamental exercises',
+    };
+  }
+};
+
+/**
  * Generates a workout plan based on user profile
  */
 export const generatePlan = async (profile) => {
@@ -248,6 +297,24 @@ export const generatePlan = async (profile) => {
   } = profile;
   
   const mappedGoal = goalMap[goal] || goal;
+
+  // If generating for a single day, ensure it's a workout day
+  if (daysPerWeek === 1) {
+    const singleWorkout = await generateSingleWorkout(profile);
+    return {
+      weekPlan: {
+        'Day 1': singleWorkout,
+      },
+      metadata: {
+        experience,
+        goal: mappedGoal,
+        daysPerWeek: 1,
+        equipment,
+        location,
+        generatedAt: new Date().toISOString(),
+      },
+    };
+  }
 
   // Generate dates for exactly 7 days starting from today
   const dates = [];

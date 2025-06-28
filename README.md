@@ -1,272 +1,254 @@
-# Lift AI: Workout Planner
+# Lift AI - Workout Planner
 
-A React Native fitness app with AI-powered workout planning and Google/Apple Sign-In.
+A modern, AI-powered fitness app built with React Native and Expo that creates personalized workout plans based on user preferences and goals.
 
-## 🚨 Recent Issues & Fixes
+## 🚀 Features
 
-### Problem 1: Blank Screen Issue ✅ FIXED
-**Issue**: App showed blank screen when running with `npx expo start --dev-client`
-**Root Cause**: App uses native modules (Firebase, Apple Sign-In, etc.) that require a development build, not Expo Go
-**Solution**: Created a proper development build using EAS Build
+- **AI-Powered Workout Generation**: Personalized workout plans based on goals, experience, and equipment
+- **Comprehensive Onboarding**: 13-step onboarding process to gather user preferences
+- **Multiple Workout Types**: Strength, cardio, flexibility, HIIT, and more
+- **Progress Tracking**: Track workouts, streaks, and progress over time
+- **Offline Support**: Works without internet connection
+- **Firebase Integration**: Cloud sync for workout data and user profiles
+- **Modern UI/UX**: Clean, intuitive interface with smooth animations
 
-**Steps taken:**
-1. Installed EAS CLI: `npm install -g eas-cli`
-2. Created development build: `EXPO_NO_CAPABILITY_SYNC=1 eas build --platform ios --profile development`
-3. App now works properly with all native functionality
+## 🛠 Tech Stack
 
-### Problem 2: Authentication Not Working ⚠️ PARTIALLY FIXED
-**Issue**: Both Google and Apple Sign-In failing after development build
-**Root Causes Identified:**
-- Incorrect redirect URI configuration for development builds
-- Missing nonce parameter in Apple Sign-In
-- Wrong Firebase credential provider for Google Auth
+- **Frontend**: React Native 0.79.4, Expo SDK 53
+- **Navigation**: React Navigation 7
+- **State Management**: React Context API
+- **Backend**: Firebase (Auth, Firestore, Storage)
+- **Styling**: React Native StyleSheet
+- **Icons**: Expo Vector Icons
+- **Storage**: AsyncStorage for local data persistence
 
-**Fixes Applied:**
-1. **Updated `services/authService.js`:**
-   - Fixed Google Auth to use `GoogleAuthProvider` instead of `OAuthProvider`
-   - Added proper nonce handling for Apple Sign-In
-   - Updated redirect URI to use app scheme (`liftaiworkoutplanner://`)
-   - Added better error handling and logging
-   - Fixed platform-specific client ID handling
+## 📱 Screenshots
 
-2. **Updated `app.json`:**
-   - Removed outdated `authSession` proxy configuration
-   - Added proper URL scheme for authentication redirects
-   - Updated `CFBundleURLTypes` to handle app-specific schemes
+[Add screenshots here]
 
-**Still Need To Do:**
-- [ ] Create new development build with authentication fixes
-- [ ] Test Google Sign-In on device
-- [ ] Test Apple Sign-In on device
-- [ ] Verify Firebase authentication flow
+## 🏗 Project Structure
 
-## Features
-
-- 🔐 **Secure Authentication**: Google & Apple Sign-In with Firebase
-- 🤖 **AI Workout Planning**: Personalized workout plans using OpenAI
-- 📱 **Cross-Platform**: iOS, Android, and Web support
-- 🎯 **Goal Tracking**: Progress monitoring and achievement tracking
-- 💪 **Exercise Library**: Comprehensive exercise database
-
-## Quick Start
-
-### Prerequisites
-```bash
-# Install Node.js with NVM (recommended)
-export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-
-# Install EAS CLI for building
-npm install -g eas-cli
+```
+Lift AI/
+├── components/          # Reusable UI components
+├── contexts/           # React Context providers
+├── screens/            # Screen components
+│   └── onboarding/     # Onboarding flow screens
+├── services/           # API and service functions
+├── utils/              # Utility functions and constants
+├── config/             # Configuration files
+├── hooks/              # Custom React hooks
+└── assets/             # Images and static assets
 ```
 
-### Development Setup
+## 🚀 Getting Started
 
-1. **Install dependencies**
+### Prerequisites
+
+- Node.js >= 18.0.0
+- npm >= 8.0.0
+- Expo CLI
+- iOS Simulator (for iOS development)
+- Android Studio (for Android development)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd lift-ai
+   ```
+
+2. **Install dependencies**
    ```bash
    npm install
    ```
 
-2. **Configure Firebase**
-   - Add your Firebase config to `config/firebase.js`
-   - Enable Google & Apple Sign-In in Firebase Console
-
 3. **Set up environment variables**
    ```bash
-   # Create .env file
-   OPENAI_KEY=your_openai_api_key
+   cp .env.example .env
+   # Edit .env with your Firebase and API keys
    ```
 
-4. **Run the app**
+4. **Start the development server**
    ```bash
-   # For development (requires development build)
-   npx expo start --dev-client --host lan
+   npm start
+   ```
+
+5. **Run on device/simulator**
+   ```bash
+   # iOS
+   npm run ios
    
-   # Note: This app requires a development build, not Expo Go
+   # Android
+   npm run android
+   
+   # Web
+   npm run web
    ```
 
-### Building for Device
-
-**Create Development Build:**
-```bash
-# iOS Development Build
-EXPO_NO_CAPABILITY_SYNC=1 eas build --platform ios --profile development
-
-# Android Development Build  
-EXPO_NO_CAPABILITY_SYNC=1 eas build --platform android --profile development
-```
-
-**Production Builds:**
-```bash
-# iOS Production
-eas build --platform ios --profile production
-
-# Android Production
-eas build --platform android --profile production
-```
-
-## Project Structure
-
-```
-├── App.js                 # Main app component & navigation
-├── AppEntry.js            # App entry point for Expo
-├── config/
-│   └── firebase.js        # Firebase & app configuration
-├── contexts/
-│   ├── AuthContext.js     # Authentication state management
-│   ├── OnboardingContext.js # Onboarding flow state
-│   └── WorkoutContext.js  # Workout data management
-├── services/
-│   ├── authService.js     # Google & Apple authentication ⚠️ Recently Fixed
-│   └── appService.js      # User & OpenAI services
-├── screens/               # App screens
-│   ├── onboarding/        # Onboarding flow screens
-│   ├── HomeScreen.js      # Main dashboard
-│   ├── ProfileScreen.js   # User profile
-│   ├── WorkoutSessionScreen.js # Active workout
-│   └── ...
-├── components/            # Reusable UI components
-├── utils/
-│   ├── styles.js          # Styles & constants
-│   ├── planGenerator.js   # Workout plan generation
-│   └── exerciseDatabase.js # Exercise data
-├── assets/               # Images & icons
-├── eas.json              # EAS Build configuration
-└── app.json              # Expo app configuration ⚠️ Recently Updated
-```
-
-## Authentication
-
-The app supports both Google and Apple Sign-In:
-
-- **Google Sign-In**: Uses Expo Auth Session with Firebase (`GoogleAuthProvider`)
-- **Apple Sign-In**: Native iOS integration with Firebase (`OAuthProvider`)
-- **Guest Mode**: Continue without authentication
-
-### Authentication Configuration
-
-**Recent Changes Made:**
-- Fixed redirect URI to use app scheme: `liftaiworkoutplanner://`
-- Updated Firebase providers for better compatibility
-- Added proper nonce handling for Apple Sign-In
-- Improved error handling and logging
-
-**URL Schemes Configured:**
-- Google: `com.googleusercontent.apps.455544394958-5t0jo86dpiu6kruh6lrg4jbcl0vk7dnu`
-- App: `liftaiworkoutplanner`
-
-## Technologies
-
-- **React Native** with Expo
-- **Firebase** Authentication & Firestore
-- **OpenAI API** for workout planning
-- **AsyncStorage** for local data persistence
-- **EAS Build** for native development builds
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Blank Screen**
-   - ✅ **Fixed**: Use development build instead of Expo Go
-   - This app requires native modules, use EAS Build
-
-2. **Authentication Failing**
-   - ⚠️ **In Progress**: Need to test new authentication fixes
-   - Check console logs for specific error messages
-   - Ensure Firebase project has Google/Apple Sign-In enabled
-
-3. **Build Errors**
-   - Use `EXPO_NO_CAPABILITY_SYNC=1` flag to disable capability syncing
-   - Check Apple Developer Console for provisioning profile issues
-
-### Development Commands
+## 🔧 Development Scripts
 
 ```bash
-# Start development server
-export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && npx expo start --dev-client --host lan
+# Development
+npm start              # Start Expo development server
+npm run ios           # Run on iOS simulator
+npm run android       # Run on Android emulator
+npm run web           # Run on web browser
 
-# Clean and restart
-npx expo r -c
+# Building
+npm run build:android # Build Android APK
+npm run build:ios     # Build iOS app
 
-# View build logs
-eas build:list
+# Code Quality
+npm run lint          # Run ESLint
+npm run lint:fix      # Fix ESLint issues
+npm run format        # Format code with Prettier
+npm run format:check  # Check code formatting
 
-# Install development build on device
-# Scan QR code from build completion or visit EAS build URL
+# Testing
+npm test              # Run tests
+npm run test:watch    # Run tests in watch mode
+npm run test:coverage # Run tests with coverage
+
+# Utilities
+npm run clean         # Clear cache and restart
+npm run doctor        # Check for common issues
+npm run analyze       # Analyze bundle size
 ```
 
-## Next Steps
+## 🔥 Firebase Setup
 
-### Immediate Actions Needed:
-1. **Create New Development Build** with authentication fixes
-   ```bash
-   EXPO_NO_CAPABILITY_SYNC=1 eas build --platform ios --profile development
-   ```
+1. **Create a Firebase project**
+   - Go to [Firebase Console](https://console.firebase.google.com/)
+   - Create a new project
+   - Enable Authentication and Firestore
 
-2. **Test Authentication** on physical device
-   - Test Google Sign-In flow
-   - Test Apple Sign-In flow
-   - Verify Firebase user creation
+2. **Configure Firebase**
+   - Download `google-services.json` (Android) and `GoogleService-Info.plist` (iOS)
+   - Place them in the project root
+   - Update Firebase configuration in `config/firebase.js`
 
-3. **Validate Core Features**
-   - Onboarding flow completion
-   - Workout plan generation
-   - Data persistence
+3. **Set up Firestore rules**
+   - Copy `firestore.rules` to your Firebase project
+   - Deploy the rules
 
-### Future Improvements:
-- [ ] Add Android authentication testing
-- [ ] Implement proper error boundaries
-- [ ] Add authentication unit tests
-- [ ] Set up CI/CD pipeline
-- [ ] Add monitoring and crash reporting
+## 📱 App Architecture
 
-## Dependencies
+### State Management
+- **AuthContext**: Handles user authentication and session management
+- **OnboardingContext**: Manages onboarding flow and user preferences
+- **WorkoutContext**: Manages workout plans and exercise data
 
-- expo: 53.0.13
-- react: 19.0.0
-- react-native: 0.79.4
-- firebase: ^11.9.1
-- expo-auth-session: ~6.2.0
-- expo-apple-authentication: ^7.2.4
-- expo-dev-client: ~5.2.1
-- react-native-purchases: ^8.11.6
-- @react-navigation/native: ^7.1.11
-- @react-navigation/bottom-tabs: ^7.3.15
-- @react-navigation/native-stack: ^7.3.15
-- @react-native-async-storage/async-storage: 2.1.2
-- @react-native-community/slider: 4.5.6
-- @react-native-picker/picker: 2.11.1
-- expo-camera: ~16.1.9
-- expo-image-picker: ~16.1.4
-- expo-location: ~18.1.5
-- expo-notifications: ~0.31.3
-- expo-sensors: ~14.1.4
-- expo-haptics: ~14.1.4
-- expo-linear-gradient: ^14.1.5
-- expo-blur: ~14.1.5
-- expo-font: ~13.3.1
-- expo-status-bar: ~2.2.3
-- expo-splash-screen: ~0.30.9
-- expo-updates: ~0.28.15
-- expo-web-browser: ~14.2.0
-- expo-constants: ~17.1.6
-- expo-file-system: ~18.1.10
-- expo-secure-store: ~14.2.3
-- expo-background-fetch: ~13.1.5
-- expo-task-manager: ~13.1.5
-- expo-random: ^14.0.1
-- expo-crypto: ^14.1.5
-- expo-linking: ~7.1.5
-- react-native-gesture-handler: ~2.24.0
-- react-native-reanimated: ~3.17.4
-- react-native-safe-area-context: 5.4.0
-- react-native-screens: ~4.11.1
-- uuid: ^11.1.0
-- tslib: ^2.6.2
+### Navigation Structure
+```
+App
+├── AuthStack (Unauthenticated)
+│   ├── Welcome
+│   ├── SignIn
+│   └── CreateAccount
+├── OnboardingStack
+│   ├── GenderSelection
+│   ├── GoalSelection
+│   ├── ExperienceLevel
+│   ├── EquipmentInput
+│   ├── ScheduleInput
+│   ├── ExerciseLocation
+│   ├── TargetMuscles
+│   ├── HeightInput
+│   ├── WeightInput
+│   ├── GoalWeightInput
+│   ├── AccountCreation
+│   ├── OnboardingSummary
+│   └── PlanPreview
+└── MainStack (Authenticated)
+    ├── Home
+    ├── Profile
+    ├── WorkoutSession
+    ├── FullPlan
+    ├── CardioScreen
+    └── FlexibilityScreen
+```
 
-**Development Tools Installed:**
-- `eas-cli`: Global installation for building native apps
+## 🎨 UI/UX Design
 
-## License
+The app follows modern design principles with:
+- **Clean, minimalist interface**
+- **Consistent color scheme** (primary: #007AFF)
+- **Smooth animations and transitions**
+- **Accessible design patterns**
+- **Responsive layout for different screen sizes**
 
-Private - All rights reserved 
+## 🔒 Security
+
+- **Firebase Authentication** for secure user management
+- **Firestore Security Rules** for data protection
+- **Input validation** on all user inputs
+- **Secure storage** for sensitive data
+- **Error handling** without exposing sensitive information
+
+## 📊 Performance
+
+- **Lazy loading** for workout generation
+- **Optimized images** and assets
+- **Efficient state management**
+- **Minimal bundle size**
+- **Offline-first architecture**
+
+## 🧪 Testing
+
+The app includes comprehensive testing:
+- **Unit tests** for utility functions
+- **Component tests** for UI components
+- **Integration tests** for user flows
+- **E2E tests** for critical paths
+
+Run tests with:
+```bash
+npm test
+```
+
+## 📦 Deployment
+
+### Android
+1. Build the app: `npm run build:android`
+2. Upload to Google Play Console
+3. Configure release signing
+
+### iOS
+1. Build the app: `npm run build:ios`
+2. Upload to App Store Connect
+3. Configure certificates and provisioning profiles
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 Support
+
+For support, email support@liftai.com or create an issue in this repository.
+
+## 🔄 Changelog
+
+### v1.0.0 (Current)
+- Initial release
+- Complete onboarding flow
+- AI-powered workout generation
+- Firebase integration
+- Offline support
+- Modern UI/UX design
+
+## 🙏 Acknowledgments
+
+- React Native community
+- Expo team
+- Firebase team
+- All contributors and beta testers 

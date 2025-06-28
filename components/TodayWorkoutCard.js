@@ -2,10 +2,24 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const TodayWorkoutCard = ({ exercises = [], onStart, renderFooter }) => (
+const TodayWorkoutCard = ({ exercises = [], onStart, renderFooter, isRestDay = false, restDayNotes = '', onGenerateWorkout }) => (
   <View style={styles.card}>
     <Text style={styles.title}>Today's Workout</Text>
-    {exercises.length === 0 ? (
+    {isRestDay ? (
+      <View style={styles.restDayContainer}>
+        <Ionicons name="bed-outline" size={48} color="#E65100" style={styles.restDayIcon} />
+        <Text style={styles.restDayTitle}>Rest Day</Text>
+        {restDayNotes && (
+          <Text style={styles.restDayNotes}>{restDayNotes}</Text>
+        )}
+        {onGenerateWorkout && (
+          <TouchableOpacity style={styles.generateWorkoutButton} onPress={onGenerateWorkout}>
+            <Ionicons name="refresh-circle" size={20} color="#fff" />
+            <Text style={styles.generateWorkoutText}>Generate Workout</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    ) : exercises.length === 0 ? (
       <Text style={styles.noWorkout}>No workout scheduled for today.</Text>
     ) : (
       <View style={styles.exerciseList}>
@@ -22,10 +36,12 @@ const TodayWorkoutCard = ({ exercises = [], onStart, renderFooter }) => (
         ))}
       </View>
     )}
-    <TouchableOpacity style={styles.startButton} onPress={onStart}>
-      <Ionicons name="play" size={20} color="#fff" />
-      <Text style={styles.startText}>Start Workout</Text>
-    </TouchableOpacity>
+    {!isRestDay && exercises.length > 0 && (
+      <TouchableOpacity style={styles.startButton} onPress={onStart}>
+        <Ionicons name="play" size={20} color="#fff" />
+        <Text style={styles.startText}>Start Workout</Text>
+      </TouchableOpacity>
+    )}
     {renderFooter && (
       <View style={styles.footerContainer}>
         {renderFooter()}
@@ -66,6 +82,41 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#1B365D',
     marginBottom: 4,
+  },
+  restDayContainer: {
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  restDayIcon: {
+    marginBottom: 12,
+  },
+  restDayTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#E65100',
+    marginBottom: 8,
+  },
+  restDayNotes: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  generateWorkoutButton: {
+    backgroundColor: '#2075FF',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  generateWorkoutText: {
+    color: '#fff',
+    fontWeight: '600',
+    marginLeft: 8,
+    fontSize: 14,
   },
   startButton: {
     backgroundColor: '#2075FF',

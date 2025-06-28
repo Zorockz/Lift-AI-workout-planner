@@ -180,7 +180,7 @@ const OnboardingSummary = ({ navigation }) => {
         }
       }
     } catch (error) {
-      // Remove all console.error statements for production
+      // Handle plan generation error silently
     } finally {
       setIsGenerating(false);
     }

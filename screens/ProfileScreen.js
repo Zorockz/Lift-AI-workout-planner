@@ -51,7 +51,7 @@ const ProfileScreen = () => {
         allWorkouts.sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
         setWorkouts(allWorkouts);
       } catch (error) {
-        // Remove all console.error statements for production
+        // Handle workout loading error silently
       } finally {
         setIsLoadingWorkouts(false);
       }
@@ -126,7 +126,7 @@ const ProfileScreen = () => {
     try {
       await signOut();
     } catch (error) {
-      // Remove all console.error statements for production
+      // Handle sign out error silently
     }
   };
 

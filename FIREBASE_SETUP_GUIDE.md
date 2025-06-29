@@ -1,8 +1,8 @@
-# Firebase Setup & Email/Password Authentication Guide
+# Firebase Setup Guide for Lifts AI
 
 ## Overview
 
-Lift AI now uses a simplified, secure email/password authentication system with Firebase. This guide covers the setup, configuration, and testing of the authentication system.
+Lifts AI now uses a simplified, secure email/password authentication system with Firebase. This guide covers the setup, configuration, and testing of the authentication system.
 
 ## Firebase Configuration
 

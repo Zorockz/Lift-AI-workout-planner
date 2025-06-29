@@ -119,7 +119,7 @@ const SignInScreen = ({ navigation }) => {
         
         <View style={[commonStyles.content, { justifyContent: 'center' }]}>
           <Text style={commonStyles.title}>Sign In</Text>
-          <Text style={commonStyles.subtitle}>Welcome back to Lift AI</Text>
+          <Text style={commonStyles.subtitle}>Welcome back to Lifts AI</Text>
 
           <View style={styles.form}>
             <View style={styles.inputContainer}>

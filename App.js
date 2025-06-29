@@ -7,7 +7,8 @@ import { WorkoutProvider } from './contexts/WorkoutContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { View, ActivityIndicator, Text, Platform } from 'react-native';
-import React from 'react';
+import React, { useEffect } from 'react';
+import purchasesService from './services/purchasesService';
 
 // Onboarding Screens
 import WelcomeScreen from './screens/onboarding/WelcomeScreen';
@@ -95,6 +96,20 @@ const MainNavigator = () => (
 
 function AppNavigator() {
   const { isOnboardingComplete, loading, user, isGuest } = useAuth();
+
+  // Initialize RevenueCat when app starts
+  useEffect(() => {
+    const initializeRevenueCat = async () => {
+      try {
+        await purchasesService.initialize();
+        console.log('RevenueCat initialized successfully');
+      } catch (error) {
+        console.error('Failed to initialize RevenueCat:', error);
+      }
+    };
+
+    initializeRevenueCat();
+  }, []);
 
   if (loading) {
     return (

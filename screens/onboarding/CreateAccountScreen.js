@@ -49,8 +49,6 @@ const CreateAccountScreen = ({ navigation }) => {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      console.log('Firebase Auth account created successfully:', user.uid);
-
       // Save user data to Firestore for future reference
       const saveUserData = async () => {
         try {
@@ -69,10 +67,8 @@ const CreateAccountScreen = ({ navigation }) => {
             accountCreated: true,
             // You can add more user data here as needed
           });
-          console.log('User data saved to Firestore successfully');
           return true;
         } catch (firestoreError) {
-          console.warn('Firestore save attempt failed:', firestoreError);
           return false;
         }
       };
@@ -94,7 +90,6 @@ const CreateAccountScreen = ({ navigation }) => {
       incrementStep();
       navigation.navigate('OnboardingSummary');
     } catch (error) {
-      console.error('Account creation error:', error);
       let errorMessage = 'Something went wrong. Please try again.';
       
       if (error.code === 'auth/email-already-in-use') {
@@ -128,7 +123,7 @@ const CreateAccountScreen = ({ navigation }) => {
         
         <View style={[commonStyles.content, { justifyContent: 'center' }]}>
           <Text style={commonStyles.title}>Create Account</Text>
-          <Text style={commonStyles.subtitle}>Set up your Lift AI account</Text>
+          <Text style={commonStyles.subtitle}>Set up your Lifts AI account</Text>
 
           <View style={styles.form}>
             <View style={styles.inputContainer}>

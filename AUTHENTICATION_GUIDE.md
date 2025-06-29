@@ -1,8 +1,8 @@
-# Lift AI Authentication System
+# Lifts AI Authentication System
 
 ## Overview
 
-Lift AI implements a secure email/password authentication system with Firebase, ensuring Apple App Store compliance and security best practices.
+Lifts AI implements a secure email/password authentication system with Firebase, ensuring Apple App Store compliance and security best practices.
 
 ## Authentication Methods
 

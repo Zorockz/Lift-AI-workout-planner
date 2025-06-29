@@ -67,7 +67,7 @@ const WelcomeScreen = ({ navigation }) => {
             <Text style={styles.welcomeTitle}>Welcome, {userName}!</Text>
           ) : (
             <>
-              <Text style={styles.welcomeTitle}>Welcome to Lift</Text>
+              <Text style={styles.welcomeTitle}>Welcome to Lifts AI</Text>
               <Text style={styles.welcomeSubtitle}>Your AI Workout Planner</Text>
             </>
           )}

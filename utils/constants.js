@@ -5,7 +5,7 @@
 
 // App Configuration
 export const APP_CONFIG = {
-  NAME: 'Lift AI',
+  NAME: 'Lifts AI',
   VERSION: '1.0.0',
   MAX_WORKOUT_HISTORY: 100,
   MAX_OFFLINE_DAYS: 7,
@@ -117,7 +117,7 @@ export const STORAGE_KEYS = {
 export const API_CONFIG = {
   TIMEOUT: 30000, // 30 seconds
   RETRY_ATTEMPTS: 3,
-  BASE_URL: 'https://api.liftai.com', // Replace with your actual API URL
+  BASE_URL: 'https://api.liftsai.com', // Updated to match new branding
 };
 
 // Error Messages

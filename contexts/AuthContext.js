@@ -118,10 +118,8 @@ export const AuthProvider = ({ children }) => {
         if (userDoc.exists()) {
           const userData = userDoc.data();
           // You can store additional user data here if needed
-          console.log('User data from Firestore:', userData);
         }
       } catch (firestoreError) {
-        console.warn('Could not fetch user data from Firestore:', firestoreError);
       }
       
       // Check if onboarding is complete
@@ -130,7 +128,6 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
-      console.error('Sign in error:', error);
       let errorMessage = 'Sign in failed. Please try again.';
       
       if (error.code === 'auth/user-not-found') {

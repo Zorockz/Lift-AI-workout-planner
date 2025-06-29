@@ -26,7 +26,6 @@ const SignInScreen = ({ navigation }) => {
   // Navigate based on auth state and onboarding completion
   useEffect(() => {
     if (authStateSettled && user && !loading) {
-      console.log('🔍 SignInScreen - User authenticated and auth state settled');
       // Let the AppNavigator handle navigation based on auth state and onboarding completion
       // The AuthContext will update the user state, which will trigger AppNavigator to re-render
     }
@@ -39,11 +38,8 @@ const SignInScreen = ({ navigation }) => {
       const result = await signIn(email.trim(), password);
 
       if (result.success) {
-        console.log('🔍 SignInScreen - Sign in successful, waiting for auth state change');
         // Don't navigate here - let the useEffect handle navigation when user state updates
       } else {
-        console.log('🔍 SignInScreen - Sign in failed:', result.error);
-        
         if (result.shouldShowSignUpOption) {
           Alert.alert(
             'Account Not Found',

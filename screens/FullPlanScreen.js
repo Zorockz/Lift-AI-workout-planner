@@ -1,14 +1,16 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { useWorkout } from '../contexts/WorkoutContext';
+import { usePurchases } from '../hooks/usePurchases';
 
 const FullPlanScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { plan } = route.params || {};
   const { setWorkoutPlan } = useWorkout();
+  const { hasPremium, presentPaywallIfNeeded } = usePurchases();
 
   const renderExercise = (exercise, index) => {
     const sets = Number(exercise.sets);
@@ -34,14 +36,50 @@ const FullPlanScreen = () => {
     );
   };
 
-  const handleStartWorkout = (dayKey, exercises) => {
-    navigation.navigate('WorkoutSession', {
-      exercises: exercises,
-      dayKey: dayKey,
-    });
+  // Check if user has premium access
+  const checkPremiumAccess = async () => {
+    if (hasPremium) {
+      return true; // User has premium, allow access
+    }
+
+    try {
+      // Try to present paywall if needed
+      const result = await presentPaywallIfNeeded('pro');
+      
+      if (result.success) {
+        // Purchase was successful
+        Alert.alert('Welcome to Premium!', 'You now have access to the full workout plan.');
+        return true;
+      } else if (result.result === 'NOT_PRESENTED') {
+        // User already has premium but it wasn't detected
+        return true;
+      } else {
+        // User cancelled or there was an error
+        Alert.alert('Premium Required', 'The full workout plan is a premium feature. Please upgrade to access it.');
+        return false;
+      }
+    } catch (error) {
+      console.error('Paywall error:', error);
+      Alert.alert('Error', 'Failed to load premium options. Please try again.');
+      return false;
+    }
+  };
+
+  const handleStartWorkout = async (dayKey, exercises) => {
+    const hasAccess = await checkPremiumAccess();
+    if (hasAccess) {
+      // Continue with workout start
+      navigation.navigate('WorkoutSession', {
+        exercises: exercises,
+        dayKey: dayKey,
+      });
+    }
   };
 
   const handleGenerateNewWeek = async () => {
+    const hasAccess = await checkPremiumAccess();
+    if (!hasAccess) return;
+
     try {
       const { generatePlan } = await import('../utils/planGenerator');
       const planData = plan && plan.metadata ? plan.metadata : {};
@@ -51,11 +89,14 @@ const FullPlanScreen = () => {
         navigation.replace('FullPlan', { plan: newPlan });
       }
     } catch (error) {
-      alert('Failed to generate new week workout.');
+      Alert.alert('Error', 'Failed to generate new week workout.');
     }
   };
 
   const handleGenerateWorkoutForDay = async (dayKey) => {
+    const hasAccess = await checkPremiumAccess();
+    if (!hasAccess) return;
+
     try {
       const { generateSingleWorkout } = await import('../utils/planGenerator');
       const planData = plan && plan.metadata ? plan.metadata : {};
@@ -73,7 +114,16 @@ const FullPlanScreen = () => {
       setWorkoutPlan(updatedPlan);
       navigation.replace('FullPlan', { plan: updatedPlan });
     } catch (error) {
-      alert('Failed to generate workout for this day.');
+      Alert.alert('Error', 'Failed to generate workout for this day.');
+    }
+  };
+
+  const handleShowCustomPaywall = async () => {
+    // Use the same direct paywall approach
+    const hasAccess = await checkPremiumAccess();
+    if (hasAccess) {
+      // User now has premium, refresh the screen
+      // The component will re-render and show the full plan
     }
   };
 
@@ -321,6 +371,82 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
     marginLeft: 8,
+    fontSize: 16,
+  },
+  premiumGateContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  premiumIcon: {
+    marginBottom: 24,
+  },
+  premiumTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1B365D',
+    marginBottom: 8,
+  },
+  premiumDescription: {
+    fontSize: 16,
+    color: '#6C7580',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  premiumBenefits: {
+    marginBottom: 24,
+  },
+  benefitsTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1B365D',
+    marginBottom: 8,
+  },
+  benefitItem: {
+    fontSize: 16,
+    color: '#6C7580',
+    marginBottom: 4,
+  },
+  upgradeButton: {
+    backgroundColor: '#2075FF',
+    padding: 12,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+    shadowColor: '#2075FF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  buttonIcon: {
+    marginRight: 8,
+  },
+  upgradeButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  backToHomeButton: {
+    backgroundColor: '#2075FF',
+    padding: 12,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+    shadowColor: '#2075FF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  backToHomeText: {
+    color: '#fff',
+    fontWeight: '600',
     fontSize: 16,
   },
 });

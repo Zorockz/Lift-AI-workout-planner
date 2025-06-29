@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Lift AI",
-    "slug": "lift-ai-workout-planner",
+    "name": "Lifts AI",
+    "slug": "lifts-ai-workout-planner",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -13,7 +13,7 @@
       "bundleIdentifier": "com.zorockz.liftai",
       "buildNumber": "1.0.0",
       "infoPlist": {
-        "CFBundleDisplayName": "Lift AI",
+        "CFBundleDisplayName": "Lifts AI",
         "NSCameraUsageDescription": "This app uses the camera to take profile pictures and document your fitness progress.",
         "NSPhotoLibraryUsageDescription": "This app accesses your photo library to select profile pictures and save workout progress photos.",
         "NSLocationWhenInUseUsageDescription": "This app uses location to provide location-based workout recommendations.",
@@ -28,39 +28,25 @@
           {
             "CFBundleURLName": "Expo Auth Session",
             "CFBundleURLSchemes": [
-              "liftaiworkoutplanner"
+              "liftsaiworkoutplanner"
             ]
           }
         ],
         "ITSAppUsesNonExemptEncryption": false
       },
-      "usesAppleSignIn": true
-    },
-    "android": {
-      "package": "com.zorockz.liftai",
-      "versionCode": 1,
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#FFFFFF"
-      },
-      "permissions": [
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE",
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION"
-      ],
-      "googleServicesFile": "./google-services.json"
+      "usesAppleSignIn": true,
+      "entitlements": {
+        "com.apple.developer.in-app-payments": []
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "name": "Lift AI"
+      "name": "Lifts AI"
     },
-    "scheme": "liftaiworkoutplanner",
+    "scheme": "liftsaiworkoutplanner",
     "privacy": "public",
     "platforms": [
       "ios",
-      "android",
       "web"
     ],
     "extra": {
@@ -76,14 +62,14 @@
           "file": "sentry-expo/upload-sourcemaps",
           "config": {
             "organization": "your-sentry-org",
-            "project": "lift-ai-workout-planner"
+            "project": "lifts-ai-workout-planner"
           }
         }
       ]
     },
-    "icon": "./assets/lift_ai_logo.png",
+    "icon": "./assets/lifts_ai.png",
     "splash": {
-      "image": "./assets/lift_ai_logo.png",
+      "image": "./assets/lifts_ai.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     }

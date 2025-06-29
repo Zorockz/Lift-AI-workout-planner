@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AddExerciseModal from '../components/AddExerciseModal';
 import { useWorkout } from '../contexts/WorkoutContext';
 import Button from '../components/Button';
+import { usePurchases } from '../hooks/usePurchases';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
@@ -20,6 +21,7 @@ const HomeScreen = () => {
   const [selectedBubble, setSelectedBubble] = useState('Strength');
   const [modalVisible, setModalVisible] = useState(false);
   const { workoutPlan, addExercise, currentDay, setWorkoutPlan } = useWorkout();
+  const { hasPremium } = usePurchases();
 
   useEffect(() => {
     // Get user photoURL from Firebase Auth if available

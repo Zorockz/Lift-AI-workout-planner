@@ -1,35 +1,30 @@
-# Lift AI - Workout Planner
+# Lifts AI - Workout Planner
 
-A modern, AI-powered fitness app built with React Native and Expo that creates personalized workout plans based on user preferences and goals.
+A comprehensive React Native workout planning app that uses AI to create personalized fitness routines.
 
-## 🚀 Features
+## Features
 
-- **AI-Powered Workout Generation**: Personalized workout plans based on goals, experience, and equipment
-- **Comprehensive Onboarding**: 13-step onboarding process to gather user preferences
-- **Multiple Workout Types**: Strength, cardio, flexibility, HIIT, and more
-- **Progress Tracking**: Track workouts, streaks, and progress over time
-- **Offline Support**: Works without internet connection
-- **Firebase Integration**: Cloud sync for workout data and user profiles
-- **Modern UI/UX**: Clean, intuitive interface with smooth animations
+- 🤖 AI-powered workout generation
+- 📱 Cross-platform (iOS, Web)
+- 🔐 Secure authentication with Firebase
+- 💳 In-app purchases with RevenueCat
+- 📊 Progress tracking
+- 🎯 Personalized goals
+- 🏋️ Multiple workout types (Strength, Cardio, Flexibility)
 
-## 🛠 Tech Stack
+## Tech Stack
 
 - **Frontend**: React Native 0.79.4, Expo SDK 53
-- **Navigation**: React Navigation 7.x
+- **Authentication**: Firebase Auth
+- **Payments**: RevenueCat
+- **Navigation**: React Navigation 7
 - **State Management**: React Context API
-- **Backend**: Firebase (Authentication, Firestore)
-- **AI Integration**: OpenAI API for workout generation
-- **Storage**: AsyncStorage for offline data
-- **UI Components**: Custom components with modern design
+- **Styling**: React Native StyleSheet
 
-## 📱 Screenshots
-
-*Add screenshots of your app here*
-
-## 🏗️ Project Structure
+## Project Structure
 
 ```
-Lift AI/
+Lifts AI/
 ├── components/          # Reusable UI components
 ├── contexts/           # React Context providers
 ├── hooks/              # Custom React hooks
@@ -56,7 +51,7 @@ Lift AI/
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd Lift-AI
+   cd Lifts-AI
    ```
 
 2. **Install dependencies**

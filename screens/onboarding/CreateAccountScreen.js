@@ -119,12 +119,10 @@ const CreateAccountScreen = ({ navigation }) => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <ProgressBar currentStep={13} totalSteps={15} />
-        
         <View style={[commonStyles.content, { justifyContent: 'center' }]}>
           <Text style={commonStyles.title}>Create Account</Text>
           <Text style={commonStyles.subtitle}>Set up your Lifts AI account</Text>
-
+          <ProgressBar currentStep={13} totalSteps={15} />
           <View style={styles.form}>
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Email</Text>

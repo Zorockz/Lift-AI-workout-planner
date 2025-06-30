@@ -7,8 +7,7 @@ import { WorkoutProvider } from './contexts/WorkoutContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { View, ActivityIndicator, Text, Platform } from 'react-native';
-import React, { useEffect } from 'react';
-import purchasesService from './services/purchasesService';
+import React from 'react';
 
 // Onboarding Screens
 import WelcomeScreen from './screens/onboarding/WelcomeScreen';
@@ -66,6 +65,11 @@ const OnboardingNavigator = () => (
     <Stack.Screen name="GoalWeightInput" component={GoalWeightInputScreen} />
     <Stack.Screen name="SignIn" component={SignInScreen} />
     <Stack.Screen name="CreateAccount" component={CreateAccountScreen} />
+    <Stack.Screen 
+      name="FullPlan" 
+      component={FullPlanScreen}
+      options={{ headerShown: false }}
+    />
   </Stack.Navigator>
 );
 
@@ -97,20 +101,6 @@ const MainNavigator = () => (
 function AppNavigator() {
   const { isOnboardingComplete, loading, user, isGuest } = useAuth();
 
-  // Initialize RevenueCat when app starts
-  useEffect(() => {
-    const initializeRevenueCat = async () => {
-      try {
-        await purchasesService.initialize();
-        console.log('RevenueCat initialized successfully');
-      } catch (error) {
-        console.error('Failed to initialize RevenueCat:', error);
-      }
-    };
-
-    initializeRevenueCat();
-  }, []);
-
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -119,10 +109,13 @@ function AppNavigator() {
     );
   }
 
-  // Determine which navigator to show
-  const shouldShowOnboarding = !isOnboardingComplete;
+  // Show main app (HomeScreen) if:
+  // 1. User is signed in AND onboarding is complete, OR
+  // 2. User is a guest
+  const shouldShowMainApp = (user && isOnboardingComplete) || isGuest;
   
-  // Additional safeguard: if user is not signed in and not guest, show onboarding
+  // Show onboarding if:
+  // 1. No user is signed in AND not a guest AND onboarding not complete
   if (!user && !isGuest && !isOnboardingComplete) {
     return (
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
@@ -137,16 +130,16 @@ function AppNavigator() {
 
   return (
     <RootStack.Navigator screenOptions={{ headerShown: false }}>
-      {shouldShowOnboarding ? (
+      {shouldShowMainApp ? (
         <RootStack.Screen 
-          name="Onboarding" 
-          component={OnboardingNavigator}
+          name="Main" 
+          component={MainNavigator}
           options={{ gestureEnabled: false }}
         />
       ) : (
         <RootStack.Screen 
-          name="Main" 
-          component={MainNavigator}
+          name="Onboarding" 
+          component={OnboardingNavigator}
           options={{ gestureEnabled: false }}
         />
       )}

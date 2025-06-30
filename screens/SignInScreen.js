@@ -22,6 +22,7 @@ const SignInScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [localError, setLocalError] = useState('');
 
   // Navigate based on auth state and onboarding completion
   useEffect(() => {
@@ -33,12 +34,21 @@ const SignInScreen = ({ navigation }) => {
 
   const handleSignIn = async () => {
     clearError();
+    setLocalError('');
+
+    if (!email.trim() || !password) {
+      setLocalError('Please fill in all fields');
+      return;
+    }
 
     try {
       const result = await signIn(email.trim(), password);
 
       if (result.success) {
-        // Don't navigate here - let the useEffect handle navigation when user state updates
+        // For existing users who successfully sign in, they should go to main app
+        // The AppNavigator will handle this automatically based on user state and onboarding completion
+        // No need to manually navigate - the AppNavigator will detect the user is signed in
+        // and onboarding is complete, then show the MainNavigator (HomeScreen)
       } else {
         if (result.shouldShowSignUpOption) {
           Alert.alert(
@@ -53,11 +63,11 @@ const SignInScreen = ({ navigation }) => {
             ]
           );
         } else {
-          Alert.alert('Error', result.error || 'Sign in failed');
+          setLocalError(result.error || 'Sign in failed');
         }
       }
     } catch (error) {
-      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
+      setLocalError('An unexpected error occurred. Please try again.');
     }
   };
 
@@ -70,6 +80,19 @@ const SignInScreen = ({ navigation }) => {
       // Start fresh onboarding
       navigation.navigate('GenderSelection');
     }
+  };
+
+  // Clear error when user types
+  const handleEmailChange = (text) => {
+    setEmail(text);
+    setLocalError('');
+    clearError();
+  };
+
+  const handlePasswordChange = (text) => {
+    setPassword(text);
+    setLocalError('');
+    clearError();
   };
 
   return (
@@ -107,7 +130,7 @@ const SignInScreen = ({ navigation }) => {
                   style={styles.input}
                   placeholder="Email"
                   value={email}
-                  onChangeText={setEmail}
+                  onChangeText={handleEmailChange}
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
@@ -119,7 +142,7 @@ const SignInScreen = ({ navigation }) => {
                   style={styles.input}
                   placeholder="Password"
                   value={password}
-                  onChangeText={setPassword}
+                  onChangeText={handlePasswordChange}
                   secureTextEntry={!showPassword}
                   autoCapitalize="none"
                   autoCorrect={false}
@@ -137,8 +160,10 @@ const SignInScreen = ({ navigation }) => {
                 </TouchableOpacity>
               </View>
 
-              {authError && (
-                <Text style={styles.authErrorText}>{authError}</Text>
+              {(localError || authError) && (
+                <View style={styles.errorContainer}>
+                  <Text style={styles.errorText}>{localError || authError}</Text>
+                </View>
               )}
 
               <TouchableOpacity
@@ -259,12 +284,19 @@ const styles = StyleSheet.create({
     right: 16,
     top: 14,
   },
-  authErrorText: {
-    color: '#DC3545',
+  errorContainer: {
+    backgroundColor: '#FEE',
+    borderWidth: 1,
+    borderColor: '#FCC',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: '#C33',
     fontSize: 14,
     textAlign: 'center',
-    marginBottom: 16,
-    paddingHorizontal: 16,
+    fontWeight: '500',
   },
   signInButton: {
     backgroundColor: '#2075FF',

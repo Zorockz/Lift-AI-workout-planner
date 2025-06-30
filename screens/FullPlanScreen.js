@@ -3,14 +3,12 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'rea
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { useWorkout } from '../contexts/WorkoutContext';
-import { usePurchases } from '../hooks/usePurchases';
 
 const FullPlanScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { plan } = route.params || {};
   const { setWorkoutPlan } = useWorkout();
-  const { hasPremium, presentPaywallIfNeeded } = usePurchases();
 
   const renderExercise = (exercise, index) => {
     const sets = Number(exercise.sets);
@@ -36,50 +34,14 @@ const FullPlanScreen = () => {
     );
   };
 
-  // Check if user has premium access
-  const checkPremiumAccess = async () => {
-    if (hasPremium) {
-      return true; // User has premium, allow access
-    }
-
-    try {
-      // Try to present paywall if needed
-      const result = await presentPaywallIfNeeded('pro');
-      
-      if (result.success) {
-        // Purchase was successful
-        Alert.alert('Welcome to Premium!', 'You now have access to the full workout plan.');
-        return true;
-      } else if (result.result === 'NOT_PRESENTED') {
-        // User already has premium but it wasn't detected
-        return true;
-      } else {
-        // User cancelled or there was an error
-        Alert.alert('Premium Required', 'The full workout plan is a premium feature. Please upgrade to access it.');
-        return false;
-      }
-    } catch (error) {
-      console.error('Paywall error:', error);
-      Alert.alert('Error', 'Failed to load premium options. Please try again.');
-      return false;
-    }
-  };
-
   const handleStartWorkout = async (dayKey, exercises) => {
-    const hasAccess = await checkPremiumAccess();
-    if (hasAccess) {
-      // Continue with workout start
-      navigation.navigate('WorkoutSession', {
-        exercises: exercises,
-        dayKey: dayKey,
-      });
-    }
+    navigation.navigate('WorkoutSession', {
+      exercises: exercises,
+      dayKey: dayKey,
+    });
   };
 
   const handleGenerateNewWeek = async () => {
-    const hasAccess = await checkPremiumAccess();
-    if (!hasAccess) return;
-
     try {
       const { generatePlan } = await import('../utils/planGenerator');
       const planData = plan && plan.metadata ? plan.metadata : {};
@@ -94,9 +56,6 @@ const FullPlanScreen = () => {
   };
 
   const handleGenerateWorkoutForDay = async (dayKey) => {
-    const hasAccess = await checkPremiumAccess();
-    if (!hasAccess) return;
-
     try {
       const { generateSingleWorkout } = await import('../utils/planGenerator');
       const planData = plan && plan.metadata ? plan.metadata : {};
@@ -120,11 +79,7 @@ const FullPlanScreen = () => {
 
   const handleShowCustomPaywall = async () => {
     // Use the same direct paywall approach
-    const hasAccess = await checkPremiumAccess();
-    if (hasAccess) {
-      // User now has premium, refresh the screen
-      // The component will re-render and show the full plan
-    }
+    // The component will re-render and show the full plan
   };
 
   return (

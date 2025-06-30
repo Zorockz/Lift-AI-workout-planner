@@ -5,7 +5,6 @@ import { useOnboarding } from '../../contexts/OnboardingContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { BlurView } from 'expo-blur';
 import { useWorkout } from '../../contexts/WorkoutContext';
-import { usePurchases } from '../../hooks/usePurchases';
 import { Ionicons } from '@expo/vector-icons';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -16,12 +15,10 @@ const PlanPreviewScreen = () => {
   const { onboarding, completeOnboarding } = useOnboarding();
   const { completeOnboarding: completeAuthOnboarding } = useAuth();
   const { setWorkoutPlan } = useWorkout();
-  const { hasPremium, presentPaywallIfNeeded } = usePurchases();
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(true);
   const [hasInitialized, setHasInitialized] = useState(false);
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
-  const [showPremiumGate, setShowPremiumGate] = useState(false);
   const fadeAnim = new Animated.Value(0);
 
   // Initialize plan data only once
@@ -53,21 +50,6 @@ const PlanPreviewScreen = () => {
 
   const handleComplete = useCallback(async () => {
     try {
-      // Check if user has premium access
-      if (!hasPremium) {
-        // Try to present paywall if needed
-        const result = await presentPaywallIfNeeded('pro');
-        if (result.success || result.result === 'NOT_PRESENTED') {
-          // User now has premium, complete onboarding and proceed
-          await completeOnboarding();
-          await completeAuthOnboarding();
-          navigation.navigate('FullPlan', { plan });
-        } else {
-          // User cancelled or there was an error
-          setShowPremiumGate(true);
-        }
-        return;
-      }
       // User has premium, complete onboarding and proceed
       await completeOnboarding();
       await completeAuthOnboarding();
@@ -75,56 +57,7 @@ const PlanPreviewScreen = () => {
     } catch (error) {
       // Handle onboarding completion error silently
     }
-  }, [completeOnboarding, completeAuthOnboarding, hasPremium, plan, navigation, presentPaywallIfNeeded]);
-
-  const checkPremiumAccess = async () => {
-    if (hasPremium) {
-      return true; // User has premium, allow access
-    }
-
-    try {
-      // Try to present paywall if needed
-      const result = await presentPaywallIfNeeded('pro');
-      
-      if (result.success) {
-        // Purchase was successful
-        Alert.alert('Welcome to Premium!', 'You now have access to the full workout plan.');
-        return true;
-      } else if (result.result === 'NOT_PRESENTED') {
-        // User already has premium but it wasn't detected
-        return true;
-      } else {
-        // User cancelled or there was an error
-        Alert.alert('Premium Required', 'The full workout plan is a premium feature. Please upgrade to access it.');
-        return false;
-      }
-    } catch (error) {
-      console.error('Paywall error:', error);
-      Alert.alert('Error', 'Failed to load premium options. Please try again.');
-      return false;
-    }
-  };
-
-  const handleUpgradeToPremium = async () => {
-    const hasAccess = await checkPremiumAccess();
-    if (hasAccess) {
-      // User now has premium, complete onboarding
-      setShowPremiumGate(false);
-      await completeOnboarding();
-      await completeAuthOnboarding();
-    }
-  };
-
-  const handleShowCustomPaywall = async () => {
-    // Use the same direct paywall approach
-    const hasAccess = await checkPremiumAccess();
-    if (hasAccess) {
-      // User now has premium, complete onboarding
-      setShowPremiumGate(false);
-      await completeOnboarding();
-      await completeAuthOnboarding();
-    }
-  };
+  }, [completeOnboarding, completeAuthOnboarding, plan, navigation]);
 
   const getExerciseEmoji = useCallback((type) => {
     const emojis = {
@@ -352,115 +285,72 @@ const PlanPreviewScreen = () => {
 
   return (
     <View style={styles.container}>
-      {showPremiumGate ? (
-        // Premium Gate UI
-        <View style={styles.premiumGateContainer}>
-          <View style={styles.premiumGateHeader}>
-            <Ionicons name="star" size={80} color="#FFD700" style={styles.premiumIcon} />
-            <Text style={styles.premiumTitle}>Premium Required</Text>
-            <Text style={styles.premiumDescription}>
-              To access your complete workout plan and start your fitness journey, you'll need to upgrade to Premium.
-            </Text>
-          </View>
-          
-          <View style={styles.premiumBenefits}>
-            <Text style={styles.benefitsTitle}>Premium Benefits:</Text>
-            <Text style={styles.benefitItem}>• Complete workout plans with all exercises</Text>
-            <Text style={styles.benefitItem}>• Detailed sets, reps, and rest times</Text>
-            <Text style={styles.benefitItem}>• Progress tracking and analytics</Text>
-            <Text style={styles.benefitItem}>• Generate new workouts anytime</Text>
-            <Text style={styles.benefitItem}>• Advanced workout customization</Text>
-            <Text style={styles.benefitItem}>• Unlimited workout history</Text>
-          </View>
-          
-          <View style={styles.premiumButtons}>
-            <TouchableOpacity
-              style={styles.upgradeButton}
-              onPress={handleUpgradeToPremium}
-            >
-              <Ionicons name="star" size={20} color="#fff" style={styles.buttonIcon} />
-              <Text style={styles.upgradeButtonText}>Upgrade to Premium</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => setShowPremiumGate(false)}
-            >
-              <Text style={styles.backButtonText}>Back to Preview</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      ) : (
-        // Normal Plan Preview UI
-        <>
-          <ScrollView style={styles.scrollView} contentContainerStyle={{ paddingBottom: 40 }}>
-            <View style={styles.header}>
-              <Text style={styles.title}>Your Personalized Plan</Text>
-              <View style={styles.metadata}>
-                <View style={styles.metadataRow}>
-                  <View style={styles.metadataItem}>
-                    <Text style={styles.metadataLabel}>Goal</Text>
-                    <Text style={styles.metadataValue}>
-                      {getGoalEmoji(plan.metadata.goal)} {plan.metadata.goal.replace('_', ' ')}
-                    </Text>
-                  </View>
-                  <View style={styles.metadataItem}>
-                    <Text style={styles.metadataLabel}>Level</Text>
-                    <Text style={styles.metadataValue}>
-                      {getExperienceEmoji(plan.metadata.experience)} {plan.metadata.experience}
-                    </Text>
-                  </View>
-                </View>
-                <View style={styles.metadataRow}>
-                  <View style={styles.metadataItem}>
-                    <Text style={styles.metadataLabel}>Location</Text>
-                    <Text style={styles.metadataValue}>
-                      {getLocationEmoji(plan.metadata.location)} {plan.metadata.location.replace('_', ' ')}
-                    </Text>
-                  </View>
-                  <View style={styles.metadataItem}>
-                    <Text style={styles.metadataLabel}>Workouts</Text>
-                    <Text style={styles.metadataValue}>
-                      📅 {plan.metadata.daysPerWeek}/week
-                    </Text>
-                  </View>
-                </View>
-                <View style={styles.equipmentContainer}>
-                  <Text style={styles.equipmentLabel}>Equipment</Text>
-                  <Text style={styles.equipmentValue}>
-                    {plan.metadata.equipment.map(eq => `${getEquipmentEmoji(eq)} ${eq.replace('_', ' ')}`).join(' • ')}
-                  </Text>
-                </View>
+      <ScrollView style={styles.scrollView} contentContainerStyle={{ paddingBottom: 40 }}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Your Personalized Plan</Text>
+          <View style={styles.metadata}>
+            <View style={styles.metadataRow}>
+              <View style={styles.metadataItem}>
+                <Text style={styles.metadataLabel}>Goal</Text>
+                <Text style={styles.metadataValue}>
+                  {getGoalEmoji(plan.metadata.goal)} {plan.metadata.goal.replace('_', ' ')}
+                </Text>
+              </View>
+              <View style={styles.metadataItem}>
+                <Text style={styles.metadataLabel}>Level</Text>
+                <Text style={styles.metadataValue}>
+                  {getExperienceEmoji(plan.metadata.experience)} {plan.metadata.experience}
+                </Text>
               </View>
             </View>
-
-            <View style={styles.planContainer}>
-              <Text style={styles.previewTitle}>Preview Your Week</Text>
-              <Text style={styles.previewSubtitle}>Tap on any day to see details</Text>
-              
-              {weekPlanEntries.length === 0 ? (
-                <Text style={{ fontSize: 16, color: '#666', textAlign: 'center', marginVertical: 32 }}>
-                  No workouts generated for your preferences.
+            <View style={styles.metadataRow}>
+              <View style={styles.metadataItem}>
+                <Text style={styles.metadataLabel}>Location</Text>
+                <Text style={styles.metadataValue}>
+                  {getLocationEmoji(plan.metadata.location)} {plan.metadata.location.replace('_', ' ')}
                 </Text>
-              ) : (
-                <View style={styles.cardsContainer}>
-                  {weekPlanEntries.map(([dayKey, day], index) => 
-                    index === selectedDayIndex 
-                      ? renderDayCard(day, index)
-                      : renderBlurredCard(day, index)
-                  )}
-                </View>
+              </View>
+              <View style={styles.metadataItem}>
+                <Text style={styles.metadataLabel}>Workouts</Text>
+                <Text style={styles.metadataValue}>
+                  📅 {plan.metadata.daysPerWeek}/week
+                </Text>
+              </View>
+            </View>
+            <View style={styles.equipmentContainer}>
+              <Text style={styles.equipmentLabel}>Equipment</Text>
+              <Text style={styles.equipmentValue}>
+                {plan.metadata.equipment.map(eq => `${getEquipmentEmoji(eq)} ${eq.replace('_', ' ')}`).join(' • ')}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.planContainer}>
+          <Text style={styles.previewTitle}>Preview Your Week</Text>
+          <Text style={styles.previewSubtitle}>Tap on any day to see details</Text>
+          
+          {weekPlanEntries.length === 0 ? (
+            <Text style={{ fontSize: 16, color: '#666', textAlign: 'center', marginVertical: 32 }}>
+              No workouts generated for your preferences.
+            </Text>
+          ) : (
+            <View style={styles.cardsContainer}>
+              {weekPlanEntries.map(([dayKey, day], index) => 
+                index === selectedDayIndex 
+                  ? renderDayCard(day, index)
+                  : renderBlurredCard(day, index)
               )}
             </View>
-          </ScrollView>
+          )}
+        </View>
+      </ScrollView>
 
-          <View style={styles.footer}>
-            <TouchableOpacity style={styles.fullWidthButton} onPress={handleComplete}>
-              <Text style={styles.buttonText}>See Full Plan</Text>
-            </TouchableOpacity>
-          </View>
-        </>
-      )}
+      <View style={styles.footer}>
+        <TouchableOpacity style={styles.fullWidthButton} onPress={handleComplete}>
+          <Text style={styles.buttonText}>See Full Plan</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -750,89 +640,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     marginTop: 10,
-  },
-  premiumGateContainer: {
-    flex: 1,
-    backgroundColor: '#fff',
-    padding: 24,
-    justifyContent: 'center',
-  },
-  premiumGateHeader: {
-    alignItems: 'center',
-    marginBottom: 32,
-  },
-  premiumIcon: {
-    marginBottom: 16,
-  },
-  premiumTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1B365D',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  premiumDescription: {
-    fontSize: 16,
-    color: '#6C7580',
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  premiumBenefits: {
-    marginBottom: 32,
-  },
-  benefitsTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1B365D',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  benefitItem: {
-    fontSize: 16,
-    color: '#6C7580',
-    marginBottom: 8,
-    lineHeight: 22,
-  },
-  premiumButtons: {
-    gap: 12,
-  },
-  upgradeButton: {
-    backgroundColor: '#2075FF',
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-    shadowColor: '#2075FF',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  buttonIcon: {
-    marginRight: 8,
-  },
-  upgradeButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  backButton: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#e2e5ea',
-  },
-  backButtonText: {
-    color: '#6C7580',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });
 

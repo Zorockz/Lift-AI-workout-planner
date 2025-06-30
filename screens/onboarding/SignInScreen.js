@@ -23,34 +23,33 @@ const SignInScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
+  const [error, setError] = useState('');
   const { signIn, isOnboardingComplete } = useAuth();
   const { onboarding } = useOnboarding();
 
   const handleSignIn = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      setError('Please fill in all fields');
       return;
     }
 
+    setError('');
     setLoading(true);
 
     try {
       const result = await signIn(email, password);
 
       if (result.success) {
-        // Check if onboarding is completed
-        if (isOnboardingComplete) {
-          // User has completed onboarding, they should go to main app
-          // The AppNavigator will handle this automatically
-        } else {
-          // User hasn't completed onboarding, continue with onboarding
-          navigation.navigate('OnboardingSummary');
-        }
+        // For existing users who successfully sign in, they should go to main app
+        // The AppNavigator will handle this automatically based on user state and onboarding completion
+        // No need to manually navigate - the AppNavigator will detect the user is signed in
+        // and onboarding is complete, then show the MainNavigator (HomeScreen)
       } else {
-        Alert.alert('Error', result.error);
+        // Show error inline instead of alert
+        setError(result.error || 'Sign in failed');
       }
     } catch (error) {
-      Alert.alert('Error', 'Something went wrong. Please try again.');
+      setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -128,7 +127,10 @@ const SignInScreen = ({ navigation }) => {
                 style={styles.input}
                 placeholder="Enter your email"
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(text) => {
+                  setEmail(text);
+                  setError(''); // Clear error when user types
+                }}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -141,12 +143,21 @@ const SignInScreen = ({ navigation }) => {
                 style={styles.input}
                 placeholder="Enter your password"
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(text) => {
+                  setPassword(text);
+                  setError(''); // Clear error when user types
+                }}
                 secureTextEntry
                 autoCapitalize="none"
                 autoCorrect={false}
               />
             </View>
+
+            {error ? (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            ) : null}
 
             <Button
               title={loading ? 'Signing In...' : 'Sign In'}
@@ -206,6 +217,20 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     backgroundColor: '#fafafa',
+  },
+  errorContainer: {
+    backgroundColor: '#FEE',
+    borderWidth: 1,
+    borderColor: '#FCC',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: '#C33',
+    fontSize: 14,
+    textAlign: 'center',
+    fontWeight: '500',
   },
   forgotPasswordButton: {
     alignItems: 'center',

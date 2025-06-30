@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { onAuthStateChanged, signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { getAuthInstance, db } from '../config/firebase';
 import { BasicAuthService } from '../services/authService';
 
@@ -38,8 +38,28 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const auth = getAuthInstance();
     
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
+      
+      // If user is signed in, check onboarding completion status
+      if (firebaseUser) {
+        const onboardingCompleted = await AsyncStorage.getItem('isOnboardingComplete');
+        const hasCompletedOnboardingBefore = await AsyncStorage.getItem('hasCompletedOnboardingBefore');
+        
+        if (onboardingCompleted === 'true') {
+          // User has explicitly completed onboarding before
+          setIsOnboardingComplete(true);
+        } else if (hasCompletedOnboardingBefore === 'true') {
+          // User has completed onboarding in a previous session
+          await AsyncStorage.setItem('isOnboardingComplete', 'true');
+          setIsOnboardingComplete(true);
+        } else {
+          // New user or user who hasn't completed onboarding yet
+          // Don't auto-set onboarding complete - let them go through the flow
+          setIsOnboardingComplete(false);
+        }
+      }
+      
       setLoading(false);
     });
 
@@ -91,7 +111,7 @@ export const AuthProvider = ({ children }) => {
 
   const clearError = () => setError(null);
 
-  const signIn = async (email, password) => {
+  const signIn = async (email, password, isNewAccount = false) => {
     try {
       setLoading(true);
       setError(null);
@@ -112,19 +132,35 @@ export const AuthProvider = ({ children }) => {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
-      // Get additional user data from Firestore
+      // Get or create user data in Firestore
       try {
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          // You can store additional user data here if needed
+        const userRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userRef);
+        if (!userDoc.exists()) {
+          // Create user document if it doesn't exist
+          await setDoc(userRef, {
+            email: user.email,
+            createdAt: new Date(),
+            accountCreated: true,
+          });
         }
+        // You can store additional user data here if needed
       } catch (firestoreError) {
+        // Optionally log or handle Firestore error
       }
       
-      // Check if onboarding is complete
-      const onboardingCompleted = await AsyncStorage.getItem('isOnboardingComplete');
-      setIsOnboardingComplete(onboardingCompleted === 'true');
+      // Only auto-set onboarding complete for existing users (sign-ins), not new accounts
+      if (!isNewAccount) {
+        const onboardingCompleted = await AsyncStorage.getItem('isOnboardingComplete');
+        if (onboardingCompleted !== 'true') {
+          // If onboarding completion status is not explicitly set, assume it's complete for existing users
+          await AsyncStorage.setItem('isOnboardingComplete', 'true');
+          setIsOnboardingComplete(true);
+        } else {
+          setIsOnboardingComplete(true);
+        }
+      }
+      // For new accounts, don't set onboarding complete - let them go through onboarding flow
       
       return { success: true };
     } catch (error) {
@@ -151,6 +187,7 @@ export const AuthProvider = ({ children }) => {
     try {
       setIsOnboardingComplete(true);
       await AsyncStorage.setItem('isOnboardingComplete', 'true');
+      await AsyncStorage.setItem('hasCompletedOnboardingBefore', 'true');
     } catch (error) {
       // Handle onboarding completion error silently
     }

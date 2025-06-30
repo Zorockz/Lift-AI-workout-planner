@@ -44,7 +44,6 @@
       "name": "Lifts AI"
     },
     "scheme": "liftsaiworkoutplanner",
-    "privacy": "public",
     "platforms": [
       "ios",
       "web"
@@ -55,17 +54,6 @@
       "eas": {
         "projectId": "dd767f2f-38a0-4eff-bcea-8b0ac49c018a"
       }
-    },
-    "hooks": {
-      "postPublish": [
-        {
-          "file": "sentry-expo/upload-sourcemaps",
-          "config": {
-            "organization": "your-sentry-org",
-            "project": "lifts-ai-workout-planner"
-          }
-        }
-      ]
     },
     "icon": "./assets/lifts_ai.png",
     "splash": {

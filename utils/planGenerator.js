@@ -462,6 +462,7 @@ const savePlan = async (plan) => {
   } catch (error) {
     if (error.code === 'permission-denied') {
       try {
+        const planId = Date.now().toString();
         const publicPlansRef = collection(db, 'publicPlans');
         const publicPlanDoc = doc(publicPlansRef, planId);
         await setDoc(publicPlanDoc, {

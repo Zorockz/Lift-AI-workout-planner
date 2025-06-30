@@ -1,4 +1,3 @@
-import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 
 const OnboardingHeader = ({ title, onBack, onSkip, showSkip = true }) => {

@@ -1,35 +1,31 @@
-import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
+import { useEffect, useRef } from 'react';
 
-const ProgressBar = ({ currentStep = 1, totalSteps = 1 }) => {
+const ProgressBar = ({ currentStep, totalSteps, style }) => {
   const progressAnim = useRef(new Animated.Value(0)).current;
 
-  // Validate props
-  const validCurrentStep = Math.max(1, Math.min(currentStep || 1, totalSteps || 1));
-  const validTotalSteps = Math.max(1, totalSteps || 1);
-
   useEffect(() => {
-    const progress = (validCurrentStep / validTotalSteps) * 100;
+    const progress = currentStep / totalSteps;
     Animated.timing(progressAnim, {
       toValue: progress,
       duration: 300,
       useNativeDriver: false,
     }).start();
-  }, [validCurrentStep, validTotalSteps]);
+  }, [currentStep, totalSteps, progressAnim]);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.track}>
-        <Animated.View 
+    <View style={[styles.container, style]}>
+      <View style={styles.background}>
+        <Animated.View
           style={[
-            styles.fill, 
-            { 
+            styles.progress,
+            {
               width: progressAnim.interpolate({
-                inputRange: [0, 100],
+                inputRange: [0, 1],
                 outputRange: ['0%', '100%'],
               }),
             },
-          ]} 
+          ]}
         />
       </View>
     </View>
@@ -42,13 +38,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 16,
   },
-  track: {
+  background: {
     height: 4,
     backgroundColor: '#E2E5EA',
     borderRadius: 2,
     overflow: 'hidden',
   },
-  fill: {
+  progress: {
     height: '100%',
     backgroundColor: '#2075FF',
     borderRadius: 2,

@@ -7,7 +7,6 @@ A comprehensive React Native workout planning app that uses AI to create persona
 - 🤖 AI-powered workout generation
 - 📱 Cross-platform (iOS, Web)
 - 🔐 Secure authentication with Firebase
-- 💳 In-app purchases with RevenueCat
 - 📊 Progress tracking
 - 🎯 Personalized goals
 - 🏋️ Multiple workout types (Strength, Cardio, Flexibility)
@@ -16,7 +15,6 @@ A comprehensive React Native workout planning app that uses AI to create persona
 
 - **Frontend**: React Native 0.79.4, Expo SDK 53
 - **Authentication**: Firebase Auth
-- **Payments**: RevenueCat
 - **Navigation**: React Navigation 7
 - **State Management**: React Context API
 - **Styling**: React Native StyleSheet

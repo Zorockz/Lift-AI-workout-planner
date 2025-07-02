@@ -134,6 +134,8 @@ const CreateAccountScreen = ({ navigation }) => {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
+                textContentType="emailAddress"
+                autoComplete="email"
               />
             </View>
 
@@ -147,6 +149,8 @@ const CreateAccountScreen = ({ navigation }) => {
                 secureTextEntry
                 autoCapitalize="none"
                 autoCorrect={false}
+                textContentType="newPassword"
+                autoComplete="password-new"
               />
             </View>
 
@@ -160,6 +164,8 @@ const CreateAccountScreen = ({ navigation }) => {
                 secureTextEntry
                 autoCapitalize="none"
                 autoCorrect={false}
+                textContentType="newPassword"
+                autoComplete="password-new"
               />
             </View>
 

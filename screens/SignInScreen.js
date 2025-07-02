@@ -134,6 +134,8 @@ const SignInScreen = ({ navigation }) => {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
+                  textContentType="emailAddress"
+                  autoComplete="email"
                 />
               </View>
 
@@ -146,6 +148,8 @@ const SignInScreen = ({ navigation }) => {
                   secureTextEntry={!showPassword}
                   autoCapitalize="none"
                   autoCorrect={false}
+                  textContentType="password"
+                  autoComplete="password"
                 />
                 <TouchableOpacity
                   style={styles.eyeButton}

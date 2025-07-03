@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput, Image, ActivityIndicator, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput, Image, ActivityIndicator, Linking, Modal } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,7 +11,7 @@ import { db } from '../config/firebase';
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
-  const { user, signOut, error, clearError, loading } = useAuth();
+  const { user, signOut, error, clearError, loading, deleteAccount } = useAuth();
   const [workouts, setWorkouts] = useState([]);
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
 
@@ -19,6 +19,7 @@ const ProfileScreen = () => {
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
   const [photo, setPhoto] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Load workouts (both cloud and local)
   useEffect(() => {
@@ -176,6 +177,60 @@ const ProfileScreen = () => {
     }
   };
 
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'Are you sure you want to delete your account? This action cannot be undone.',
+      [
+        { text: 'No', style: 'cancel' },
+        {
+          text: 'Confirm',
+          style: 'destructive',
+          onPress: async () => {
+            setDeleting(true);
+            const start = Date.now();
+            let error = null;
+            try {
+              await deleteAccount();
+            } catch (e) {
+              error = e;
+            }
+            const elapsed = Date.now() - start;
+            const wait = Math.max(0, 8000 - elapsed);
+            setTimeout(() => {
+              setDeleting(false);
+              if (error) {
+                Alert.alert('Error', error.message || 'Failed to delete account.');
+              } else {
+                Alert.alert('Account deleted', 'Your account has been deleted.');
+              }
+            }, wait);
+          },
+        },
+      ]
+    );
+  };
+
+  if (deleting) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Modal
+          visible={true}
+          transparent
+          animationType="fade"
+          onRequestClose={() => {}}
+        >
+          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', alignItems: 'center' }}>
+            <View style={{ backgroundColor: '#fff', padding: 32, borderRadius: 16, alignItems: 'center' }}>
+              <ActivityIndicator size="large" color="#2075FF" />
+              <Text style={{ marginTop: 16, fontSize: 16, color: '#1B365D' }}>Deleting your account...</Text>
+            </View>
+          </View>
+        </Modal>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -237,6 +292,17 @@ const ProfileScreen = () => {
         >
           <Text style={styles.logoutText}>
             {loading ? 'Signing out...' : 'Log Out'}
+          </Text>
+        </TouchableOpacity>
+
+        {/* Delete Account Button */}
+        <TouchableOpacity
+          style={[styles.logoutButton, { backgroundColor: '#FF3B30' }, loading && styles.disabledButton]}
+          onPress={handleDeleteAccount}
+          disabled={loading}
+        >
+          <Text style={styles.logoutText}>
+            {loading ? 'Processing...' : 'Delete Account'}
           </Text>
         </TouchableOpacity>
 

@@ -193,6 +193,21 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  const deleteAccount = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      await BasicAuthService.deleteCurrentUser();
+      setUser(null);
+      setIsOnboardingComplete(false);
+      await AsyncStorage.clear();
+    } catch (error) {
+      setError(error.message || 'Failed to delete account.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -206,6 +221,7 @@ export const AuthProvider = ({ children }) => {
         clearError,
         completeOnboarding,
         signIn,
+        deleteAccount,
       }}
     >
       {children}

@@ -72,8 +72,11 @@ const HomeScreen = () => {
   };
 
   const handleSeeFullPlan = () => {
+    console.log('See Full Plan pressed', workoutPlan);
     if (workoutPlan && workoutPlan.weekPlan) {
       navigation.navigate('FullPlan', { plan: { weekPlan: workoutPlan.weekPlan } });
+    } else {
+      alert('No plan data available!');
     }
   };
 

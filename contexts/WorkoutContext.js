@@ -30,6 +30,15 @@ export const WorkoutProvider = ({ children }) => {
         const savedPlan = await AsyncStorage.getItem('workoutPlan');
         if (savedPlan) {
           setWorkoutPlan(JSON.parse(savedPlan));
+        } else {
+          // No plan found, generate a default plan
+          try {
+            const defaultPlan = await generatePlan({}); // Pass default or user preferences if available
+            setWorkoutPlan(defaultPlan);
+            await AsyncStorage.setItem('workoutPlan', JSON.stringify(defaultPlan));
+          } catch (genErr) {
+            setError('Failed to generate default workout plan');
+          }
         }
 
         // Load completed exercises

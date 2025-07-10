@@ -2,7 +2,7 @@
   "expo": {
     "name": "Lifts AI",
     "slug": "lifts-ai-workout-planner",
-    "version": "1.0.0",
+    "version": "1.2.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "assetBundlePatterns": [
@@ -11,7 +11,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.zorockz.liftai",
-      "buildNumber": "1.0.0",
+      "buildNumber": "1.2.0",
       "infoPlist": {
         "CFBundleDisplayName": "Lifts AI",
         "NSCameraUsageDescription": "This app uses the camera to take profile pictures and document your fitness progress.",
@@ -52,7 +52,7 @@
       "googleClientId": "455544394958-5t0jo86dpiu6kruh6lrg4jbcl0vk7dnu.apps.googleusercontent.com",
       "iosClientId": "455544394958-5t0jo86dpiu6kruh6lrg4jbcl0vk7dnu.apps.googleusercontent.com",
       "eas": {
-        "projectId": "dd767f2f-38a0-4eff-bcea-8b0ac49c018a"
+        "projectId": "eebcaa1b-4ff8-4ce0-adde-44a37b82b4f8"
       }
     },
     "icon": "./assets/lifts_ai.png",

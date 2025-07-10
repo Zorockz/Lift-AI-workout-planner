@@ -14,6 +14,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useOnboarding } from '../contexts/OnboardingContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 
 const SignInScreen = ({ navigation }) => {
   const { signIn, loading, authError, clearError, user, authStateSettled } = useAuth();
@@ -23,6 +24,14 @@ const SignInScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [localError, setLocalError] = useState('');
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setEmail('');
+      setPassword('');
+      setLocalError('');
+    }, [])
+  );
 
   // Navigate based on auth state and onboarding completion
   useEffect(() => {
@@ -127,15 +136,15 @@ const SignInScreen = ({ navigation }) => {
             <View style={styles.formContainer}>
               <View style={styles.inputContainer}>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { backgroundColor: '#fff' }]}
                   placeholder="Email"
                   value={email}
                   onChangeText={handleEmailChange}
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
-                  textContentType="emailAddress"
-                  autoComplete="email"
+                  textContentType="none"
+                  autoComplete="off"
                 />
               </View>
 

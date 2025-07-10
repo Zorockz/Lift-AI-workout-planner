@@ -126,6 +126,12 @@ const ProfileScreen = () => {
   const handleSignOut = async () => {
     try {
       await signOut();
+      if (navigation && navigation.reset) {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'SignIn' }],
+        });
+      }
     } catch (error) {
       // Handle sign out error silently
     }
